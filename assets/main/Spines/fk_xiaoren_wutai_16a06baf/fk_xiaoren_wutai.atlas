@@ -1,0 +1,125 @@
+
+fk_xiaoren_wutai.png
+size: 554,58
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+yy
+  rotate: false
+  xy: 2, 2
+  size: 80, 54
+  orig: 80, 54
+  offset: 0, 0
+  index: -1
+zhengtou1
+  rotate: false
+  xy: 84, 9
+  size: 43, 47
+  orig: 43, 47
+  offset: 0, 0
+  index: -1
+zhengtou2
+  rotate: false
+  xy: 129, 9
+  size: 43, 47
+  orig: 43, 47
+  offset: 0, 0
+  index: -1
+zhengtou3
+  rotate: false
+  xy: 174, 9
+  size: 43, 47
+  orig: 43, 47
+  offset: 0, 0
+  index: -1
+zhengtou4
+  rotate: false
+  xy: 219, 9
+  size: 43, 47
+  orig: 43, 47
+  offset: 0, 0
+  index: -1
+zhengtou5
+  rotate: false
+  xy: 264, 9
+  size: 43, 47
+  orig: 43, 47
+  offset: 0, 0
+  index: -1
+zhengtou6
+  rotate: false
+  xy: 309, 9
+  size: 43, 47
+  orig: 43, 47
+  offset: 0, 0
+  index: -1
+zhengtou7
+  rotate: false
+  xy: 354, 9
+  size: 43, 47
+  orig: 43, 47
+  offset: 0, 0
+  index: -1
+zhengtou8
+  rotate: false
+  xy: 399, 9
+  size: 43, 47
+  orig: 43, 47
+  offset: 0, 0
+  index: -1
+zhengzuojiao1
+  rotate: false
+  xy: 444, 28
+  size: 20, 28
+  orig: 20, 28
+  offset: 0, 0
+  index: -1
+zhengzuojiao2
+  rotate: false
+  xy: 466, 28
+  size: 20, 28
+  orig: 20, 28
+  offset: 0, 0
+  index: -1
+zhengzuojiao3
+  rotate: false
+  xy: 488, 28
+  size: 20, 28
+  orig: 20, 28
+  offset: 0, 0
+  index: -1
+zhengzuojiao4
+  rotate: false
+  xy: 510, 28
+  size: 20, 28
+  orig: 20, 28
+  offset: 0, 0
+  index: -1
+zhengzuojiao5
+  rotate: false
+  xy: 532, 28
+  size: 20, 28
+  orig: 20, 28
+  offset: 0, 0
+  index: -1
+zhengzuojiao6
+  rotate: true
+  xy: 444, 6
+  size: 20, 28
+  orig: 20, 28
+  offset: 0, 0
+  index: -1
+zhengzuojiao7
+  rotate: true
+  xy: 474, 6
+  size: 20, 28
+  orig: 20, 28
+  offset: 0, 0
+  index: -1
+zhengzuojiao8
+  rotate: true
+  xy: 504, 6
+  size: 20, 28
+  orig: 20, 28
+  offset: 0, 0
+  index: -1

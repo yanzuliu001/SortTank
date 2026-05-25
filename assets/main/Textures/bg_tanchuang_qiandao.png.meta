@@ -1,0 +1,38 @@
+{
+  "ver": "2.3.7",
+  "uuid": "4f8e022b-68b9-438e-9718-c7e7c2333dfc",
+  "importer": "texture",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 646,
+  "height": 1071,
+  "platformSettings": {},
+  "subMetas": {
+    "bg_tanchuang_qiandao": {
+      "ver": "1.0.6",
+      "uuid": "95c9bf42-fa77-4e8a-83a1-6d1f7343f153",
+      "importer": "sprite-frame",
+      "rawTextureUuid": "4f8e022b-68b9-438e-9718-c7e7c2333dfc",
+      "trimType": "custom",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 646,
+      "height": 1071,
+      "rawWidth": 646,
+      "rawHeight": 1071,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

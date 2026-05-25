@@ -1,0 +1,38 @@
+{
+  "ver": "2.3.7",
+  "uuid": "78184899-deda-48ff-bd6c-5edf7262d933",
+  "importer": "texture",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 724,
+  "height": 1143,
+  "platformSettings": {},
+  "subMetas": {
+    "bg_tanchuang_paihang": {
+      "ver": "1.0.6",
+      "uuid": "47a03125-2d57-445e-a3b6-522172507f96",
+      "importer": "sprite-frame",
+      "rawTextureUuid": "78184899-deda-48ff-bd6c-5edf7262d933",
+      "trimType": "custom",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 1,
+      "trimY": 0,
+      "width": 722,
+      "height": 1143,
+      "rawWidth": 724,
+      "rawHeight": 1143,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}
