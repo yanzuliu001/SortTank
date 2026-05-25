@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "bg_tanchuang1",
+    "texture": "4ed57938-5571-4576-9543-fdb367911b9f",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      646,
+      733
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      646,
+      733
+    ],
+    "capInsets": [
+      0,
+      322,
+      0,
+      329
+    ]
+  }
+}

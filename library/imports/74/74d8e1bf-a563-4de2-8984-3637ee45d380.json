@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "feidan",
+    "texture": "da6e8ec2-cc88-46b8-951b-f62a1f18e262",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      449,
+      141
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      449,
+      141
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

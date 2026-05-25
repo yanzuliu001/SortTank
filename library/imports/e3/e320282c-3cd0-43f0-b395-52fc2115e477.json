@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "xiangzi_2",
+    "texture": "9285609d-6593-41cd-a66f-956af779a580",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      1736,
+      182
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      1736,
+      182
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

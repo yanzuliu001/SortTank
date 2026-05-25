@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "img_xueliang02",
+    "texture": "bd78212b-d670-421f-b1e3-004d4df4f558",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      152,
+      26
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      152,
+      26
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

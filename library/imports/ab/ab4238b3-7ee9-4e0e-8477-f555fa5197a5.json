@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "wangzi",
+    "texture": "c32ec684-4424-45d3-8ef9-d3cd6786e08e",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      660,
+      173
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      660,
+      173
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

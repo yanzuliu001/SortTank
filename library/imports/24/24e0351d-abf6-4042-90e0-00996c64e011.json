@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "bg_tanchuang_moregame",
+    "texture": "b10c4301-0ab8-47c0-b120-91e454f69c0e",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      650,
+      953
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      650,
+      953
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

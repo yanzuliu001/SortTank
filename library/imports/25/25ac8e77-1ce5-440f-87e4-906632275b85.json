@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "icon_huidao",
+    "texture": "e4e32bf0-7b4d-43f1-b086-9b526e582514",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      68,
+      80
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      68,
+      80
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

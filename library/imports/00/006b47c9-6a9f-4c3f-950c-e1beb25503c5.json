@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "bg_shengyu",
+    "texture": "dc16c1a0-a267-4085-b46b-7d0914a64489",
+    "atlas": "",
+    "rect": [
+      1,
+      0,
+      115,
+      84
+    ],
+    "offset": [
+      0,
+      0.5
+    ],
+    "originalSize": [
+      117,
+      85
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

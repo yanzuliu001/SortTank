@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "img_moban",
+    "texture": "57b4246a-c468-4f2b-b37f-e5beae4d65ec",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      448,
+      461
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      448,
+      461
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

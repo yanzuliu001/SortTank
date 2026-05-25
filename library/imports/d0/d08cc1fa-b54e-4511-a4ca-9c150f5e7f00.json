@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "moshi2",
+    "texture": "36a2d2a3-ecc5-4166-8789-a59f490b4aa9",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      204,
+      204
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      204,
+      204
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "__type__": "cc.JsonAsset",
+  "_name": "theme",
+  "_objFlags": 0,
+  "_native": "",
+  "json": {
+    "keys": [
+      "id",
+      "theme",
+      "themeName",
+      "isHot"
+    ],
+    "values": [
+      [
+        1,
+        0,
+        "主线",
+        0
+      ]
+    ]
+  }
+}

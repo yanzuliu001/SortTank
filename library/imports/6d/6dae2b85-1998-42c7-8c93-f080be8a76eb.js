@@ -1,0 +1,42 @@
+"use strict";
+cc._RF.push(module, '6dae2uFGZhCx4yT8IC+inbr', 'ShuShuConst');
+// scripts/ShuShuConst.js
+
+"use strict";
+
+exports.ShuShuConst = void 0;
+exports.ShuShuConst = {
+  Level_Page: "Level_Page",
+  Level_Tips: "Level_Tips",
+  Level_Reset: "Level_Reset",
+  Level_Win: "Level_Win",
+  Level_Lose: "Level_Lose",
+  reward_btn: "reward_btn",
+  btn: "btn",
+  page: "page",
+  Level_End: "Level_End",
+  Level_Course: "Level_Course",
+  Level_Pause: "Level_Pause",
+  Level_Return: "Level_Return",
+  Skin_unlock: "Skin_unlock",
+  Skin_get: "Skin_get",
+  Level_queue: "Level_queue",
+  Sign: "Sign",
+  Play: "Play",
+  Level_Unscrew: "Level_Unscrew",
+  Store: "Store",
+  Store_page: "Store_page",
+  share: "share",
+  shareSuc: "shareSuc",
+  Booster_page: "Booster_page",
+  Booster_use: "Booster_use",
+  Gift_page: "Gift_page",
+  Gift_tap: "Gift_tap",
+  Activity_page: "Activity_page",
+  Activity_get: "Activity_get",
+  Level_Progress: "Level_Progress",
+  First_Progress: "First_Progress",
+  Unit: "Unit"
+};
+
+cc._RF.pop();

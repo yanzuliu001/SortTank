@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "huakucha",
+    "texture": "8548d80d-dfbd-45c1-adfb-aa45aea79206",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      692,
+      94
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      692,
+      94
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

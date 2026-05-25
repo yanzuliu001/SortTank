@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "bg_qipao3",
+    "texture": "7e6c2dad-c507-476b-a32b-e44b9ec70cb1",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      256,
+      48
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      256,
+      48
+    ],
+    "capInsets": [
+      35,
+      0,
+      31,
+      0
+    ]
+  }
+}

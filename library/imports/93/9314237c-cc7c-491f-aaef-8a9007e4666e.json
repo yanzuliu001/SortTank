@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "icon_tiaoguo",
+    "texture": "2fb8b2d3-5129-45e8-8942-674329abf87c",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      75,
+      78
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      75,
+      78
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

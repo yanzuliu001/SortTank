@@ -1,0 +1,18 @@
+{
+  "__type__": "cc.Material",
+  "_name": "specularGloss",
+  "_techniqueData": {
+    "0": {
+      "defines": {
+        "USE_TEXTURE": true
+      },
+      "props": {
+        "strength": 1.1,
+        "width": 0.2
+      }
+    }
+  },
+  "_effectAsset": {
+    "__uuid__": "807726aa-682d-4fdc-9ed9-4ee789999ce3"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "dazhao",
+    "texture": "b5801f90-5d7f-4e54-a2f5-0d36f54b982c",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      676,
+      529
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      676,
+      529
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

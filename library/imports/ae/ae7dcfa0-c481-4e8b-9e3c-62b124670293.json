@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "img_piaodai_shibai",
+    "texture": "8e69ebe1-a0ce-4668-aa92-2fc600b064ad",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      644,
+      175
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      644,
+      175
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

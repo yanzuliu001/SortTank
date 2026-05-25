@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "longwei",
+    "texture": "fbf557d8-ec8b-4564-9b5a-587bee3fc8fe",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      210,
+      124
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      210,
+      124
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

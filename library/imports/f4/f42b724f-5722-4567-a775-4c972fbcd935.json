@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "bg_jiangli",
+    "texture": "c8f55f03-93d6-42ab-8aa9-40a7800a9d23",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      506,
+      281
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      506,
+      281
+    ],
+    "capInsets": [
+      0,
+      103,
+      0,
+      86
+    ]
+  }
+}

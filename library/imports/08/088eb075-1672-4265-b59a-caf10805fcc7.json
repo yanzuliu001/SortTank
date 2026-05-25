@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "bg_tanchuang_cebian",
+    "texture": "d43fabd5-e447-49e0-906f-249876b06c94",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      646,
+      1033
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      646,
+      1033
+    ],
+    "capInsets": [
+      0,
+      365,
+      0,
+      304
+    ]
+  }
+}

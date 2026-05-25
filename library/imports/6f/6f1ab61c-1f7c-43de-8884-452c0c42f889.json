@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "feidan_yanwu",
+    "texture": "936edfc5-d9c5-4696-aa6b-3c8ef0333b6e",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      707,
+      522
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      707,
+      522
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "paotai",
+    "texture": "5b053946-8f18-446a-a73a-b3846fa030c4",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      531,
+      148
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      531,
+      148
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

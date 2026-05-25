@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "bg_tanchuang_shouji",
+    "texture": "97ee9f02-171f-47dd-907c-4b717c801ac7",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      646,
+      1029
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      646,
+      1029
+    ],
+    "capInsets": [
+      0,
+      402,
+      0,
+      252
+    ]
+  }
+}

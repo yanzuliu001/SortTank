@@ -1,0 +1,60 @@
+"use strict";
+cc._RF.push(module, 'f0151tG12FDtIxnQTDkidOU', 'ReportQueue');
+// scripts/ReportQueue.js
+
+"use strict";
+
+var $localStorage = require("./LocalStorage");
+
+var o = new (function () {
+  function t() {
+    this._list = [];
+    this._storageKey = "sdk_report_list";
+    var t = $localStorage["default"].getItem(this._storageKey);
+
+    if (t) {
+      this._list = JSON.parse(t);
+    } else {
+      this._list = [];
+    }
+  }
+
+  t.prototype.push = function (t) {
+    var e = this._list.push(t);
+
+    this.refeshStorage();
+    return e;
+  };
+
+  t.prototype.pop = function () {
+    var t = this._list.shift();
+
+    this.refeshStorage();
+    return t;
+  };
+
+  t.prototype.range = function (t, e) {
+    var n = this._list.splice(t, e);
+
+    this.refeshStorage();
+    return n;
+  };
+
+  t.prototype.refeshStorage = function () {
+    var t = JSON.stringify(this._list);
+    return $localStorage["default"].setItem(this._storageKey, t);
+  };
+
+  t.prototype.len = function () {
+    return this._list.length;
+  };
+
+  t.prototype.getList = function () {
+    return this._list;
+  };
+
+  return t;
+}())();
+exports["default"] = o;
+
+cc._RF.pop();

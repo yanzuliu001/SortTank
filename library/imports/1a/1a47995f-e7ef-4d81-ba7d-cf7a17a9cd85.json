@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "dingzi8",
+    "texture": "11d10691-8348-4eb3-8410-ae7e3a1c3a1d",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      84,
+      178
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      84,
+      178
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "xiaoshi",
+    "texture": "6c94afbb-445c-4519-b5ad-2ec1e4838c1b",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      611,
+      282
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      611,
+      282
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

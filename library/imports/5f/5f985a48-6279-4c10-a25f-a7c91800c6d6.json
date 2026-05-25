@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "slowDown",
+    "texture": "df64b914-e53d-4891-8e12-10d5848e09b3",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      116,
+      78
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      116,
+      78
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

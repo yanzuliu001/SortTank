@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "bg_wutai5",
+    "texture": "e75a7530-b9d9-4fe6-b030-69543d00616c",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      572,
+      470
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      572,
+      470
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

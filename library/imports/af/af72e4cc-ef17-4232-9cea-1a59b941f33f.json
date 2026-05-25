@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "fk_xiaoren_wutai",
+    "texture": "a403857c-441b-4a11-a115-cf2021b1a501",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      554,
+      58
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      554,
+      58
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

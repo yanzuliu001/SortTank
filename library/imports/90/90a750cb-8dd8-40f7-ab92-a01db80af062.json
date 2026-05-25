@@ -1,0 +1,535 @@
+[
+  {
+    "__type__": "cc.Prefab",
+    "_name": "Loading",
+    "root": {
+      "__id__": 1
+    },
+    "node": {
+      "__id__": 6
+    },
+    "logo": {
+      "__id__": 8
+    },
+    "content": {
+      "__id__": 6
+    },
+    "title": {
+      "__id__": 5
+    },
+    "copyright": {
+      "__id__": 2
+    },
+    "age": {
+      "__id__": 3
+    },
+    "data": {
+      "__id__": 1
+    },
+    "optimizationPolicy": 0,
+    "asyncLoadAssets": false,
+    "readonly": false
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "Loading",
+    "_children": [
+      {
+        "__id__": 7
+      },
+      {
+        "__id__": 5
+      },
+      {
+        "__id__": 6
+      },
+      {
+        "__id__": 3
+      },
+      {
+        "__id__": 2
+      },
+      {
+        "__id__": 4
+      }
+    ],
+    "_components": [
+      {
+        "__type__": "cc.Widget",
+        "_alignFlags": 45,
+        "_originalWidth": 750,
+        "_originalHeight": 1334,
+        "node": {
+          "__id__": 1
+        }
+      },
+      {
+        "__type__": "4284b2heb5DPrSxSLGTf+FE",
+        "node": {
+          "__id__": 1
+        },
+        "age": {
+          "__id__": 3
+        },
+        "copyright": {
+          "__id__": 2
+        },
+        "title": {
+          "__id__": 5
+        },
+        "content": {
+          "__id__": 6
+        },
+        "ageSpriteFrame": [
+          null,
+          {
+            "__uuid__": "74b4ab55-97f1-4fbc-8ef1-cfce0a57ef47"
+          },
+          {
+            "__uuid__": "305f8a53-4a34-489f-9cd2-c1527f533c2a"
+          }
+        ],
+        "logo": {
+          "__id__": 8
+        }
+      }
+    ],
+    "_prefab": {
+      "__type__": "cc.PrefabInfo",
+      "root": {
+        "__id__": 1
+      },
+      "asset": {
+        "__id__": 0
+      }
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 750,
+      "height": 1334
+    },
+    "_trs": {
+      "__type__": "TypedArray",
+      "ctor": "Float64Array",
+      "array": [
+        375,
+        667,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "copyright",
+    "_parent": {
+      "__id__": 1
+    },
+    "_components": [
+      {
+        "__type__": "cc.Label",
+        "_N$string": "广州小贝科技有限公司\n著作权登记号：2020SR0057230",
+        "_fontSize": 20,
+        "_lineHeight": 26,
+        "_N$horizontalAlign": 1,
+        "_N$verticalAlign": 1,
+        "node": {
+          "__id__": 2
+        },
+        "_materials": [
+          {
+            "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
+          }
+        ]
+      },
+      {
+        "__type__": "cc.LabelOutline",
+        "_width": 2,
+        "node": {
+          "__id__": 2
+        },
+        "_color": {
+          "__type__": "cc.Color",
+          "a": 255,
+          "b": 0,
+          "g": 0,
+          "r": 0
+        }
+      },
+      {
+        "__type__": "cc.Widget",
+        "_alignFlags": 4,
+        "_bottom": 99.51800000000003,
+        "node": {
+          "__id__": 2
+        }
+      }
+    ],
+    "_prefab": {
+      "__type__": "cc.PrefabInfo",
+      "fileId": "b43uuz1ltNOqYTyVPRjl/W",
+      "root": {
+        "__id__": 1
+      },
+      "asset": {
+        "__id__": 0
+      }
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 294.14,
+      "height": 62.76
+    },
+    "_trs": {
+      "__type__": "TypedArray",
+      "ctor": "Float64Array",
+      "array": [
+        0,
+        -536.102,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "age",
+    "_parent": {
+      "__id__": 1
+    },
+    "_components": [
+      {
+        "__type__": "cc.Sprite",
+        "node": {
+          "__id__": 3
+        },
+        "_materials": [
+          {
+            "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
+          }
+        ],
+        "_spriteFrame": {
+          "__uuid__": "305f8a53-4a34-489f-9cd2-c1527f533c2a"
+        }
+      },
+      {
+        "__type__": "cc.Button",
+        "_N$transition": 3,
+        "transition": 3,
+        "node": {
+          "__id__": 3
+        },
+        "clickEvents": [
+          {
+            "__type__": "cc.ClickEvent",
+            "_componentId": "4284b2heb5DPrSxSLGTf+FE",
+            "handler": "clickAge",
+            "target": {
+              "__id__": 1
+            }
+          }
+        ]
+      }
+    ],
+    "_prefab": {
+      "__type__": "cc.PrefabInfo",
+      "fileId": "37OwHsuTdMKI1dJcJhdnpR",
+      "root": {
+        "__id__": 1
+      },
+      "asset": {
+        "__id__": 0
+      }
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 122,
+      "height": 156
+    },
+    "_trs": {
+      "__type__": "TypedArray",
+      "ctor": "Float64Array",
+      "array": [
+        -284,
+        -174.998,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ]
+    }
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "recordNumber",
+    "_parent": {
+      "__id__": 1
+    },
+    "_components": [
+      {
+        "__type__": "cc.Label",
+        "_N$string": "粤ICP备2023086686号-10X",
+        "_fontSize": 20,
+        "_lineHeight": 26,
+        "_N$horizontalAlign": 1,
+        "_N$verticalAlign": 1,
+        "node": {
+          "__id__": 4
+        },
+        "_materials": [
+          {
+            "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
+          }
+        ]
+      },
+      {
+        "__type__": "cc.LabelOutline",
+        "_width": 2,
+        "node": {
+          "__id__": 4
+        },
+        "_color": {
+          "__type__": "cc.Color",
+          "a": 255,
+          "b": 0,
+          "g": 0,
+          "r": 0
+        }
+      },
+      {
+        "__type__": "cc.Widget",
+        "_alignFlags": 4,
+        "_bottom": 68.55600000000004,
+        "node": {
+          "__id__": 4
+        }
+      }
+    ],
+    "_prefab": {
+      "__type__": "cc.PrefabInfo",
+      "fileId": "9aSkypW0lPgLX4YLWk38DS",
+      "root": {
+        "__id__": 1
+      },
+      "asset": {
+        "__id__": 0
+      }
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 250.82,
+      "height": 36.76
+    },
+    "_trs": {
+      "__type__": "TypedArray",
+      "ctor": "Float64Array",
+      "array": [
+        0,
+        -580.064,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "title",
+    "_parent": {
+      "__id__": 1
+    },
+    "_components": [
+      {
+        "__type__": "cc.Label",
+        "_N$string": "《健康游戏忠告》",
+        "_fontSize": 30,
+        "_N$horizontalAlign": 1,
+        "_N$verticalAlign": 1,
+        "node": {
+          "__id__": 5
+        },
+        "_materials": [
+          {
+            "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
+          }
+        ]
+      }
+    ],
+    "_prefab": {
+      "__type__": "cc.PrefabInfo",
+      "fileId": "c529gVb2ZHt5ctT5eiLeTU",
+      "root": {
+        "__id__": 1
+      },
+      "asset": {
+        "__id__": 0
+      }
+    },
+    "_color": {
+      "__type__": "cc.Color",
+      "a": 255,
+      "b": 0,
+      "g": 0,
+      "r": 0
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 240,
+      "height": 50.4
+    },
+    "_trs": {
+      "__type__": "TypedArray",
+      "ctor": "Float64Array",
+      "array": [
+        0,
+        -285.219,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "content",
+    "_parent": {
+      "__id__": 1
+    },
+    "_components": [
+      {
+        "__type__": "cc.Label",
+        "_N$string": "抵制不良游戏，拒绝盗版游戏。\n注意自我保护，谨防受骗上当。\n适度游戏益脑，沉迷游戏伤身。\n合理安排时间，享受健康生活。",
+        "_fontSize": 25,
+        "_lineHeight": 45,
+        "_N$horizontalAlign": 1,
+        "_N$verticalAlign": 1,
+        "node": {
+          "__id__": 6
+        },
+        "_materials": [
+          {
+            "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
+          }
+        ]
+      }
+    ],
+    "_prefab": {
+      "__type__": "cc.PrefabInfo",
+      "fileId": "51RCg1+yRGxqG2XSv2LK44",
+      "root": {
+        "__id__": 1
+      },
+      "asset": {
+        "__id__": 0
+      }
+    },
+    "_color": {
+      "__type__": "cc.Color",
+      "a": 255,
+      "b": 0,
+      "g": 0,
+      "r": 0
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 350,
+      "height": 191.7
+    },
+    "_trs": {
+      "__type__": "TypedArray",
+      "ctor": "Float64Array",
+      "array": [
+        0,
+        -405.086,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "logo",
+    "_parent": {
+      "__id__": 1
+    },
+    "_components": [
+      {
+        "__id__": 8
+      }
+    ],
+    "_prefab": {
+      "__type__": "cc.PrefabInfo",
+      "fileId": "a6VYzppGVApaQoBrT6ID1S",
+      "root": {
+        "__id__": 1
+      },
+      "asset": {
+        "__id__": 0
+      }
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 512,
+      "height": 328
+    },
+    "_trs": {
+      "__type__": "TypedArray",
+      "ctor": "Float64Array",
+      "array": [
+        0,
+        293.724,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  {
+    "__type__": "cc.Sprite",
+    "node": {
+      "__id__": 7
+    },
+    "_materials": [
+      {
+        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
+      }
+    ]
+  }
+]

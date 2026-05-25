@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "icon_zhendong",
+    "texture": "352cb0bd-4ea9-4c18-9796-e1a847f10c47",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      66,
+      60
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      66,
+      60
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

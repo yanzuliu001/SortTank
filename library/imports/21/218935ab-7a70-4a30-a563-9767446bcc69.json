@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "guowang",
+    "texture": "a2d276e7-098c-4242-ad7d-a8c00a906e0b",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      761,
+      173
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      761,
+      173
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

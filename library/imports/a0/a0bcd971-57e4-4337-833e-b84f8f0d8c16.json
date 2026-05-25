@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "wudi",
+    "texture": "1533243d-25a3-4012-ba69-fa3da8ae1eb1",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      301,
+      408
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      301,
+      408
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

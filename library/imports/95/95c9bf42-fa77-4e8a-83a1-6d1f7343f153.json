@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "bg_tanchuang_qiandao",
+    "texture": "4f8e022b-68b9-438e-9718-c7e7c2333dfc",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      646,
+      1071
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      646,
+      1071
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

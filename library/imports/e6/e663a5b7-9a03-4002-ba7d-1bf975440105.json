@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "nvwang",
+    "texture": "050d1789-59d6-49fb-acbd-586a11877eac",
+    "atlas": "",
+    "rect": [
+      2,
+      2,
+      533,
+      266
+    ],
+    "offset": [
+      0,
+      -0.5
+    ],
+    "originalSize": [
+      537,
+      269
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

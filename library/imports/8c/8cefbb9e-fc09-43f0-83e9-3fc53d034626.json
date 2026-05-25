@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "bg_dinziguang",
+    "texture": "2d1233bc-101e-4d18-8a31-33a6bdb84d3b",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      124,
+      124
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      124,
+      124
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "daojushiyong",
+    "texture": "05295755-29a6-4c1b-a32c-779e245c9ae2",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      106,
+      118
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      106,
+      118
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

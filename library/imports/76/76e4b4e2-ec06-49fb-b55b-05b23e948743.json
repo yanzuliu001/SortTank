@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.JsonAsset",
+  "_name": "dragon",
+  "_objFlags": 0,
+  "_native": "",
+  "json": {
+    "keys": [
+      "id",
+      "skinName",
+      "type",
+      "unlock"
+    ],
+    "values": [
+      [
+        1,
+        "巨龙",
+        1,
+        1
+      ],
+      [
+        2,
+        "石龙",
+        3,
+        2
+      ]
+    ]
+  }
+}
