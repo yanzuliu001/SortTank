@@ -18,6 +18,10 @@ var l = new ((function () {
         this.transition = e.getChildByName("transition");
         this.transition.color = cc.Color.WHITE;
         this.transition.opacity = 0;
+        if (window.sortTankDemo) {
+            this.currentScene = "";
+            return;
+        }
         var n = cc.instantiate(t);
         this.sceneRoot.addChild(n);
     };

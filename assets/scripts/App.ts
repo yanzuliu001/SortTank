@@ -27,6 +27,8 @@ const LocalStorageManager = require("./LocalStorageManager");
 const SceneManager = require("./SceneManager");
 const SceneConst = require("./SceneConst");
 
+const SORT_TANK_DEMO_MODE = true;
+
 const FONT_INDEX_BY_LANG = {
     zh: 0,
     en: 0,
@@ -114,9 +116,14 @@ class App extends cc.Component {
     abBunds: Record<string, any> = {};
 
     onLoad() {
+        if (SORT_TANK_DEMO_MODE) {
+            window.sortTankDemo = true;
+        }
         this.initMgr();
         this.initEvent();
-        new CopyRightDialog.default().init();
+        if (!SORT_TANK_DEMO_MODE) {
+            new CopyRightDialog.default().init();
+        }
         this.schedule(() => {
             this.fullAdCounter++;
         }, 1);
@@ -191,6 +198,9 @@ class App extends cc.Component {
         language.init();
         language.setFont(this.fonts[FONT_INDEX_BY_LANG[language.lan]]);
         SceneManager.default.init(this.loadingPrefab);
+        if (SORT_TANK_DEMO_MODE) {
+            SceneManager.default.hasAnim = false;
+        }
         AudioManager.Audio.init();
         ReportManager.Report.init();
         this.initStopDebug();
@@ -379,6 +389,10 @@ class App extends cc.Component {
             });
         }
 
+        if (SORT_TANK_DEMO_MODE) {
+            this.sucEnterMain();
+            return;
+        }
         this.scheduleOnce(() => {
             console.log("两秒没跳转直接进入");
             this.sucEnterMain();
@@ -450,6 +464,11 @@ class App extends cc.Component {
         }
 
         this.updateSkin();
+
+        if (SORT_TANK_DEMO_MODE) {
+            this.gotoGame();
+            return;
+        }
 
         // if (0 != (autoFullScreenAdInterval = BmsManager.BMS.getKey("AutoFullScreenAd"))) {
         //     this.schedule(function() {
@@ -623,6 +642,10 @@ class App extends cc.Component {
 
         this.scheduleOnce(() => {
             console.log("进入");
+            if (SORT_TANK_DEMO_MODE) {
+                this.gotoGame();
+                return;
+            }
             SceneManager.default.loadScene(SceneConst.SceneConst.Home);
             if (PlatformManager.Platform.is(PlatformConst.EPlatform.ANDROID_GOOGLE)) {
                 PlatformManager.Platform.showBanner();
@@ -637,8 +660,12 @@ class App extends cc.Component {
     }
 
     gotoGame() {
+        if (SORT_TANK_DEMO_MODE) {
+            window.sortTankDemo = true;
+        }
         UserManager.User.setTempData(UserConst.TempData.CURRENT_MODE, 0);
-        UserManager.User.setTempData(UserConst.TempData.CURRENT_LEVEL, 1);
+        //看关卡分布效果改这儿 1 2 
+        UserManager.User.setTempData(UserConst.TempData.CURRENT_LEVEL, 2);
         SceneManager.default.loadScene(SceneConst.SceneConst.GAME);
     }
 

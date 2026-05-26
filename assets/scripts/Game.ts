@@ -37,6 +37,8 @@ const PoolUtils = require("./PoolUtils");
 const AssetManager = require("./AssetManager");
 const Tools = require("./Tools");
 
+const SORT_TANK_DEMO_MODE = true;
+
 const { ccclass, property } = cc._decorator;
 
 @ccclass
@@ -176,6 +178,7 @@ class Game extends BaseUI.default {
             this.dict.limitWelfareBtn.active = !0;
         }
         this.initView();
+        this.applySortTankDemoGameView();
         this.schedule(function () {
             e.fullAdCounter++;
         }, 1);
@@ -238,6 +241,50 @@ class Game extends BaseUI.default {
             this.dict.bottomBar0.opacity = 255;
             this.dict.hideUIBtn.opacity = 255;
             this.dict.shopBtn.opacity = 255;
+        }
+    }
+
+    applySortTankDemoGameView(levelNode?: any) {
+        if (!SORT_TANK_DEMO_MODE) {
+            return;
+        }
+        var hiddenNodes = [
+            "topLeftBar",
+            "topRightBar",
+            "bottomBar0",
+            "collectRoot",
+            "mapBtn",
+            "tipText",
+            "tipText2",
+            "limitWelfareBtn",
+            "cheats",
+            "cheats2",
+            "spine",
+            "clickSpine",
+            "downSpineRoot",
+            "noFirstAllHole",
+            "version"
+        ];
+        for (var i = 0; i < hiddenNodes.length; i++) {
+            var node = this.dict && this.dict[hiddenNodes[i]];
+            if (node) {
+                node.active = false;
+            }
+        }
+        if (this.dict && this.dict.level) {
+            this.dict.level.active = true;
+        }
+        if (this.dict && this.dict.clickAmountNode) {
+            this.dict.clickAmountNode.active = true;
+        }
+        if (levelNode) {
+            var rootHidden = ["lblTime", "lblTitle", "cw", "dg"];
+            for (i = 0; i < rootHidden.length; i++) {
+                var child = levelNode.getChildByName(rootHidden[i]);
+                if (child) {
+                    child.active = false;
+                }
+            }
         }
     }
 
@@ -1338,6 +1385,7 @@ class Game extends BaseUI.default {
                                         case 4:
                                             this.level.addChild(n);
                                             window.levelContent = n;
+                                            this.applySortTankDemoGameView(n);
                                             this.scheduleOnce(function () {
                                                 u.screenshot();
                                                 PlatformManager.Platform.startRecordCap();

@@ -49,6 +49,12 @@ var TANK_SKIN_LEVEL_IDS = {
     "-29095": !0,
     "-29290": !0
 };
+//demo 模式改这儿
+var SORT_TANK_DEMO_MODE = !0;
+var SORT_TANK_DEMO_LEVEL_IDS = {
+    "-29095": !0,
+    "-29290": !0
+};
 var TANK_SKIN_SPRITE_DIR = "zqddn_zhb/texture/tank/";
 var TANK_SKIN_COLOR = {
     0: "purple",
@@ -779,6 +785,10 @@ var W = (function (t) {
         }
     };
     e.prototype.collision = function (t) {
+        if (this.isSortTankDemoLevel()) {
+            t.getComponent($level_29086_boxCarItem.default).isCollision = !0;
+            return;
+        }
         t.getComponent($level_29086_boxCarItem.default).isReadyDestroy = !0;
         if (!t.getComponent($level_29086_boxCarItem.default).isFireEngine) {
             var e = t;
@@ -1217,9 +1227,68 @@ var W = (function (t) {
                 this.updateHp();
                 this.onTouch();
                 this.isCanStartClick = !0;
+                this.applySortTankDemoView();
                 return [2];
             });
         });
+    };
+    e.prototype.isSortTankDemoLevel = function () {
+        return SORT_TANK_DEMO_MODE && SORT_TANK_DEMO_LEVEL_IDS[this.levelID];
+    };
+    e.prototype.applySortTankDemoView = function () {
+        if (!this.isSortTankDemoLevel()) {
+            return;
+        }
+        var t = this;
+        if (this.dict.game) {
+            this.dict.game.children.forEach(function (e) {
+                if (e == t.dict.element) {
+                    e.active = !0;
+                } else {
+                    e.active = !1;
+                }
+            });
+        }
+        if (this.dict.element) {
+            this.dict.element.children.forEach(function (e) {
+                if (e == t.dict.carRoot) {
+                    e.active = !0;
+                    e.opacity = 255;
+                } else if (e == t.dict.road) {
+                    e.active = !0;
+                    e.opacity = 0;
+                } else {
+                    e.active = !1;
+                }
+            });
+        }
+        if (this.dict.carRoot) {
+            this.dict.carRoot.active = !0;
+            this.dict.carRoot.opacity = 255;
+        }
+        if (this.dict.road) {
+            this.dict.road.active = !0;
+            this.dict.road.opacity = 0;
+        }
+        ["lblTime", "lblTitle", "cw", "dg"].forEach(function (e) {
+            var o = t.node.getChildByName(e);
+            if (o) {
+                o.active = !1;
+            }
+        });
+        if (this.dict.hand) {
+            this.dict.hand.active = !1;
+        }
+        if (this.dict.handTextRoot) {
+            this.dict.handTextRoot.active = !1;
+        }
+        if (this.dict.tipPrefab) {
+            this.dict.tipPrefab.active = !1;
+        }
+        if ("undefined" != typeof game) {
+            game.dragonMoving = !1;
+        }
+        this.createFinish = !1;
     };
     e.prototype.checkHasCarMove = function () {
         var t = !1;
@@ -1540,6 +1609,7 @@ var W = (function (t) {
             var e;
             return __generator(this, function () {
                 e = cc.instantiate(this.dict.tailGas);
+                e.active = !0;
                 t.addChild(e);
                 e.position = cc.v2(0, -t.height);
                 if (e.getComponent($motionTrail.default)) {
