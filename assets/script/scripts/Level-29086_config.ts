@@ -1,34 +1,6 @@
-exports.BulldozerState =
-    exports.LinkType =
-    exports.TurntablePosDir =
-    exports.CarState =
-    exports.DrinkPosArr102_2 =
-    exports.DrinkPosArr102_1 =
-    exports.DrinkPosArr101_2 =
-    exports.DrinkPosArr101_1 =
-    exports.DrinkPosArr10 =
-    exports.DrinkPosArr9 =
-    exports.DrinkPosArr8 =
-    exports.DrinkPosArr7 =
-    exports.DrinkPosArr6 =
-    exports.DrinkPosArr5 =
-    exports.DrinkPosArr4 =
-    exports.DrinkPosArr3 =
-    exports.DrinkPosArr2 =
-    exports.DrinkPosArr =
-    exports.CarLenImg =
-    exports.ParkingImg =
-    exports.getCarBodyImgByColor =
-    exports.getCarImgByColor =
-    exports.CarDirImg =
-    exports.CarDir =
-    exports.colorDes =
-    exports.CarColor =
-    exports.sortColor =
-    exports.MapParam =
-    exports.levelData =
-        void 0;
-exports.levelData = {
+// @ts-nocheck
+
+export const levelData = {
     "-29086": {
         carColor: [
             [0, 10, [1, 5]],
@@ -2499,7 +2471,7 @@ exports.levelData = {
         addSpeed: [20, 80, 5, 3]
     }
 };
-exports.MapParam = {
+export const MapParam = {
     0: {
         warnPoints: [123, 146],
         roleWarn: [89, 123],
@@ -2648,27 +2620,27 @@ exports.MapParam = {
         noTouchAndStop: 999
     }
 };
-exports.sortColor = [0, 1, 2, 3, 4, 5, 6, 7];
-(function (t) {
-    t[(t.Red = 0)] = "Red";
-    t[(t.Yellow = 1)] = "Yellow";
-    t[(t.LightBlue = 2)] = "LightBlue";
-    t[(t.Blue = 3)] = "Blue";
-    t[(t.Green = 4)] = "Green";
-    t[(t.Purple = 5)] = "Purple";
-    t[(t.Pink = 6)] = "Pink";
-    t[(t.Brown = 7)] = "Brown";
-})(exports.CarColor || (exports.CarColor = {}));
-exports.colorDes = ["红0", "黄1", "浅蓝2", "蓝3", "绿4", "紫5", "粉6", "棕7"];
-exports.CarDir = [1, 1];
-exports.CarDirImg = {
+export const sortColor = [0, 1, 2, 3, 4, 5, 6, 7];
+export enum CarColor {
+    Red = 0,
+    Yellow = 1,
+    LightBlue = 2,
+    Blue = 3,
+    Green = 4,
+    Purple = 5,
+    Pink = 6,
+    Brown = 7
+}
+export const colorDes = ["红0", "黄1", "浅蓝2", "蓝3", "绿4", "紫5", "粉6", "棕7"];
+export const CarDir = [1, 1];
+export const CarDirImg = {
     52: 4,
     128: 5,
     90: 1,
     0: 2,
     180: 3
 };
-exports.getCarImgByColor = function (t, e) {
+export function getCarImgByColor(t, e) {
     var o;
     var i;
     i = Number(t.name[2]);
@@ -2686,8 +2658,8 @@ exports.getCarImgByColor = function (t, e) {
         : t.name.includes("04")
         ? 6e3 + 200 * (i - 1) + e + 1
         : "" + (e + 1 + 100 * o);
-};
-exports.getCarBodyImgByColor = function (t, e) {
+}
+export function getCarBodyImgByColor(t, e) {
     var o;
     var i;
     i = Number(t.name[2]);
@@ -2713,18 +2685,18 @@ exports.getCarBodyImgByColor = function (t, e) {
         }
     }
     return "" + (e + 1 + 100 * o);
-};
-exports.ParkingImg = {
+}
+export const ParkingImg = {
     4: 11,
     6: 13,
     10: 15
 };
-exports.CarLenImg = {
+export const CarLenImg = {
     4: 1,
     6: 2,
     10: 3
 };
-exports.DrinkPosArr = [
+export const DrinkPosArr = [
     [249.319, 608.572],
     [243.738, 603.957],
     [236.879, 599.988],
@@ -2893,7 +2865,7 @@ exports.DrinkPosArr = [
     [57.682, 108.157],
     [42.697, 106.676]
 ];
-exports.DrinkPosArr2 = [
+export const DrinkPosArr2 = [
     [233.747, 733.005],
     [237.283, 661.355],
     [238.214, 592.31],
@@ -2998,7 +2970,7 @@ exports.DrinkPosArr2 = [
     [-125.166, 148.752],
     [-239.706, 149.38]
 ];
-exports.DrinkPosArr3 = [
+export const DrinkPosArr3 = [
     [532.074, 703.911],
     [530.161, 677.179],
     [528.964, 650.07],
@@ -3157,7 +3129,7 @@ exports.DrinkPosArr3 = [
     [-114.581, 331.135],
     [-251.865, 330.026]
 ];
-exports.DrinkPosArr4 = [
+export const DrinkPosArr4 = [
     [-487.099, 463.773],
     [-470.82, 475.859],
     [-454.393, 487.405],
@@ -3335,7 +3307,7 @@ exports.DrinkPosArr4 = [
     [-15.45, 244.342],
     [11.164, 246.651]
 ];
-exports.DrinkPosArr5 = [
+export const DrinkPosArr5 = [
     [-0.745, 653.104],
     [99.015, 653.732],
     [190.819, 653.756],
@@ -3464,7 +3436,7 @@ exports.DrinkPosArr5 = [
     [-43.862, 313.521],
     [-174.198, 314.393]
 ];
-exports.DrinkPosArr6 = [
+export const DrinkPosArr6 = [
     [-386.354, 656.578],
     [-350.835, 545.551],
     [-312.688, 428.382],
@@ -3556,7 +3528,7 @@ exports.DrinkPosArr6 = [
     [330.984, 392.992],
     [385.109, 140.695]
 ];
-exports.DrinkPosArr7 = [
+export const DrinkPosArr7 = [
     [278.909, 698.266],
     [278.951, 665.291],
     [278.412, 650.678],
@@ -3658,7 +3630,7 @@ exports.DrinkPosArr7 = [
     [115.104, 140.912],
     [-27.049, 140.695]
 ];
-exports.DrinkPosArr8 = [
+export const DrinkPosArr8 = [
     [-448.885, 414.27],
     [-438.593, 423.254],
     [-427.997, 431.963],
@@ -3814,7 +3786,7 @@ exports.DrinkPosArr8 = [
     [-7.415, 226.026],
     [12.033, 222.333]
 ];
-exports.DrinkPosArr9 = [
+export const DrinkPosArr9 = [
     [356.204, 536.727],
     [350.411, 541.094],
     [343.955, 545.433],
@@ -4006,7 +3978,7 @@ exports.DrinkPosArr9 = [
     [204.982, 98.787],
     [235.358, 99.008]
 ];
-exports.DrinkPosArr10 = [
+export const DrinkPosArr10 = [
     [-66.75, 451.18],
     [-59.985, 453.777],
     [-53.07, 455.709],
@@ -4297,7 +4269,7 @@ exports.DrinkPosArr10 = [
     [1.501, 89.342],
     [-24.507, 88.152]
 ];
-exports.DrinkPosArr101_1 = [
+export const DrinkPosArr101_1 = [
     [-362.036, 760.797],
     [-359.019, 761.429],
     [-355.208, 761.778],
@@ -4492,7 +4464,7 @@ exports.DrinkPosArr101_1 = [
     [-73.141, 89.741],
     [-75.438, 90.323]
 ];
-exports.DrinkPosArr101_2 = [
+export const DrinkPosArr101_2 = [
     [362.036, 760.797],
     [359.019, 761.429],
     [355.208, 761.778],
@@ -4687,7 +4659,7 @@ exports.DrinkPosArr101_2 = [
     [73.141, 89.741],
     [75.438, 90.323]
 ];
-exports.DrinkPosArr102_1 = [
+export const DrinkPosArr102_1 = [
     [-367.247, 781.641],
     [-359.104, 784.405],
     [-347.847, 786.896],
@@ -4837,7 +4809,7 @@ exports.DrinkPosArr102_1 = [
     [79.294, 97.726],
     [51.859, 97.271]
 ];
-exports.DrinkPosArr102_2 = [
+export const DrinkPosArr102_2 = [
     [367.247, 781.641],
     [359.104, 784.405],
     [347.847, 786.896],
@@ -4987,39 +4959,39 @@ exports.DrinkPosArr102_2 = [
     [-79.294, 97.726],
     [-51.859, 97.271]
 ];
-(function (t) {
-    t[(t.Idle = -1)] = "Idle";
-    t[(t.Normal = 0)] = "Normal";
-    t[(t.NormalNoObstruct = 1)] = "NormalNoObstruct";
-    t[(t.GoingRoad = 2)] = "GoingRoad";
-    t[(t.InRoadRight = 3)] = "InRoadRight";
-    t[(t.InRoadLeft = 4)] = "InRoadLeft";
-    t[(t.GoingParking = 5)] = "GoingParking";
-    t[(t.Parking = 6)] = "Parking";
-    t[(t.GoingOutParking = 7)] = "GoingOutParking";
-    t[(t.OutParking = 8)] = "OutParking";
-    t[(t.OnBottomLeft = 9)] = "OnBottomLeft";
-    t[(t.OnBottomRight = 10)] = "OnBottomRight";
-    t[(t.WaterSpray = 11)] = "WaterSpray";
-    t[(t.WaterSprayLeave = 12)] = "WaterSprayLeave";
-})(exports.CarState || (exports.CarState = {}));
-(function (t) {
-    t[(t.LeftTop = 0)] = "LeftTop";
-    t[(t.Top = 1)] = "Top";
-    t[(t.RightTop = 2)] = "RightTop";
-    t[(t.Right = 3)] = "Right";
-    t[(t.RightBottom = 4)] = "RightBottom";
-    t[(t.Bottom = 5)] = "Bottom";
-    t[(t.LeftBottom = 6)] = "LeftBottom";
-    t[(t.Left = 7)] = "Left";
-})(exports.TurntablePosDir || (exports.TurntablePosDir = {}));
-(function (t) {
-    t[(t.FrontBack = 0)] = "FrontBack";
-    t[(t.Parallel = 1)] = "Parallel";
-})(exports.LinkType || (exports.LinkType = {}));
-(function (t) {
-    t[(t.Idle = 0)] = "Idle";
-    t[(t.Normal = 1)] = "Normal";
-    t[(t.OnRoad = 2)] = "OnRoad";
-    t[(t.Remove = 3)] = "Remove";
-})(exports.BulldozerState || (exports.BulldozerState = {}));
+export enum CarState {
+    Idle = -1,
+    Normal = 0,
+    NormalNoObstruct = 1,
+    GoingRoad = 2,
+    InRoadRight = 3,
+    InRoadLeft = 4,
+    GoingParking = 5,
+    Parking = 6,
+    GoingOutParking = 7,
+    OutParking = 8,
+    OnBottomLeft = 9,
+    OnBottomRight = 10,
+    WaterSpray = 11,
+    WaterSprayLeave = 12
+}
+export enum TurntablePosDir {
+    LeftTop = 0,
+    Top = 1,
+    RightTop = 2,
+    Right = 3,
+    RightBottom = 4,
+    Bottom = 5,
+    LeftBottom = 6,
+    Left = 7
+}
+export enum LinkType {
+    FrontBack = 0,
+    Parallel = 1
+}
+export enum BulldozerState {
+    Idle = 0,
+    Normal = 1,
+    OnRoad = 2,
+    Remove = 3
+}

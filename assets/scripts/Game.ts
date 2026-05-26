@@ -1,84 +1,84 @@
-var r;
-var $baseUI = require("./BaseUI");
-var $audioConst = require("./AudioConst");
-var $eventConst = require("./EventConst");
-var $platformConst = require("./PlatformConst");
-var $popupConst = require("./PopupConst");
-var $sceneConst = require("./SceneConst");
-var $userConst = require("./UserConst");
-var $audioManager = require("./AudioManager");
-var $bmsManager = require("./BmsManager");
-var $eventManager = require("./EventManager");
-var $platformManager = require("./PlatformManager");
-var $popupManager = require("./PopupManager");
-var $resManager = require("./ResManager");
-var $sceneManager = require("./SceneManager");
-var $userManager = require("./UserManager");
-var $utils = require("./Utils");
-var $configUtils = require("./ConfigUtils");
-var $xMADUtils = require("./XMADUtils");
-var $languageManager = require("./LanguageManager");
-var $screenshotUtils = require("./ScreenshotUtils");
-var $tipManager = require("./TipManager");
-var $configManager = require("./ConfigManager");
-var $configConst = require("./ConfigConst");
-var $oPPOAndroidAdUtils = require("./OPPOAndroidAdUtils");
-var $oPPOMiniADUtils = require("./OPPOMiniADUtils");
-var $shuShuConst = require("./ShuShuConst");
-var $taskManager = require("./TaskManager");
-var $memoryStorageManager = require("./MemoryStorageManager");
-var $memoryStorageConst = require("./MemoryStorageConst");
-var $adjustEventSystem = require("./AdjustEventSystem");
-var $localStorageManager = require("./LocalStorageManager");
-var $localStorageConst = require("./LocalStorageConst");
-var $challengeSystem = require("./ChallengeSystem");
-var $poolUtils = require("./PoolUtils");
-var $assetManager = require("./AssetManager");
-var $tools = require("./Tools");
-var z = cc._decorator;
-var G = z.ccclass;
-var K = z.property;
-var W = (function (t) {
-    function e() {
-        var e = (null !== t && t.apply(this, arguments)) || this;
-        e.coloringSpinePrefab = null;
-        e._data = null;
-        e.level = null;
-        e.levelID = null;
-        e.bms = null;
-        e.flag = null;
-        e.clickAmountNode = null;
-        e.isUnlockTip = !1;
-        e.currentLevel = 1;
-        e.currentMode = 1;
-        e.themeType = 0;
-        e.currentTopLevel = 1;
-        e.fullAdCounter = 0;
-        e.clickAmount = 0;
-        e.currentPrefabAsset = [];
-        e.time = 0;
-        e.isHandle = !1;
-        e.modeLevelTime = [180, 180, 180, 180, 180, 180, 300, 180, 180, 180];
-        e.restartTimes = 0;
-        e.isCheckTipTextCD = !1;
-        e.allHoleCoverAnim = !1;
-        e.node_hammer = null;
-        e.metalAmount = 0;
-        e.developID = -1;
-        e.recordState = 0;
-        e.isLoadFail = !1;
-        e.isTimeEnd = !1;
-        e.currentLevelProgress = 1;
-        e.currentLevelTotalTime = 180;
-        e.currentLevelTime = 0;
-        e.isLoadingScene = !1;
-        e.isBack = !1;
-        return e;
-    }
-    __extends(e, t);
-    e.prototype.onLoad = function () {
+// @ts-nocheck
+
+const BaseUI = require("./BaseUI");
+const AudioConst = require("./AudioConst");
+const EventConst = require("./EventConst");
+const PlatformConst = require("./PlatformConst");
+const PopupConst = require("./PopupConst");
+const SceneConst = require("./SceneConst");
+const UserConst = require("./UserConst");
+const AudioManager = require("./AudioManager");
+const BmsManager = require("./BmsManager");
+const EventManager = require("./EventManager");
+const PlatformManager = require("./PlatformManager");
+const PopupManager = require("./PopupManager");
+const ResManager = require("./ResManager");
+const SceneManager = require("./SceneManager");
+const UserManager = require("./UserManager");
+const Utils = require("./Utils");
+const ConfigUtils = require("./ConfigUtils");
+const XMADUtils = require("./XMADUtils");
+const LanguageManager = require("./LanguageManager");
+const ScreenshotUtils = require("./ScreenshotUtils");
+const TipManager = require("./TipManager");
+const ConfigManager = require("./ConfigManager");
+const ConfigConst = require("./ConfigConst");
+const OPPOAndroidAdUtils = require("./OPPOAndroidAdUtils");
+const OPPOMiniADUtils = require("./OPPOMiniADUtils");
+const ShuShuConst = require("./ShuShuConst");
+const TaskManager = require("./TaskManager");
+const MemoryStorageManager = require("./MemoryStorageManager");
+const MemoryStorageConst = require("./MemoryStorageConst");
+const AdjustEventSystem = require("./AdjustEventSystem");
+const LocalStorageManager = require("./LocalStorageManager");
+const LocalStorageConst = require("./LocalStorageConst");
+const ChallengeSystem = require("./ChallengeSystem");
+const PoolUtils = require("./PoolUtils");
+const AssetManager = require("./AssetManager");
+const Tools = require("./Tools");
+
+const { ccclass, property } = cc._decorator;
+
+@ccclass
+class Game extends BaseUI.default {
+    @property(cc.Prefab)
+    coloringSpinePrefab: cc.Prefab = null;
+
+    _data: any = null;
+    level: any = null;
+    levelID: any = null;
+    bms: any = null;
+    flag: any = null;
+    clickAmountNode: any = null;
+    isUnlockTip: any = !1;
+    currentLevel: any = 1;
+    currentMode: any = 1;
+    themeType: any = 0;
+    currentTopLevel: any = 1;
+    fullAdCounter: any = 0;
+    clickAmount: any = 0;
+    currentPrefabAsset: any[] = [];
+    time: any = 0;
+    isHandle: any = !1;
+    modeLevelTime: any[] = [180, 180, 180, 180, 180, 180, 300, 180, 180, 180];
+    restartTimes: any = 0;
+    isCheckTipTextCD: any = !1;
+    allHoleCoverAnim: any = !1;
+    node_hammer: any = null;
+    metalAmount: any = 0;
+    developID: any = -1;
+    recordState: any = 0;
+    isLoadFail: any = !1;
+    isTimeEnd: any = !1;
+    currentLevelProgress: any = 1;
+    currentLevelTotalTime: any = 180;
+    currentLevelTime: any = 0;
+    isLoadingScene: any = !1;
+    isBack: any = !1;
+
+    onLoad() {
         var e = this;
-        t.prototype.onLoad.call(this);
+        super.onLoad();
         this.modeLevelTime = new Array(100).fill(180);
         this.modeLevelTime[6] = 300;
         this.modeLevelTime[21] = 300;
@@ -87,7 +87,7 @@ var W = (function (t) {
         this.modeLevelTime[81] = 120;
         this.modeLevelTime[82] = 120;
         this.modeLevelTime[90] = 300;
-        var n = $bmsManager.BMS.getKey("screwTime");
+        var n = BmsManager.BMS.getKey("screwTime");
         if (n >= 900) {
             n = 900;
         }
@@ -119,24 +119,24 @@ var W = (function (t) {
         this.clickAmountNode.on(
             cc.Node.EventType.TOUCH_START,
             function (t) {
-                if ($platformManager.Platform.is($platformConst.EPlatform.XIAOMI_ANDROID)) {
+                if (PlatformManager.Platform.is(PlatformConst.EPlatform.XIAOMI_ANDROID)) {
                     (e.clickAmount += 1),
                         console.log("点击次数", e.clickAmount),
-                        0 != (n = $bmsManager.BMS.getKey("fullClickNum")) &&
+                        0 != (n = BmsManager.BMS.getKey("fullClickNum")) &&
                             n == e.clickAmount &&
-                            ($xMADUtils.XMAD.showInterstitialFeed_must(), (e.clickAmount = 0));
-                } else if ($platformManager.Platform.is($platformConst.EPlatform.OPPO_ANDROID)) {
+                            (XMADUtils.XMAD.showInterstitialFeed_must(), (e.clickAmount = 0));
+                } else if (PlatformManager.Platform.is(PlatformConst.EPlatform.OPPO_ANDROID)) {
                     (e.clickAmount += 1),
                         console.log("点击次数", e.clickAmount),
-                        0 != (n = $bmsManager.BMS.getKey("fullClickNum")) &&
+                        0 != (n = BmsManager.BMS.getKey("fullClickNum")) &&
                             n == e.clickAmount &&
-                            ($oPPOAndroidAdUtils.OPPOAndroidAd.showInterstitialFeed_must(), (e.clickAmount = 0));
-                } else if ($platformManager.Platform.is($platformConst.EPlatform.OPPO)) {
+                            (OPPOAndroidAdUtils.OPPOAndroidAd.showInterstitialFeed_must(), (e.clickAmount = 0));
+                } else if (PlatformManager.Platform.is(PlatformConst.EPlatform.OPPO)) {
                     var n;
                     e.clickAmount += 1;
                     console.log("点击次数", e.clickAmount);
-                    if (0 != (n = $bmsManager.BMS.getKey("fullClickNum")) && n == e.clickAmount) {
-                        $oPPOMiniADUtils.OPPOMiniAD.showInterstitialFeed_must();
+                    if (0 != (n = BmsManager.BMS.getKey("fullClickNum")) && n == e.clickAmount) {
+                        OPPOMiniADUtils.OPPOMiniAD.showInterstitialFeed_must();
                         e.clickAmount = 0;
                     }
                 }
@@ -153,8 +153,8 @@ var W = (function (t) {
         if (this.clickAmountNode._touchListener) {
             this.clickAmountNode._touchListener.setSwallowTouches(!1);
         }
-        $userManager.User.setTempData("isNeedInsert", !0);
-        this.dict.version.getComponent(cc.Label).string = "v" + $platformManager.Platform.getConfig().version;
+        UserManager.User.setTempData("isNeedInsert", !0);
+        this.dict.version.getComponent(cc.Label).string = "v" + PlatformManager.Platform.getConfig().version;
         this.dict.limitWelfareBtn.active = !1;
         if (
             window.tt &&
@@ -162,7 +162,7 @@ var W = (function (t) {
                 return t == window.tt.getSystemInfoSync().appName;
             })
         ) {
-            var r = $userManager.User.get($userConst.UserData.EnterSidebar) || 0;
+            var r = UserManager.User.get(UserConst.UserData.EnterSidebar) || 0;
             console.log("判断按钮", r, 2 != r);
             if (2 != r) {
                 console.log("显示按钮");
@@ -172,7 +172,7 @@ var W = (function (t) {
                 this.dict.limitWelfareBtn.active = !1;
             }
         }
-        if ($platformManager.Platform.is($platformConst.EPlatform.WEB)) {
+        if (PlatformManager.Platform.is(PlatformConst.EPlatform.WEB)) {
             this.dict.limitWelfareBtn.active = !0;
         }
         this.initView();
@@ -180,24 +180,25 @@ var W = (function (t) {
             e.fullAdCounter++;
         }, 1);
         this.listenHandle();
-        $audioManager.Audio.playMusic($audioConst.AudioConst.BGM_MAIN);
-        if ($platformManager.Platform.is($platformConst.EPlatform.WX)) {
+        AudioManager.Audio.playMusic(AudioConst.AudioConst.BGM_MAIN);
+        if (PlatformManager.Platform.is(PlatformConst.EPlatform.WX)) {
             console.log("调用广告");
         }
-        if ($platformManager.Platform.is($platformConst.EPlatform.WEB)) {
+        if (PlatformManager.Platform.is(PlatformConst.EPlatform.WEB)) {
             this.dict.hideUIBtn.active = !0;
         }
-        $taskManager.default.init();
+        TaskManager.default.init();
         if (0 == this.currentMode) {
-            if ($platformManager.Platform.getConfig().hasPurchase) {
+            if (PlatformManager.Platform.getConfig().hasPurchase) {
                 this.dict.universalCard.active = !0;
             } else {
                 this.dict.universalCard.active = !1;
             }
         }
-    };
-    e.prototype.updateSkin = function () {
-        var t = $userManager.User.get($userConst.UserData.skinList) || {
+    }
+
+    updateSkin() {
+        var t = UserManager.User.get(UserConst.UserData.skinList) || {
             0: [0],
             1: [0],
             2: [9],
@@ -205,8 +206,8 @@ var W = (function (t) {
             4: [0],
             5: [0]
         };
-        $userManager.User.set($userConst.UserData.skinList, t);
-        var e = $userManager.User.get($userConst.UserData.useSkinIDList) || {
+        UserManager.User.set(UserConst.UserData.skinList, t);
+        var e = UserManager.User.get(UserConst.UserData.useSkinIDList) || {
             0: 0,
             1: 0,
             2: 9,
@@ -214,8 +215,8 @@ var W = (function (t) {
             4: 0,
             5: 0
         };
-        $userManager.User.set($userConst.UserData.useSkinIDList, e);
-        var n = $userManager.User.get($userConst.UserData.getLockSkinList) || {
+        UserManager.User.set(UserConst.UserData.useSkinIDList, e);
+        var n = UserManager.User.get(UserConst.UserData.getLockSkinList) || {
             0: [],
             1: [],
             2: [],
@@ -223,9 +224,10 @@ var W = (function (t) {
             4: [],
             5: []
         };
-        $userManager.User.set($userConst.UserData.getLockSkinList, n);
-    };
-    e.prototype.hideUIBtn = function () {
+        UserManager.User.set(UserConst.UserData.getLockSkinList, n);
+    }
+
+    hideUIBtn() {
         if (this.dict.backBtn.opacity) {
             this.dict.backBtn.opacity = 0;
             this.dict.bottomBar0.opacity = 0;
@@ -237,105 +239,114 @@ var W = (function (t) {
             this.dict.hideUIBtn.opacity = 255;
             this.dict.shopBtn.opacity = 255;
         }
-    };
-    e.prototype.onDestroy = function () {
-        $platformManager.Platform.stopRecordCap();
-        $platformManager.Platform.hideCustomAd1();
-        $platformManager.Platform.hideCustomAd2();
-        var t = $userManager.User.getTempData("levelTime");
+    }
+
+    onDestroy() {
+        PlatformManager.Platform.stopRecordCap();
+        PlatformManager.Platform.hideCustomAd1();
+        PlatformManager.Platform.hideCustomAd2();
+        var t = UserManager.User.getTempData("levelTime");
         var e = (new Date().getTime() - t) / 1e3;
-        cc.game.emit("gamelog_Thinking", $shuShuConst.ShuShuConst.Level_End, {
+        cc.game.emit("gamelog_Thinking", ShuShuConst.ShuShuConst.Level_End, {
             EndType: 2,
             Duration: e,
-            lv: $userManager.User.getTempData($userConst.TempData.CURRENT_LEVEL_ID),
-            mode: $userManager.User.getTempData($userConst.TempData.CURRENT_MODE)
+            lv: UserManager.User.getTempData(UserConst.TempData.CURRENT_LEVEL_ID),
+            mode: UserManager.User.getTempData(UserConst.TempData.CURRENT_MODE)
         });
-    };
-    e.prototype.listenHandle = function () {
-        $eventManager.Event.emit($eventConst.default.TIP_BTN_ANIM, !1, "test");
+    }
+
+    listenHandle() {
+        EventManager.Event.emit(EventConst.default.TIP_BTN_ANIM, !1, "test");
         this.unschedule(this.handleEvent);
         this.scheduleOnce(this.handleEvent, 8);
-    };
-    e.prototype.handleEvent = function () {
+    }
+
+    handleEvent() {
         console.log("测试无操作");
-        if ($userManager.User.get($userConst.TempData.isUnlockTip)) {
+        if (UserManager.User.get(UserConst.TempData.isUnlockTip)) {
             //
         } else {
-            $eventManager.Event.emit($eventConst.default.TIP_BTN_ANIM, !0, "test");
+            EventManager.Event.emit(EventConst.default.TIP_BTN_ANIM, !0, "test");
         }
-    };
-    e.prototype.restartBtn_1 = function () {
+    }
+
+    restartBtn_1() {
         this.checkFullAd_noResult();
         this.currentLevelProgress = 1;
         this.initView(!0);
-    };
-    e.prototype.clickRestart2 = function (t) {
-        var e = $userManager.User.getTempData($userConst.TempData.CURRENT_LEVEL);
-        var n = $userManager.User.getTempData($userConst.TempData.CURRENT_MODE);
+    }
+
+    clickRestart2(t) {
+        var e = UserManager.User.getTempData(UserConst.TempData.CURRENT_LEVEL);
+        var n = UserManager.User.getTempData(UserConst.TempData.CURRENT_MODE);
         cc.game.emit("gamelog", "Level_Lose_" + n + "_" + e);
         this.restartTimes += 1;
         console.log("重置次数", this.restartTimes);
-        var r = $bmsManager.BMS.getKey("FriendHelp");
-        var o = $userManager.User.getTempData($userConst.TempData.cryHelpList) || [];
-        var i = $userManager.User.get($userConst.UserData.cryHelpTimes) || 0;
+        var r = BmsManager.BMS.getKey("FriendHelp");
+        var o = UserManager.User.getTempData(UserConst.TempData.cryHelpList) || [];
+        var i = UserManager.User.get(UserConst.UserData.cryHelpTimes) || 0;
         console.log("检测", this.restartTimes, r);
         console.log("检测2", i);
         console.log("检测3", o, e);
         if (this.restartTimes >= r && i < 2 && -1 == o.indexOf(this.currentLevel)) {
             o.push(this.currentLevel);
-            $userManager.User.setTempData($userConst.TempData.cryHelpList, o);
-            $userManager.User.set($userConst.UserData.cryHelpTimes, i + 1);
+            UserManager.User.setTempData(UserConst.TempData.cryHelpList, o);
+            UserManager.User.set(UserConst.UserData.cryHelpTimes, i + 1);
         } else {
             if (this.restartTimes >= r) {
-                $platformManager.Platform.showInsert();
+                PlatformManager.Platform.showInsert();
             }
         }
         if (this.restartTimes >= 3) {
-            $eventManager.Event.emit($eventConst.default.TIP_BTN_ANIM, !0);
+            EventManager.Event.emit(EventConst.default.TIP_BTN_ANIM, !0);
             this.restartTimes = 0;
         }
         this.clickRestart(t);
-    };
-    e.prototype.onRestartReset = function () {
+    }
+
+    onRestartReset() {
         this.checkFullAd_noResult();
         this.currentLevelProgress = 1;
         this.clickRestart2();
-    };
-    e.prototype.onEnable = function () {
-        if ($platformManager.Platform.is($platformConst.EPlatform.OPPO_ANDROID)) {
-            $oPPOAndroidAdUtils.OPPOAndroidAd.showBannerFeed();
+    }
+
+    onEnable() {
+        if (PlatformManager.Platform.is(PlatformConst.EPlatform.OPPO_ANDROID)) {
+            OPPOAndroidAdUtils.OPPOAndroidAd.showBannerFeed();
         } else {
-            $platformManager.Platform.is($platformConst.EPlatform.OPPO);
+            PlatformManager.Platform.is(PlatformConst.EPlatform.OPPO);
         }
         this.initEvent();
-        $eventManager.Event.on($eventConst.default.hideLimitWelfareBtn, this.hideLimitWelfareBtn, this);
-    };
-    e.prototype.onDisable = function () {
-        if ($platformManager.Platform.is($platformConst.EPlatform.OPPO_ANDROID)) {
-            $platformManager.Platform.hideNativeAds();
+        EventManager.Event.on(EventConst.default.hideLimitWelfareBtn, this.hideLimitWelfareBtn, this);
+    }
+
+    onDisable() {
+        if (PlatformManager.Platform.is(PlatformConst.EPlatform.OPPO_ANDROID)) {
+            PlatformManager.Platform.hideNativeAds();
         } else {
-            $platformManager.Platform.is($platformConst.EPlatform.OPPO);
+            PlatformManager.Platform.is(PlatformConst.EPlatform.OPPO);
         }
         this.clearEvent();
-        $eventManager.Event.off($eventConst.default.hideLimitWelfareBtn, this.hideLimitWelfareBtn, this);
-    };
-    e.prototype.initEvent = function () {
+        EventManager.Event.off(EventConst.default.hideLimitWelfareBtn, this.hideLimitWelfareBtn, this);
+    }
+
+    initEvent() {
         cc.game.on("game_success1", this.startSuc, this);
         cc.game.on("game_success2", this.suc, this);
         cc.game.on("onRestartBtn", this.clickRestart2, this);
         cc.game.on("restartBtn_1", this.restartBtn_1, this);
         cc.game.on("onRestartReset", this.onRestartReset, this);
         cc.game.on("isTimeEnd", this.isTimeEndFun, this);
-        $eventManager.Event.on($eventConst.default.CLICK_NEXT, this.clickNext, this);
-        $eventManager.Event.on($eventConst.default.destroyInsert, this.destroyInsert, this);
-        $eventManager.Event.on($eventConst.default.enterNewMode, this.enterNewMode, this);
-        $eventManager.Event.on($eventConst.default.extendTime, this.extendTime, this);
-        $eventManager.Event.on($eventConst.default.move5, this.move5, this);
-        $eventManager.Event.on($eventConst.default.upset, this.upset, this);
-        $eventManager.Event.on($eventConst.default.boreBtn, this.boreBtn, this);
+        EventManager.Event.on(EventConst.default.CLICK_NEXT, this.clickNext, this);
+        EventManager.Event.on(EventConst.default.destroyInsert, this.destroyInsert, this);
+        EventManager.Event.on(EventConst.default.enterNewMode, this.enterNewMode, this);
+        EventManager.Event.on(EventConst.default.extendTime, this.extendTime, this);
+        EventManager.Event.on(EventConst.default.move5, this.move5, this);
+        EventManager.Event.on(EventConst.default.upset, this.upset, this);
+        EventManager.Event.on(EventConst.default.boreBtn, this.boreBtn, this);
         cc.game.on("woodRemove", this.woodRemove, this);
-        $eventManager.Event.on($eventConst.default.StopTimer, this.stopTimer, this);
-        $eventManager.Event.on($eventConst.default.restoreTime, this.restoreTime, this);
+        EventManager.Event.on(EventConst.default.StopTimer, this.stopTimer, this);
+        EventManager.Event.on(EventConst.default.restoreTime, this.restoreTime, this);
         cc.game.on("adsVideoFail", this.adsVideoFail, this);
         cc.game.on("insetVideoSuccess", this.insetVideoSuccess, this);
         cc.game.on("insetVideoAsk", this.insetVideoAsk, this);
@@ -358,23 +369,24 @@ var W = (function (t) {
         cc.game.on("allPersonAmount", this.allPersonAmount, this);
         cc.game.on("checkTipText", this.checkTipText, this);
         cc.game.on("f29086_addCoin", this.f29086_addCoin, this);
-    };
-    e.prototype.clearEvent = function () {
+    }
+
+    clearEvent() {
         cc.game.off("game_success1", this.startSuc, this);
         cc.game.off("game_success2", this.suc, this);
         cc.game.off("onRestartBtn", this.clickRestart2, this);
         cc.game.off("onRestartReset", this.onRestartReset, this);
         cc.game.off("isTimeEnd", this.isTimeEndFun, this);
-        $eventManager.Event.off($eventConst.default.CLICK_NEXT, this.clickNext, this);
-        $eventManager.Event.off($eventConst.default.destroyInsert, this.destroyInsert, this);
-        $eventManager.Event.off($eventConst.default.enterNewMode, this.enterNewMode, this);
-        $eventManager.Event.off($eventConst.default.extendTime, this.extendTime, this);
-        $eventManager.Event.off($eventConst.default.move5, this.move5, this);
-        $eventManager.Event.off($eventConst.default.upset, this.upset, this);
-        $eventManager.Event.off($eventConst.default.boreBtn, this.boreBtn, this);
+        EventManager.Event.off(EventConst.default.CLICK_NEXT, this.clickNext, this);
+        EventManager.Event.off(EventConst.default.destroyInsert, this.destroyInsert, this);
+        EventManager.Event.off(EventConst.default.enterNewMode, this.enterNewMode, this);
+        EventManager.Event.off(EventConst.default.extendTime, this.extendTime, this);
+        EventManager.Event.off(EventConst.default.move5, this.move5, this);
+        EventManager.Event.off(EventConst.default.upset, this.upset, this);
+        EventManager.Event.off(EventConst.default.boreBtn, this.boreBtn, this);
         cc.game.off("woodRemove", this.woodRemove, this);
-        $eventManager.Event.off($eventConst.default.StopTimer, this.stopTimer, this);
-        $eventManager.Event.off($eventConst.default.restoreTime, this.restoreTime, this);
+        EventManager.Event.off(EventConst.default.StopTimer, this.stopTimer, this);
+        EventManager.Event.off(EventConst.default.restoreTime, this.restoreTime, this);
         cc.game.off("adsVideoFail", this.adsVideoFail, this);
         cc.game.off("insetVideoSuccess", this.insetVideoSuccess, this);
         cc.game.off("insetVideoAsk", this.insetVideoAsk, this);
@@ -397,12 +409,15 @@ var W = (function (t) {
         cc.game.off("allPersonAmount", this.allPersonAmount, this);
         cc.game.off("checkTipText", this.checkTipText, this);
         cc.game.off("f29086_addCoin", this.f29086_addCoin, this);
-    };
-    e.prototype.f29086_addCoin = function () {};
-    e.prototype.allPersonAmount = function (t, e) {
+    }
+
+    f29086_addCoin() {
+    }
+
+    allPersonAmount(t, e) {
         if (this.currentLevel > 1) {
-            var n = $memoryStorageManager.default.get($memoryStorageConst.default.CollectGoodsID);
-            var r = $localStorageManager.default.get($localStorageConst.default.Collect) || {
+            var n = MemoryStorageManager.default.get(MemoryStorageConst.default.CollectGoodsID);
+            var r = LocalStorageManager.default.get(LocalStorageConst.default.Collect) || {
                 0: []
             };
             if (!n || r[0].includes(n)) {
@@ -422,8 +437,9 @@ var W = (function (t) {
         if (0 == t) {
             this.dict.levelProRoot.active = !1;
         }
-    };
-    e.prototype.checkTipText = function (t) {
+    }
+
+    checkTipText(t) {
         var e = this;
         if (0 == t) {
             if (this.isCheckTipTextCD) {
@@ -471,20 +487,24 @@ var W = (function (t) {
                 })
                 .start();
         }
-    };
-    e.prototype.removeScrewBtn = function () {
+    }
+
+    removeScrewBtn() {
         this.dict.removeScrewBtn.stopAllActions();
         this.dict.removeScrewBtn.scale = 1;
         this.allHoleCoverAnim = !1;
-    };
-    e.prototype.chehuiBtn_anim = function () {
+    }
+
+    chehuiBtn_anim() {
         this.allHoleCoverAnim = !1;
-    };
-    e.prototype.hideGetCard = function () {
+    }
+
+    hideGetCard() {
         this.dict.noFirstAllHole.active = !1;
-        $eventManager.Event.emit($eventConst.default.restoreTime);
-    };
-    e.prototype.allHoleCover = function () {
+        EventManager.Event.emit(EventConst.default.restoreTime);
+    }
+
+    allHoleCover() {
         var t = this;
         if (this.allHoleCoverAnim) {
             //
@@ -492,17 +512,17 @@ var W = (function (t) {
             this.allHoleCoverAnim = !0;
             console.log("allHoleCover-------");
             if (
-                !$localStorageManager.default.get($localStorageConst.default.NoFirstAllHole) &&
-                $platformManager.Platform.getConfig().hasPurchase
+                !LocalStorageManager.default.get(LocalStorageConst.default.NoFirstAllHole) &&
+                PlatformManager.Platform.getConfig().hasPurchase
             ) {
-                $localStorageManager.default.set($localStorageConst.default.NoFirstAllHole, 1);
+                LocalStorageManager.default.set(LocalStorageConst.default.NoFirstAllHole, 1);
                 this.dict.noFirstAllHole.active = !0;
-                $tipManager.Tip.show("很遗憾，没有可操作步骤了。");
-                $eventManager.Event.emit($eventConst.default.StopTimer);
+                TipManager.Tip.show("很遗憾，没有可操作步骤了。");
+                EventManager.Event.emit(EventConst.default.StopTimer);
                 this.scheduleOnce(function () {
-                    var t = ($localStorageManager.default.get($localStorageConst.default.cardAmount) || 0) + 1;
-                    $localStorageManager.default.set($localStorageConst.default.cardAmount, t);
-                    $memoryStorageManager.default.set($memoryStorageConst.default.reward, [["card", 1]]);
+                    var t = (LocalStorageManager.default.get(LocalStorageConst.default.cardAmount) || 0) + 1;
+                    LocalStorageManager.default.set(LocalStorageConst.default.cardAmount, t);
+                    MemoryStorageManager.default.set(MemoryStorageConst.default.reward, [["card", 1]]);
                 }, 1.5);
             }
             if (this.dict.removeScrewBtn.active) {
@@ -525,22 +545,26 @@ var W = (function (t) {
                 }, 5);
             }
         }
-    };
-    e.prototype.move5 = function () {
+    }
+
+    move5() {
         this.level.children[0]._components[0].addAutoMoveNumber();
-    };
-    e.prototype.upset = function () {
+    }
+
+    upset() {
         if (this.level.children[0]._components[0].shuffle) {
             this.level.children[0]._components[0].shuffle();
         }
-    };
-    e.prototype.boreBtn = function () {
+    }
+
+    boreBtn() {
         this.dict.boreBtn.active = !1;
         if (this.level.children[0]._components[0].checkAdLock) {
             this.level.children[0]._components[0].checkAdLock();
         }
-    };
-    e.prototype.hammerBtn = function () {
+    }
+
+    hammerBtn() {
         var t = this.level.children[0]._components[0];
         t.isCanUseHammer = !0;
         t.node_hammer.getChildByName("img").position = cc.v3();
@@ -558,47 +582,58 @@ var W = (function (t) {
                     })
             )
             .start();
-    };
-    e.prototype.getIsOpen = function () {
+    }
+
+    getIsOpen() {
         return 1;
-    };
-    e.prototype._initOutLine = function () {};
-    e.prototype.shakeBtn = function () {
+    }
+
+    _initOutLine() {
+    }
+
+    shakeBtn() {
         if (this.level.children[0]._components[0].shakeAnimation) {
             this.level.children[0]._components[0].shakeAnimation(0);
         }
-    };
-    e.prototype.undoBtn = function () {
+    }
+
+    undoBtn() {
         if (this.level.children[0]._components[0].func_withdraw) {
             this.level.children[0]._components[0].func_withdraw();
         }
-    };
-    e.prototype.wingBtn = function () {
+    }
+
+    wingBtn() {
         if (this.level.children[0]._components[0].func_fly) {
             this.level.children[0]._components[0].func_fly();
         }
-    };
-    e.prototype.highlightBtn = function () {
+    }
+
+    highlightBtn() {
         if (this.level.children[0]._components[0].func_highlight) {
             this.level.children[0]._components[0].func_highlight();
         }
-    };
-    e.prototype.addStepBtn = function () {
+    }
+
+    addStepBtn() {
         if (this.level.children[0]._components[0].func_addStep) {
             this.level.children[0]._components[0].func_addStep();
         }
-    };
-    e.prototype.moderateBtn = function () {
+    }
+
+    moderateBtn() {
         if (this.level.children[0]._components[0].setLeftScrollSpeed) {
             this.level.children[0]._components[0].setLeftScrollSpeed(30);
         }
-    };
-    e.prototype.rotateBtn = function () {
+    }
+
+    rotateBtn() {
         if (this.level.children[0]._components[1].turn) {
             this.level.children[0]._components[1].turn();
         }
-    };
-    e.prototype.screwBoxBtn = function () {
+    }
+
+    screwBoxBtn() {
         this.dict.bottomBar0.active = !1;
         this.dict.topLeftBar.active = !1;
         this.dict.number.active = !1;
@@ -606,20 +641,23 @@ var W = (function (t) {
         if (this.level.children[0]._components[0].func_delNail) {
             this.level.children[0]._components[0].func_delNail();
         }
-    };
-    e.prototype.func_checkDelNailCb = function () {
+    }
+
+    func_checkDelNailCb() {
         this.dict.bottomBar0.active = !0;
         this.dict.topLeftBar.active = !0;
         this.dict.number.active = !0;
         this.restoreTime();
-    };
-    e.prototype.extendTime = function () {
+    }
+
+    extendTime() {
         this.currentLevelTime = 60;
         this.dict.time2.active = !0;
         this.dict.time2.getComponent(cc.Label).string = "" + this.secondFormat(this.currentLevelTime);
         this.schedule(this.timerFun, 1);
-    };
-    e.prototype.stopTimer = function (t) {
+    }
+
+    stopTimer(t) {
         if (void 0 === t) {
             t = !1;
         }
@@ -627,89 +665,98 @@ var W = (function (t) {
             console.log("暂停时间");
             this.unschedule(this.timerFun);
         }
-    };
-    e.prototype.restoreTime = function () {
+    }
+
+    restoreTime() {
         if (this.dict.time2.active) {
             this.unschedule(this.timerFun);
             this.schedule(this.timerFun, 1);
         }
-    };
-    e.prototype.adsVideoFail = function () {
+    }
+
+    adsVideoFail() {
         cc.game.emit("gamelog", "level_interfail_" + this.currentMode + "_" + this.currentLevel);
-    };
-    e.prototype.adSkipped = function () {};
-    e.prototype.insetVideoSuccess = function () {
+    }
+
+    adSkipped() {
+    }
+
+    insetVideoSuccess() {
         cc.game.emit("gamelog", "level_interplay_" + this.currentMode + "_" + this.currentLevel);
-    };
-    e.prototype.insetVideoAsk = function () {
+    }
+
+    insetVideoAsk() {
         cc.game.emit("gamelog", "level_inter_" + this.currentMode + "_" + this.currentLevel);
-    };
-    e.prototype.destroyInsert = function () {
-        $platformManager.Platform.destroyInsert();
-    };
-    e.prototype.clickNext = function () {
+    }
+
+    destroyInsert() {
+        PlatformManager.Platform.destroyInsert();
+    }
+
+    clickNext() {
         var t = this;
-        $userManager.User.getTempData($userConst.TempData.NEXT_MODE_ID);
+        UserManager.User.getTempData(UserConst.TempData.NEXT_MODE_ID);
         if (1 != this.themeType) {
-            $configUtils.ConfigUtils.getDataByID(this.currentMode, function (e) {
+            ConfigUtils.ConfigUtils.getDataByID(this.currentMode, function (e) {
                 t.currentTopLevel = e.amount;
                 if (t.currentLevel + 1 > t.currentTopLevel) {
                     console.log("最后一关");
                     t.initLevelOrder();
                 } else {
-                    $userManager.User.setTempData($userConst.TempData.CURRENT_LEVEL, t.currentLevel + 1);
-                    $eventManager.Event.emit($eventConst.default.UPDATE_IS_UNLOCK_TIP);
+                    UserManager.User.setTempData(UserConst.TempData.CURRENT_LEVEL, t.currentLevel + 1);
+                    EventManager.Event.emit(EventConst.default.UPDATE_IS_UNLOCK_TIP);
                     t.initView();
                 }
                 if (
-                    $platformManager.Platform.is($platformConst.EPlatform.ANDROID_GOOGLE) ||
-                    $platformManager.Platform.is($platformConst.EPlatform.IOS_HAIWAI)
+                    PlatformManager.Platform.is(PlatformConst.EPlatform.ANDROID_GOOGLE) ||
+                    PlatformManager.Platform.is(PlatformConst.EPlatform.IOS_HAIWAI)
                 ) {
-                    if ($userManager.User.getTempData("isNeedInsert")) {
+                    if (UserManager.User.getTempData("isNeedInsert")) {
                         t.checkFullAd();
                     } else {
                         console.log("不需要差评");
                     }
-                    $userManager.User.setTempData("isNeedInsert", !0);
+                    UserManager.User.setTempData("isNeedInsert", !0);
                 }
             });
         } else {
-            $configUtils.ConfigUtils.getDataByID_99(this.currentMode, function (e) {
+            ConfigUtils.ConfigUtils.getDataByID_99(this.currentMode, function (e) {
                 t.currentTopLevel = e.amount;
                 if (t.currentLevel + 1 > t.currentTopLevel) {
                     console.log("最后一关");
-                    $userManager.User.setTempData($userConst.TempData.CURRENT_MODE, t.currentMode);
-                    $userManager.User.setTempData($userConst.TempData.CURRENT_LEVEL, 1);
-                    $eventManager.Event.emit($eventConst.default.UPDATE_IS_UNLOCK_TIP);
+                    UserManager.User.setTempData(UserConst.TempData.CURRENT_MODE, t.currentMode);
+                    UserManager.User.setTempData(UserConst.TempData.CURRENT_LEVEL, 1);
+                    EventManager.Event.emit(EventConst.default.UPDATE_IS_UNLOCK_TIP);
                     t.initView();
                 } else {
-                    $userManager.User.setTempData($userConst.TempData.CURRENT_LEVEL, t.currentLevel + 1);
-                    $eventManager.Event.emit($eventConst.default.UPDATE_IS_UNLOCK_TIP);
+                    UserManager.User.setTempData(UserConst.TempData.CURRENT_LEVEL, t.currentLevel + 1);
+                    EventManager.Event.emit(EventConst.default.UPDATE_IS_UNLOCK_TIP);
                     t.initView();
                 }
                 if (
-                    $platformManager.Platform.is($platformConst.EPlatform.ANDROID_GOOGLE) ||
-                    $platformManager.Platform.is($platformConst.EPlatform.IOS_HAIWAI)
+                    PlatformManager.Platform.is(PlatformConst.EPlatform.ANDROID_GOOGLE) ||
+                    PlatformManager.Platform.is(PlatformConst.EPlatform.IOS_HAIWAI)
                 ) {
-                    if ($userManager.User.getTempData("isNeedInsert") || $platformManager.Platform.getNoADState()) {
+                    if (UserManager.User.getTempData("isNeedInsert") || PlatformManager.Platform.getNoADState()) {
                         t.checkFullAd();
                     } else {
                         console.log("不需要差评");
                     }
-                    $userManager.User.setTempData("isNeedInsert", !0);
+                    UserManager.User.setTempData("isNeedInsert", !0);
                 }
             });
         }
-    };
-    e.prototype.initLevelOrder = function () {
+    }
+
+    initLevelOrder() {
         var t = this;
-        if ($platformManager.Platform.is($platformConst.EPlatform.WEB)) {
+        if (PlatformManager.Platform.is(PlatformConst.EPlatform.WEB)) {
             this.updateCurrentModeLevel();
         } else {
-            $userManager.User.get($userConst.UserData.mode0LevelList_stage1ID);
-            $userManager.User.get($userConst.UserData.mode0LevelList_stage2ID);
-            $userManager.User.get($userConst.UserData.mode1LevelList_stage1ID);
-            $userManager.User.get($userConst.UserData.mode1LevelList_stage2ID);
+            UserManager.User.get(UserConst.UserData.mode0LevelList_stage1ID);
+            UserManager.User.get(UserConst.UserData.mode0LevelList_stage2ID);
+            UserManager.User.get(UserConst.UserData.mode1LevelList_stage1ID);
+            UserManager.User.get(UserConst.UserData.mode1LevelList_stage2ID);
             var e = [];
             var n = [];
             var r = [];
@@ -717,8 +764,8 @@ var W = (function (t) {
             var i = [];
             var a = [];
             if (0 == this.currentMode) {
-                $configManager.Config.get(
-                    $configConst.ConfigConst.THEME + 0 + $platformManager.Platform.getConfig().configSuffix
+                ConfigManager.Config.get(
+                    ConfigConst.ConfigConst.THEME + 0 + PlatformManager.Platform.getConfig().configSuffix
                 ).then(function (r) {
                     for (var o = 0; o < r.length; o++) {
                         var i = r[o];
@@ -731,14 +778,14 @@ var W = (function (t) {
                     n.sort(function () {
                         return 0.5 - Math.random();
                     });
-                    $userManager.User.set($userConst.UserData.mode0LevelList_stage1ID, e);
-                    $userManager.User.set($userConst.UserData.mode0LevelList_stage2ID, n);
+                    UserManager.User.set(UserConst.UserData.mode0LevelList_stage1ID, e);
+                    UserManager.User.set(UserConst.UserData.mode0LevelList_stage2ID, n);
                     console.log("打螺丝", e, n);
                     t.updateCurrentModeLevel();
                 });
             } else {
                 if (1 == this.currentMode) {
-                    $configManager.Config.get($configConst.ConfigConst.THEME + 1).then(function (e) {
+                    ConfigManager.Config.get(ConfigConst.ConfigConst.THEME + 1).then(function (e) {
                         for (var n = 0; n < e.length; n++) {
                             var i = e[n];
                             r.push(i.stage1ID);
@@ -750,14 +797,14 @@ var W = (function (t) {
                         o.sort(function () {
                             return 0.5 - Math.random();
                         });
-                        $userManager.User.set($userConst.UserData.mode1LevelList_stage1ID, r);
-                        $userManager.User.set($userConst.UserData.mode1LevelList_stage2ID, o);
+                        UserManager.User.set(UserConst.UserData.mode1LevelList_stage1ID, r);
+                        UserManager.User.set(UserConst.UserData.mode1LevelList_stage2ID, o);
                         console.log("清理", r, o);
                         t.updateCurrentModeLevel();
                     });
                 } else {
                     if (2 == this.currentMode) {
-                        $configManager.Config.get($configConst.ConfigConst.THEME + 2).then(function (e) {
+                        ConfigManager.Config.get(ConfigConst.ConfigConst.THEME + 2).then(function (e) {
                             for (var n = 0; n < e.length; n++) {
                                 var r = e[n];
                                 i.push(r.stage1ID);
@@ -769,8 +816,8 @@ var W = (function (t) {
                             a.sort(function () {
                                 return 0.5 - Math.random();
                             });
-                            $userManager.User.set($userConst.UserData.mode2LevelList_stage1ID, i);
-                            $userManager.User.set($userConst.UserData.mode2LevelList_stage2ID, a);
+                            UserManager.User.set(UserConst.UserData.mode2LevelList_stage1ID, i);
+                            UserManager.User.set(UserConst.UserData.mode2LevelList_stage2ID, a);
                             console.log("消除箭头", i, a);
                             t.updateCurrentModeLevel();
                         });
@@ -780,12 +827,13 @@ var W = (function (t) {
                 }
             }
         }
-    };
-    e.prototype.handleModeByID = function (t) {
+    }
+
+    handleModeByID(t) {
         var e = this;
         var n = [];
         var r = [];
-        $configManager.Config.get($configConst.ConfigConst.THEME + t).then(function (o) {
+        ConfigManager.Config.get(ConfigConst.ConfigConst.THEME + t).then(function (o) {
             for (var i = 0; i < o.length; i++) {
                 var a = o[i];
                 n.push(a.stage1ID);
@@ -797,52 +845,58 @@ var W = (function (t) {
             r.sort(function () {
                 return 0.5 - Math.random();
             });
-            $userManager.User.set($userConst.UserData["mode" + t + "LevelList_stage1ID"], n);
-            $userManager.User.set($userConst.UserData["mode" + t + "LevelList_stage2ID"], r);
+            UserManager.User.set(UserConst.UserData["mode" + t + "LevelList_stage1ID"], n);
+            UserManager.User.set(UserConst.UserData["mode" + t + "LevelList_stage2ID"], r);
             console.log("模式", t, n, r);
             e.updateCurrentModeLevel();
         });
-    };
-    e.prototype.updateCurrentModeLevel = function () {
-        var t = $userManager.User.get($userConst.UserData.LEVEL_LIST) || {};
-        var e = $userManager.User.get("levelListLoopTimes") || {};
+    }
+
+    updateCurrentModeLevel() {
+        var t = UserManager.User.get(UserConst.UserData.LEVEL_LIST) || {};
+        var e = UserManager.User.get("levelListLoopTimes") || {};
         if (e[this.currentMode]) {
             e[this.currentMode] += 1;
         } else {
             e[this.currentMode] = 1;
         }
-        $userManager.User.set("levelListLoopTimes", e);
+        UserManager.User.set("levelListLoopTimes", e);
         t[this.currentMode] = 1;
-        $userManager.User.setTempData($userConst.TempData.CURRENT_MODE, this.currentMode);
-        $userManager.User.setTempData($userConst.TempData.CURRENT_LEVEL, 1);
-        $userManager.User.set($userConst.UserData.LEVEL_LIST, t);
-        $eventManager.Event.emit($eventConst.default.UPDATE_IS_UNLOCK_TIP);
+        UserManager.User.setTempData(UserConst.TempData.CURRENT_MODE, this.currentMode);
+        UserManager.User.setTempData(UserConst.TempData.CURRENT_LEVEL, 1);
+        UserManager.User.set(UserConst.UserData.LEVEL_LIST, t);
+        EventManager.Event.emit(EventConst.default.UPDATE_IS_UNLOCK_TIP);
         this.initView();
-    };
-    e.prototype.enterNewMode = function () {
-        $eventManager.Event.emit($eventConst.default.UPDATE_IS_UNLOCK_TIP);
+    }
+
+    enterNewMode() {
+        EventManager.Event.emit(EventConst.default.UPDATE_IS_UNLOCK_TIP);
         this.initView();
-    };
-    e.prototype.startSuc = function () {
+    }
+
+    startSuc() {
         this.screenshot();
-    };
-    e.prototype.screenshot = function () {
+    }
+
+    screenshot() {
         var t = this;
         this.scheduleOnce(function () {
             if (cc.isValid(t.dict.level)) {
                 t.restartNodeShot();
             }
         }, 0.1);
-    };
-    e.prototype.restartNodeShot = function () {
+    }
+
+    restartNodeShot() {
         console.log("截图");
-        $utils.Utils.nodeShot(this.dict.level).then(function (t) {
+        Utils.Utils.nodeShot(this.dict.level).then(function (t) {
             window.screenShotPicture = t;
         });
-    };
-    e.prototype.woodRemove = function (t) {
+    }
+
+    woodRemove(t) {
         console.log("测试 woodRemove");
-        var e = $poolUtils.default.get(this.dict.downSpineRoot);
+        var e = PoolUtils.default.get(this.dict.downSpineRoot);
         e.active = !0;
         var n = t.parent.convertToWorldSpaceAR(t.position);
         var r = this.node.convertToNodeSpaceAR(n);
@@ -858,36 +912,38 @@ var W = (function (t) {
         e.children[0].getComponent(sp.Skeleton).setAnimation(0, "animation", !1);
         e.children[1].getComponent(sp.Skeleton).setAnimation(0, "animation", !1);
         this.scheduleOnce(function () {
-            $poolUtils.default.put(e);
+            PoolUtils.default.put(e);
         }, 10);
-    };
-    e.prototype.suc = function () {
-        $platformManager.Platform.stopRecordCap();
+    }
+
+    suc() {
+        PlatformManager.Platform.stopRecordCap();
         this.dict.time2.active = !1;
         this.unschedule(this.timerFun);
-        var t = $userManager.User.getTempData("levelTime");
+        var t = UserManager.User.getTempData("levelTime");
         var e = (new Date().getTime() - t) / 1e3;
-        var n = $userManager.User.getTempData($userConst.TempData.CURRENT_LEVEL_ID);
-        cc.game.emit("gamelog_Thinking", $shuShuConst.ShuShuConst.Level_Win, {
+        var n = UserManager.User.getTempData(UserConst.TempData.CURRENT_LEVEL_ID);
+        cc.game.emit("gamelog_Thinking", ShuShuConst.ShuShuConst.Level_Win, {
             lv: n,
             mode: this.currentMode,
             queue: this.currentLevel,
             times: e,
-            sort: $localStorageManager.default.get($localStorageConst.default.ConfigSuffix)
+            sort: LocalStorageManager.default.get(LocalStorageConst.default.ConfigSuffix)
         });
         this.sucFunc();
         this.currentLevelProgress = 1;
-    };
-    e.prototype.playNDBS = function () {
+    }
+
+    playNDBS() {
         var t = this;
         this.dict.spine.active = !0;
-        if ("tc" == $languageManager.default.instance.lan) {
+        if ("tc" == LanguageManager.default.instance.lan) {
             this.dict.spine.getComponent(sp.Skeleton).setAnimation(0, "animation2", !1);
         } else {
-            if ("en" == $languageManager.default.instance.lan) {
+            if ("en" == LanguageManager.default.instance.lan) {
                 this.dict.spine.getComponent(sp.Skeleton).setAnimation(0, "animation4", !1);
             } else {
-                if ("ja" == $languageManager.default.instance.lan) {
+                if ("ja" == LanguageManager.default.instance.lan) {
                     this.dict.spine.getComponent(sp.Skeleton).setAnimation(0, "animation3", !1);
                 } else {
                     this.dict.spine.getComponent(sp.Skeleton).setAnimation(0, "animation", !1);
@@ -897,10 +953,11 @@ var W = (function (t) {
         this.scheduleOnce(function () {
             t.dict.spine.active = !1;
         }, 1.5);
-    };
-    e.prototype.sucFunc = function () {
+    }
+
+    sucFunc() {
         var t = this.currentLevel + 1;
-        var e = $userManager.User.get($userConst.UserData.LEVEL_LIST) || {};
+        var e = UserManager.User.get(UserConst.UserData.LEVEL_LIST) || {};
         if (e[0]) {
             //
         } else {
@@ -909,41 +966,41 @@ var W = (function (t) {
         console.log("nextLevel", t, "list", e);
         if (t > e[this.currentMode]) {
             e[this.currentMode] = t;
-            $userManager.User.set($userConst.UserData.LEVEL_LIST, e);
+            UserManager.User.set(UserConst.UserData.LEVEL_LIST, e);
             console.log("新通关");
-            $userManager.User.setTempData("newPass", !0);
-            $adjustEventSystem.default.todayPassTimes();
-            var n = $localStorageManager.default.get($localStorageConst.default.canTurntableTimes) || 0;
-            $localStorageManager.default.set($localStorageConst.default.canTurntableTimes, n + 1);
-            var r = $localStorageManager.default.get($localStorageConst.default.shipStartTime) || 0;
-            var o = $localStorageManager.default.get($localStorageConst.default.forwardTimes) || 0;
+            UserManager.User.setTempData("newPass", !0);
+            AdjustEventSystem.default.todayPassTimes();
+            var n = LocalStorageManager.default.get(LocalStorageConst.default.canTurntableTimes) || 0;
+            LocalStorageManager.default.set(LocalStorageConst.default.canTurntableTimes, n + 1);
+            var r = LocalStorageManager.default.get(LocalStorageConst.default.shipStartTime) || 0;
+            var o = LocalStorageManager.default.get(LocalStorageConst.default.forwardTimes) || 0;
             console.log("shipStartTime", o);
             console.log("shipStartTime", r);
             if (r) {
                 o += 1;
                 console.log("shipStartTime323333", r);
-                $localStorageManager.default.set($localStorageConst.default.forwardTimes, o);
+                LocalStorageManager.default.set(LocalStorageConst.default.forwardTimes, o);
             }
         } else {
-            $userManager.User.setTempData("newPass", !1);
+            UserManager.User.setTempData("newPass", !1);
         }
-        var i = $userManager.User.get("record") || 0;
+        var i = UserManager.User.get("record") || 0;
         i += 1;
-        $userManager.User.set("record", i);
-        $platformManager.Platform.sendRankData();
+        UserManager.User.set("record", i);
+        PlatformManager.Platform.sendRankData();
         if (0 == this.currentMode && e[this.currentMode] >= 5) {
-            if (0 == ($localStorageManager.default.get($localStorageConst.default.challengeStartTime) || 0)) {
-                $localStorageManager.default.set($localStorageConst.default.challengeStartTime, new Date().getTime());
-                $challengeSystem.default.init();
+            if (0 == (LocalStorageManager.default.get(LocalStorageConst.default.challengeStartTime) || 0)) {
+                LocalStorageManager.default.set(LocalStorageConst.default.challengeStartTime, new Date().getTime());
+                ChallengeSystem.default.init();
             }
-            var a = $localStorageManager.default.get($localStorageConst.default.challengeUnlockAmount) || 0;
+            var a = LocalStorageManager.default.get(LocalStorageConst.default.challengeUnlockAmount) || 0;
             a += 1;
-            $localStorageManager.default.set($localStorageConst.default.challengeUnlockAmount, a);
+            LocalStorageManager.default.set(LocalStorageConst.default.challengeUnlockAmount, a);
         }
         cc.game.emit("TaskFinish");
-        if (-1 != $platformManager.Platform.getConfig().flag.indexOf("tt")) {
+        if (-1 != PlatformManager.Platform.getConfig().flag.indexOf("tt")) {
             var s = this.currentMode;
-            var c = $userManager.User.get($userConst.UserData.ALREADY_PLAY) || {};
+            var c = UserManager.User.get(UserConst.UserData.ALREADY_PLAY) || {};
             if (c[s]) {
                 //
             } else {
@@ -952,8 +1009,8 @@ var W = (function (t) {
             if (-1 == c[s].indexOf(this.currentLevel)) {
                 c[s].push(this.currentLevel);
             }
-            $userManager.User.set($userConst.UserData.ALREADY_PLAY, c);
-            var l = $userManager.User.get($userConst.UserData.ALREADY_UNLOCK) || {};
+            UserManager.User.set(UserConst.UserData.ALREADY_PLAY, c);
+            var l = UserManager.User.get(UserConst.UserData.ALREADY_UNLOCK) || {};
             if (l[s]) {
                 //
             } else {
@@ -962,42 +1019,43 @@ var W = (function (t) {
             if (-1 == l[s].indexOf(t)) {
                 l[s].push(t);
             }
-            $userManager.User.set($userConst.UserData.ALREADY_UNLOCK, l);
+            UserManager.User.set(UserConst.UserData.ALREADY_UNLOCK, l);
         }
         if (
-            $platformManager.Platform.is($platformConst.EPlatform.ANDROID_GOOGLE) ||
-            $platformManager.Platform.is($platformConst.EPlatform.IOS_HAIWAI)
+            PlatformManager.Platform.is(PlatformConst.EPlatform.ANDROID_GOOGLE) ||
+            PlatformManager.Platform.is(PlatformConst.EPlatform.IOS_HAIWAI)
         ) {
             //
         } else {
             this.checkFullAd();
         }
-        $popupManager.default.hideAll();
-        $memoryStorageManager.default.set($memoryStorageConst.default.IsFail, 0);
+        PopupManager.default.hideAll();
+        MemoryStorageManager.default.set(MemoryStorageConst.default.IsFail, 0);
         if (1 == this.themeType) {
-            $popupManager.default.show($popupConst.PopupConst.WinOld);
+            PopupManager.default.show(PopupConst.PopupConst.WinOld);
         } else {
-            $popupManager.default.show($popupConst.PopupConst.WIN);
+            PopupManager.default.show(PopupConst.PopupConst.WIN);
         }
-        var u = $userManager.User.get($userConst.UserData.EnterSidebar) || 0;
+        var u = UserManager.User.get(UserConst.UserData.EnterSidebar) || 0;
         if (this.currentLevel >= 3 && this.currentLevel % 3 == 0 && 2 != u) {
             this.scheduleOnce(function () {
-                $popupManager.default.show($popupConst.PopupConst.LimitWelfare);
+                PopupManager.default.show(PopupConst.PopupConst.LimitWelfare);
             }, 0.3);
         }
-        var h = $userManager.User.get($userConst.UserData.IS_COMMENT) || 0;
-        var m = $bmsManager.BMS.getKey("evaluatelv");
+        var h = UserManager.User.get(UserConst.UserData.IS_COMMENT) || 0;
+        var m = BmsManager.BMS.getKey("evaluatelv");
         if (0 != this.currentMode || h || -1 == m.indexOf(this.currentLevel)) {
             //
         } else {
             this.scheduleOnce(function () {
-                $popupManager.default.show($popupConst.PopupConst.COMMENT);
+                PopupManager.default.show(PopupConst.PopupConst.COMMENT);
             }, 0.4);
         }
-        $userManager.User.setTempData($userConst.TempData.IS_WIN, !1);
-    };
-    e.prototype.initSkinAndRole = function () {
-        var t = $localStorageManager.default.get($localStorageConst.default.SkinList) || {};
+        UserManager.User.setTempData(UserConst.TempData.IS_WIN, !1);
+    }
+
+    initSkinAndRole() {
+        var t = LocalStorageManager.default.get(LocalStorageConst.default.SkinList) || {};
         if (t[0]) {
             //
         } else {
@@ -1008,7 +1066,7 @@ var W = (function (t) {
         } else {
             t[1] = [0];
         }
-        var e = $localStorageManager.default.get($localStorageConst.default.UseSkin) || {};
+        var e = LocalStorageManager.default.get(LocalStorageConst.default.UseSkin) || {};
         if (e[0]) {
             //
         } else {
@@ -1019,15 +1077,16 @@ var W = (function (t) {
         } else {
             e[1] = 0;
         }
-        var n = $localStorageManager.default.get($localStorageConst.default.HeroLevel) || 1;
+        var n = LocalStorageManager.default.get(LocalStorageConst.default.HeroLevel) || 1;
         window.f29086_LevelData = {
             useSkin: e,
             heroLevel: n
         };
         window.f29086_dragonBall = 0;
         window.f29086_coin = 0;
-    };
-    e.prototype.initView = function (t, e) {
+    }
+
+    initView(t, e) {
         if (void 0 === t) {
             t = !1;
         }
@@ -1074,12 +1133,12 @@ var W = (function (t) {
                                 this.initSkinAndRole(),
                                 this.listenHandle(),
                                 (this.isCheckTipTextCD = !1),
-                                (this.currentMode = $userManager.User.getTempData($userConst.TempData.CURRENT_MODE)),
-                                (this.currentLevel = $userManager.User.getTempData($userConst.TempData.CURRENT_LEVEL)),
+                                (this.currentMode = UserManager.User.getTempData(UserConst.TempData.CURRENT_MODE)),
+                                (this.currentLevel = UserManager.User.getTempData(UserConst.TempData.CURRENT_LEVEL)),
                                 (this.themeType =
-                                    $memoryStorageManager.default.get($memoryStorageConst.default.ThemeType) || 0),
+                                    MemoryStorageManager.default.get(MemoryStorageConst.default.ThemeType) || 0),
                                 (this.allHoleCoverAnim = !1),
-                                $memoryStorageManager.default.set($memoryStorageConst.default.LevelReliveCount, 0),
+                                MemoryStorageManager.default.set(MemoryStorageConst.default.LevelReliveCount, 0),
                                 console.log("== 主题: " + this.currentMode + " 关卡: " + this.currentLevel + " =="),
                                 console.log("== 主题类型: " + this.themeType),
                                 cc.game.emit("isRemove", !1),
@@ -1094,8 +1153,8 @@ var W = (function (t) {
                                     : window.needShowLimitWelfareBtn &&
                                       (console.log("limitWelfareBtn222", this.dict.limitWelfareBtn.active),
                                       (this.dict.limitWelfareBtn.active = !0)),
-                                (r = $bmsManager.BMS.getKey("levelspace")),
-                                (o = $bmsManager.BMS.getKey("isCheck")),
+                                (r = BmsManager.BMS.getKey("levelspace")),
+                                (o = BmsManager.BMS.getKey("isCheck")),
                                 console.log("[levelspace-isCheck]", o),
                                 0 == o &&
                                     (-1 == r
@@ -1103,16 +1162,16 @@ var W = (function (t) {
                                         : this.currentLevel % (r + 1) == 1
                                         ? ((this.dict.downloadBtn.y = 514.778), (this.dict.downloadBtn.active = !0))
                                         : (this.dict.downloadBtn.active = !1)),
-                                (i = $userManager.User.get("levelListLoopTimes") || {})[this.currentMode] ||
+                                (i = UserManager.User.get("levelListLoopTimes") || {})[this.currentMode] ||
                                     (i[this.currentMode] = 0),
                                 0 != this.currentMode
                                     ? [3, 2]
                                     : [
                                           4,
-                                          $configManager.Config.get(
-                                              $configConst.ConfigConst.THEME +
+                                          ConfigManager.Config.get(
+                                              ConfigConst.ConfigConst.THEME +
                                                   this.currentMode +
-                                                  $platformManager.Platform.getConfig().configSuffix
+                                                  PlatformManager.Platform.getConfig().configSuffix
                                           )
                                       ]
                             );
@@ -1121,7 +1180,7 @@ var W = (function (t) {
                         l = z.sent();
                         if (i[this.currentMode]) {
                             if (
-                                !(h = $localStorageManager.default.get($localStorageConst.default.LoopLevelIDArr) || [])
+                                !(h = LocalStorageManager.default.get(LocalStorageConst.default.LoopLevelIDArr) || [])
                                     .length
                             ) {
                                 for (m = 0; m < l.length; m++) {
@@ -1129,8 +1188,8 @@ var W = (function (t) {
                                         h.push(b.levelID);
                                     }
                                 }
-                                h = $tools.default.shuffleArray(h);
-                                $localStorageManager.default.set($localStorageConst.default.LoopLevelIDArr, h);
+                                h = Tools.default.shuffleArray(h);
+                                LocalStorageManager.default.set(LocalStorageConst.default.LoopLevelIDArr, h);
                             }
                             if (h[this.currentLevel - 1]) {
                                 c = h[this.currentLevel - 1];
@@ -1144,7 +1203,7 @@ var W = (function (t) {
                         }
                         return [3, 4];
                     case 2:
-                        return [4, $configManager.Config.get($configConst.ConfigConst.THEME + this.currentMode)];
+                        return [4, ConfigManager.Config.get(ConfigConst.ConfigConst.THEME + this.currentMode)];
                     case 3:
                         l = z.sent();
                         c = l.find(function (t) {
@@ -1153,31 +1212,31 @@ var W = (function (t) {
                         z.label = 4;
                     case 4:
                         if (e) {
-                            c = $userManager.User.getTempData($userConst.TempData.CURRENT_LEVEL_ID);
+                            c = UserManager.User.getTempData(UserConst.TempData.CURRENT_LEVEL_ID);
                         }
                         console.log("== 开发ID: " + c);
                         if (t) {
-                            cc.game.emit("gamelog_Thinking", $shuShuConst.ShuShuConst.Level_Reset, {
+                            cc.game.emit("gamelog_Thinking", ShuShuConst.ShuShuConst.Level_Reset, {
                                 lv: c,
                                 mode: this.currentMode,
                                 queue: this.currentLevel
                             });
                         } else {
-                            cc.game.emit("gamelog_Thinking", $shuShuConst.ShuShuConst.Level_Page, {
+                            cc.game.emit("gamelog_Thinking", ShuShuConst.ShuShuConst.Level_Page, {
                                 lv: c,
                                 mode: this.currentMode,
                                 queue: this.currentLevel,
-                                sort: $localStorageManager.default.get($localStorageConst.default.ConfigSuffix)
+                                sort: LocalStorageManager.default.get(LocalStorageConst.default.ConfigSuffix)
                             });
                         }
-                        if ($platformManager.Platform.getConfig().hasPurchase) {
+                        if (PlatformManager.Platform.getConfig().hasPurchase) {
                             //
                         } else {
                             this.dict.shopBtn.active = !1;
                         }
                         k = "zqddn_zhb/prefab/level/zqddn_zhb_level" + c;
-                        $userManager.User.setTempData($userConst.TempData.CURRENT_LEVEL_ID, c);
-                        $resManager.Res.load(k).then(function (t) {
+                        UserManager.User.setTempData(UserConst.TempData.CURRENT_LEVEL_ID, c);
+                        ResManager.Res.load(k).then(function (t) {
                             return __awaiter(V, void 0, void 0, function () {
                                 var e;
                                 var n;
@@ -1191,7 +1250,7 @@ var W = (function (t) {
                                         case 0:
                                             e = this.currentLevel + i[this.currentMode] * l.length;
                                             this.dict.number.getComponent(cc.Label).string =
-                                                $languageManager.default.formatStr("第%d关", e);
+                                                LanguageManager.default.formatStr("第%d关", e);
                                             game.currentLevel = e;
                                             this.dict.mapBtn.active = !1;
                                             n = cc.instantiate(t);
@@ -1240,23 +1299,23 @@ var W = (function (t) {
                                             }
                                             n.x = 0;
                                             this.currentPrefabAsset.push(t);
-                                            return [4, $configManager.Config.get($configConst.ConfigConst.Collect)];
+                                            return [4, ConfigManager.Config.get(ConfigConst.ConfigConst.Collect)];
                                         case 1:
                                             r = s.sent();
                                             return this.currentLevel > 1 && r[this.currentLevel - 2]
                                                 ? ((o = r[this.currentLevel - 2].goodsID),
                                                   (a = r[this.currentLevel - 2].goodsName),
-                                                  $memoryStorageManager.default.set(
-                                                      $memoryStorageConst.default.CollectGoodsID,
+                                                  MemoryStorageManager.default.set(
+                                                      MemoryStorageConst.default.CollectGoodsID,
                                                       o
                                                   ),
-                                                  $memoryStorageManager.default.set(
-                                                      $memoryStorageConst.default.CollectGoodsName,
+                                                  MemoryStorageManager.default.set(
+                                                      MemoryStorageConst.default.CollectGoodsName,
                                                       a
                                                   ),
                                                   [
                                                       4,
-                                                      $assetManager.default.getRes(
+                                                      AssetManager.default.getRes(
                                                           "gameBundle",
                                                           "texture/collect/" + o,
                                                           cc.Texture2D
@@ -1271,8 +1330,8 @@ var W = (function (t) {
                                                 new cc.SpriteFrame(c);
                                             return [3, 4];
                                         case 3:
-                                            $memoryStorageManager.default.set(
-                                                $memoryStorageConst.default.CollectGoodsID,
+                                            MemoryStorageManager.default.set(
+                                                MemoryStorageConst.default.CollectGoodsID,
                                                 null
                                             );
                                             s.label = 4;
@@ -1281,16 +1340,16 @@ var W = (function (t) {
                                             window.levelContent = n;
                                             this.scheduleOnce(function () {
                                                 u.screenshot();
-                                                $platformManager.Platform.startRecordCap();
+                                                PlatformManager.Platform.startRecordCap();
                                             }, 0);
                                             cc.game.emit(
                                                 "gamelog",
                                                 "Level_page_" + this.currentMode + "_" + this.currentLevel
                                             );
-                                            $userManager.User.setTempData("levelTime", new Date().getTime());
+                                            UserManager.User.setTempData("levelTime", new Date().getTime());
                                             if (
                                                 0 == this.currentMode &&
-                                                1 == $userManager.User.getTempData($userConst.TempData.CURRENT_LEVEL)
+                                                1 == UserManager.User.getTempData(UserConst.TempData.CURRENT_LEVEL)
                                             ) {
                                                 this.dict.content.active = !1;
                                             } else {
@@ -1301,39 +1360,39 @@ var W = (function (t) {
                                 });
                             });
                         });
-                        if ($userManager.User.getTempData("cheats")) {
+                        if (UserManager.User.getTempData("cheats")) {
                             this.dict.cheats.active = !0;
                             this.levelID.getComponent(cc.Label).string = "[" + c + "]";
                             this.bms.getComponent(cc.Label).string =
-                                "[bms: " + $platformManager.Platform.getConfig().version + "]";
+                                "[bms: " + PlatformManager.Platform.getConfig().version + "]";
                             this.flag.getComponent(cc.Label).string =
-                                "[flag: " + $platformManager.Platform.getConfig().flag + "]";
+                                "[flag: " + PlatformManager.Platform.getConfig().flag + "]";
                         }
                         this.currentLevelProgress;
                         this.initPlatformUI();
                         if (!t) {
-                            C = $bmsManager.BMS.getKey("TiLi");
+                            C = BmsManager.BMS.getKey("TiLi");
                             console.log("bmsPower", C);
                             if (C && !this.isInfinitePower()) {
-                                if ($userManager.User.getTempData($userConst.TempData.IS_INFINITE_POWER)) {
+                                if (UserManager.User.getTempData(UserConst.TempData.IS_INFINITE_POWER)) {
                                     return [2];
                                 }
-                                if ((M = $userManager.User.get($userConst.UserData.POWER)) < 5) {
-                                    $userManager.User.setTempData($userConst.TempData.POWER_TYPE, 0);
-                                    if ($bmsManager.BMS.getKey("WuxianTiLi")) {
+                                if ((M = UserManager.User.get(UserConst.UserData.POWER)) < 5) {
+                                    UserManager.User.setTempData(UserConst.TempData.POWER_TYPE, 0);
+                                    if (BmsManager.BMS.getKey("WuxianTiLi")) {
                                         cc.game.emit("gamelog", "page008"),
-                                            $popupManager.default.show($popupConst.PopupConst.INFINITE_POWER);
+                                            PopupManager.default.show(PopupConst.PopupConst.INFINITE_POWER);
                                     } else {
                                         cc.game.emit("gamelog", "page009"),
                                             cc.game.emit(
                                                 "gamelog",
                                                 "Level_NoPower_" + this.currentMode + "_" + this.currentLevel
                                             ),
-                                            $popupManager.default.show($popupConst.PopupConst.POWER_SHORTAGE);
+                                            PopupManager.default.show(PopupConst.PopupConst.POWER_SHORTAGE);
                                     }
                                 } else {
-                                    $userManager.User.set($userConst.UserData.POWER, M - 5);
-                                    $eventManager.Event.emit($eventConst.default.POWER_UPDATE);
+                                    UserManager.User.set(UserConst.UserData.POWER, M - 5);
+                                    EventManager.Event.emit(EventConst.default.POWER_UPDATE);
                                     cc.game.emit(
                                         "gamelog",
                                         "Level_Power_" +
@@ -1341,39 +1400,39 @@ var W = (function (t) {
                                             "_" +
                                             this.currentLevel +
                                             "_" +
-                                            $userManager.User.get($userConst.UserData.POWER)
+                                            UserManager.User.get(UserConst.UserData.POWER)
                                     );
-                                    T = $userManager.User.get($userConst.UserData.hasUseKey) || 0;
-                                    A = $bmsManager.BMS.getKey("keyVideo");
+                                    T = UserManager.User.get(UserConst.UserData.hasUseKey) || 0;
+                                    A = BmsManager.BMS.getKey("keyVideo");
                                     T ||
                                         0 != this.currentMode ||
                                         this.currentLevel != A ||
-                                        ($userManager.User.setTempData($userConst.TempData.current_key_type, 1),
+                                        (UserManager.User.setTempData(UserConst.TempData.current_key_type, 1),
                                         console.log(
                                             "TempData",
-                                            $userManager.User.getTempData($userConst.TempData.current_key_type)
+                                            UserManager.User.getTempData(UserConst.TempData.current_key_type)
                                         ),
-                                        $popupManager.default.show($popupConst.PopupConst.SHOP));
+                                        PopupManager.default.show(PopupConst.PopupConst.SHOP));
                                 }
                             }
-                            if ($platformManager.Platform.is($platformConst.EPlatform.WX)) {
+                            if (PlatformManager.Platform.is(PlatformConst.EPlatform.WX)) {
                                 if (!window.wx) {
                                     return [2];
                                 }
-                                U = $bmsManager.BMS.getKey("lvinys5x5lv");
-                                B = $bmsManager.BMS.getKey("lvinys5x5chance");
+                                U = BmsManager.BMS.getKey("lvinys5x5lv");
+                                B = BmsManager.BMS.getKey("lvinys5x5chance");
                                 O = this.getIsMistakeByChance(B);
                                 console.log("设置第几关:", U, "当前第几关:", this.currentLevel, O);
                                 if (U <= this.currentLevel && O) {
                                     N = window.wx.getSystemInfoSync();
                                     j = N.windowHeight / 2 - 250;
-                                    $platformManager.Platform.showBlockAds(
+                                    PlatformManager.Platform.showBlockAds(
                                         {
                                             top: j,
                                             left: 0,
-                                            id: $platformManager.Platform.getConfig().blockID,
+                                            id: PlatformManager.Platform.getConfig().blockID,
                                             hideCb: function () {
-                                                $platformManager.Platform.hideBlockAds();
+                                                PlatformManager.Platform.hideBlockAds();
                                                 setTimeout(function () {}, 300);
                                             }
                                         },
@@ -1381,7 +1440,7 @@ var W = (function (t) {
                                             if (0 == t) {
                                                 //
                                             } else {
-                                                $platformManager.Platform.hideBlockAds();
+                                                PlatformManager.Platform.hideBlockAds();
                                                 setTimeout(function () {}, 300);
                                             }
                                         }
@@ -1394,28 +1453,31 @@ var W = (function (t) {
                 }
             });
         });
-    };
-    e.prototype.isTimeEndFun = function () {
+    }
+
+    isTimeEndFun() {
         console.log("测试isTimeEndFun");
         this.isTimeEnd = !1;
-    };
-    e.prototype.timerFun = function () {
+    }
+
+    timerFun() {
         this.currentLevelTime -= 1;
         this.dict.time2.getComponent(cc.Label).string = "" + this.secondFormat(this.currentLevelTime);
         if (0 == this.currentLevelTime) {
             this.dict.time2.active = !1;
             this.unschedule(this.timerFun);
             this.isTimeEnd = !0;
-            $audioManager.Audio.playEffect($audioConst.AudioConst.timeEnd);
-            var t = $userManager.User.getTempData($userConst.TempData.CURRENT_LEVEL_ID);
-            $userManager.User.getTempData($userConst.TempData.CURRENT_MODE);
-            cc.game.emit("gamelog_Thinking", $shuShuConst.ShuShuConst.Level_Lose, {
+            AudioManager.Audio.playEffect(AudioConst.AudioConst.timeEnd);
+            var t = UserManager.User.getTempData(UserConst.TempData.CURRENT_LEVEL_ID);
+            UserManager.User.getTempData(UserConst.TempData.CURRENT_MODE);
+            cc.game.emit("gamelog_Thinking", ShuShuConst.ShuShuConst.Level_Lose, {
                 lv: t,
                 mode: this.currentMode
             });
         }
-    };
-    e.prototype.secondFormat = function (t, e, n) {
+    }
+
+    secondFormat(t, e, n) {
         if (void 0 === e) {
             e = 2;
         }
@@ -1457,26 +1519,29 @@ var W = (function (t) {
                 l = s + ":" + c;
         }
         return l;
-    };
-    e.prototype.developBtn = function () {
+    }
+
+    developBtn() {
         var t = this.dict.developID.getComponent(cc.EditBox).string;
         console.log("开发id", t);
         if (this.isIntNum(t)) {
             console.log("是数字");
-            $userManager.User.setTempData($userConst.TempData.CURRENT_LEVEL_ID, Number(t));
+            UserManager.User.setTempData(UserConst.TempData.CURRENT_LEVEL_ID, Number(t));
             this.initView(!1, !0);
         }
-    };
-    e.prototype.orderBtn = function () {
+    }
+
+    orderBtn() {
         var t = this.dict.orderID.getComponent(cc.EditBox).string;
         console.log("顺序id", t);
         if (this.isIntNum(t)) {
             console.log("是数字");
-            $userManager.User.setTempData($userConst.TempData.CURRENT_LEVEL, Number(t));
+            UserManager.User.setTempData(UserConst.TempData.CURRENT_LEVEL, Number(t));
             this.initView();
         }
-    };
-    e.prototype.screenshotBtn = function () {
+    }
+
+    screenshotBtn() {
         var t = this;
         var e = this.dict.screenshot.getComponent(cc.EditBox).string.split("-");
         var n = e[0];
@@ -1484,15 +1549,15 @@ var W = (function (t) {
         console.log("str", n, r);
         if (this.isIntNum(n) && this.isIntNum(r)) {
             this.dict.cheats.active = !1;
-            $userManager.User.setTempData($userConst.TempData.CURRENT_LEVEL, Number(n));
+            UserManager.User.setTempData(UserConst.TempData.CURRENT_LEVEL, Number(n));
             this.initView(!0);
-            $screenshotUtils.Screenshot.init(this.node);
+            ScreenshotUtils.Screenshot.init(this.node);
             var o = function () {
-                $screenshotUtils.Screenshot.btn_image_knife(String(t.currentLevel));
+                ScreenshotUtils.Screenshot.btn_image_knife(String(t.currentLevel));
                 console.log("截图第" + t.currentLevel + "关");
                 var e = t.currentLevel + 1;
                 if (e <= Number(r)) {
-                    $userManager.User.setTempData($userConst.TempData.CURRENT_LEVEL, e);
+                    UserManager.User.setTempData(UserConst.TempData.CURRENT_LEVEL, e);
                     t.initView(!0);
                 } else {
                     console.log("结束截图");
@@ -1501,45 +1566,54 @@ var W = (function (t) {
             };
             this.schedule(o, 2);
         } else {
-            $tipManager.Tip.show("输入格式应该为: 1-100");
+            TipManager.Tip.show("输入格式应该为: 1-100");
         }
-    };
-    e.prototype.downloadBtn = function () {
-        $xMADUtils.XMAD.downloadBtn();
-    };
-    e.prototype.collectRoot = function () {
-        $popupManager.default.show($popupConst.PopupConst.Collect);
-    };
-    e.prototype.mapBtn = function () {
-        $popupManager.default.show($popupConst.PopupConst.Map);
-    };
-    e.prototype.roleBtn = function () {
-        $popupManager.default.show($popupConst.PopupConst.Role);
-    };
-    e.prototype.limitWelfareBtn = function () {
+    }
+
+    downloadBtn() {
+        XMADUtils.XMAD.downloadBtn();
+    }
+
+    collectRoot() {
+        PopupManager.default.show(PopupConst.PopupConst.Collect);
+    }
+
+    mapBtn() {
+        PopupManager.default.show(PopupConst.PopupConst.Map);
+    }
+
+    roleBtn() {
+        PopupManager.default.show(PopupConst.PopupConst.Role);
+    }
+
+    limitWelfareBtn() {
         console.log("limitWelfareBtn");
-        cc.game.emit("gamelog_Thinking", $shuShuConst.ShuShuConst.btn, {
+        cc.game.emit("gamelog_Thinking", ShuShuConst.ShuShuConst.btn, {
             id: "009"
         });
-        $popupManager.default.show($popupConst.PopupConst.LimitWelfare);
-    };
-    e.prototype.hideLimitWelfareBtn = function () {
+        PopupManager.default.show(PopupConst.PopupConst.LimitWelfare);
+    }
+
+    hideLimitWelfareBtn() {
         this.dict.limitWelfareBtn.active = !1;
-    };
-    e.prototype.isIntNum = function (t) {
+    }
+
+    isIntNum(t) {
         return !isNaN(parseFloat(t));
-    };
-    e.prototype.getIsMistakeByChance = function (t) {
+    }
+
+    getIsMistakeByChance(t) {
         var e = 100 * Math.random();
         var n = !1;
         console.log("随机数", e);
         console.log("当前配置概率:" + t);
         return 0 == t ? n : (t >= e && (n = !0), n);
-    };
-    e.prototype.isInfinitePower = function () {
+    }
+
+    isInfinitePower() {
         var t = !1;
-        if ($bmsManager.BMS.getKey("WuxianTiLi")) {
-            var e = $userManager.User.get($userConst.UserData.INF_POWER_START_TIME);
+        if (BmsManager.BMS.getKey("WuxianTiLi")) {
+            var e = UserManager.User.get(UserConst.UserData.INF_POWER_START_TIME);
             var n = new Date().getTime();
             if (e) {
                 if ((n - e) / 1e3 >= 86400) {
@@ -1551,9 +1625,10 @@ var W = (function (t) {
         }
         console.log("是否是无限体力", t);
         return t;
-    };
-    e.prototype.initPlatformUI = function () {
-        if ($platformManager.Platform.getConfig().fitUIType == $platformConst.FitUIType.TT) {
+    }
+
+    initPlatformUI() {
+        if (PlatformManager.Platform.getConfig().fitUIType == PlatformConst.FitUIType.TT) {
             this.dict.topRightBar.getComponent(cc.Widget).top = 75;
             this.dict.topRightBar.getComponent(cc.Widget).updateAlignment();
             if ((t = cc.view.getFrameSize().width / cc.view.getFrameSize().height) < 0.5) {
@@ -1566,7 +1641,7 @@ var W = (function (t) {
                 this.dict.collectRoot.y = 401.999;
             }
         }
-        if ($platformManager.Platform.getConfig().fitUIType == $platformConst.FitUIType.KS) {
+        if (PlatformManager.Platform.getConfig().fitUIType == PlatformConst.FitUIType.KS) {
             var t = cc.view.getFrameSize().width / cc.view.getFrameSize().height;
             console.log("长高比", t);
             if (t < 0.5) {
@@ -1583,40 +1658,44 @@ var W = (function (t) {
             this.dict.addPowerBtn.getComponent(cc.Widget).top = 90;
             this.dict.addPowerBtn.getComponent(cc.Widget).updateAlignment();
         }
-        if ($platformManager.Platform.getConfig().hasHomeBtn) {
+        if (PlatformManager.Platform.getConfig().hasHomeBtn) {
             this.dict.homeBtn.active = !0;
         } else {
             this.dict.homeBtn.active = !1;
         }
-    };
-    e.prototype.clickHome = function () {
+    }
+
+    clickHome() {
         if (this.isLoadingScene) {
             //
         } else {
             this.isLoadingScene = !0;
             cc.game.emit("gamelog", "btn015");
-            $sceneManager.default.loadScene($sceneConst.SceneConst.MAIN);
+            SceneManager.default.loadScene(SceneConst.SceneConst.MAIN);
         }
-    };
-    e.prototype.clickBack = function () {
-        cc.game.emit("gamelog_Thinking", $shuShuConst.ShuShuConst.Level_Pause, {
-            lv: $userManager.User.getTempData($userConst.TempData.CURRENT_LEVEL_ID),
-            mode: $userManager.User.getTempData($userConst.TempData.CURRENT_MODE)
+    }
+
+    clickBack() {
+        cc.game.emit("gamelog_Thinking", ShuShuConst.ShuShuConst.Level_Pause, {
+            lv: UserManager.User.getTempData(UserConst.TempData.CURRENT_LEVEL_ID),
+            mode: UserManager.User.getTempData(UserConst.TempData.CURRENT_MODE)
         });
         this.stopTimer();
-        $popupManager.default.show($popupConst.PopupConst.SET);
-    };
-    e.prototype.clickRestart = function (t) {
+        PopupManager.default.show(PopupConst.PopupConst.SET);
+    }
+
+    clickRestart(t) {
         cc.game.emit("gamelog", "btn014");
         this.initView(!0, t);
-    };
-    e.prototype.checkFullAd_noResult = function () {
+    }
+
+    checkFullAd_noResult() {
         cc.game.emit("checkFullAd_noResult", this.currentLevel);
-    };
-    e.prototype.checkFullAd = function () {
-        $eventManager.Event.emit($eventConst.default.checkFullAd_result);
-    };
-    __decorate([K(cc.Prefab)], e.prototype, "coloringSpinePrefab", void 0);
-    return __decorate([G], e);
-})($baseUI.default);
-exports.default = W;
+    }
+
+    checkFullAd() {
+        EventManager.Event.emit(EventConst.default.checkFullAd_result);
+    }
+}
+
+export default Game;
