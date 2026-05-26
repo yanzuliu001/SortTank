@@ -1,56 +1,60 @@
-var i;
-var c;
-var l;
-var $brainLevelBase = require("./BrainLevelBase");
-var $poolMgr = require("./PoolMgr");
-var $level_29086_config = require("./Level-29086_config");
-var $level_29086_boxCarItem = require("./Level-29086_boxCarItem");
-var $motionTrail = require("./MotionTrail");
-var $level_29086_dragonItem = require("./Level-29086_dragonItem");
-var $levelUtils = require("./LevelUtils");
-var $levelConstant = require("./LevelConstant");
-var $level_29086_transport = require("./Level-29086_transport");
-var $level_29086_carPark = require("./Level-29086_carPark");
-var $levelReviveHelper = require("./levelReviveHelper");
-var $platformManager = require("../../scripts/PlatformManager");
-var $shuShuConst = require("../../scripts/ShuShuConst");
-var $userManager = require("../../scripts/UserManager");
-var $userConst = require("../../scripts/UserConst");
-var $localStorageManager = require("../../scripts/LocalStorageManager");
-var $localStorageConst = require("../../scripts/LocalStorageConst");
-var $languageManager = require("../../scripts/LanguageManager");
-var R = cc._decorator;
-var T = R.ccclass;
-var B = R.property;
-(function (t) {
-    t[(t.map1 = 1)] = "map1";
-    t[(t.map2 = 2)] = "map2";
-    t[(t.map3 = 3)] = "map3";
-    t[(t.map4 = 4)] = "map4";
-    t[(t.map5 = 5)] = "map5";
-    t[(t.map6 = 6)] = "map6";
-    t[(t.map7 = 7)] = "map7";
-    t[(t.map8 = 8)] = "map8";
-    t[(t.map9 = 9)] = "map9";
-    t[(t.map10 = 10)] = "map10";
-    t[(t.map101 = 101)] = "map101";
-    t[(t.map102 = 102)] = "map102";
-})(c || (c = {}));
-(function (t) {
-    t[(t.normal = 0)] = "normal";
-    t[(t.back = 1)] = "back";
-    t[(t.slowStart = 2)] = "slowStart";
-    t[(t.item1Start = 3)] = "item1Start";
-    t[(t.item2Start = 4)] = "item2Start";
-    t[(t.item3Start = 5)] = "item3Start";
-    t[(t.revive = 6)] = "revive";
-})(l || (l = {}));
-var TANK_SKIN_LEVEL_IDS = {
-    "-29095": !0,
-    "-29290": !0
+// @ts-nocheck
+
+const $brainLevelBase = require("./BrainLevelBase");
+const $poolMgr = require("./PoolMgr");
+const $level_29086_config = require("./Level-29086_config");
+const $level_29086_boxCarItem = require("./Level-29086_boxCarItem");
+const $motionTrail = require("./MotionTrail");
+const $level_29086_dragonItem = require("./Level-29086_dragonItem");
+const $levelUtils = require("./LevelUtils");
+const $levelConstant = require("./LevelConstant");
+const $level_29086_transport = require("./Level-29086_transport");
+const $level_29086_carPark = require("./Level-29086_carPark");
+const $levelReviveHelper = require("./levelReviveHelper");
+const $platformManager = require("../../scripts/PlatformManager");
+const $shuShuConst = require("../../scripts/ShuShuConst");
+const $userManager = require("../../scripts/UserManager");
+const $userConst = require("../../scripts/UserConst");
+const $localStorageManager = require("../../scripts/LocalStorageManager");
+const $localStorageConst = require("../../scripts/LocalStorageConst");
+const $languageManager = require("../../scripts/LanguageManager");
+
+const { ccclass, property } = cc._decorator;
+
+enum MapType {
+    map1 = 1,
+    map2 = 2,
+    map3 = 3,
+    map4 = 4,
+    map5 = 5,
+    map6 = 6,
+    map7 = 7,
+    map8 = 8,
+    map9 = 9,
+    map10 = 10,
+    map101 = 101,
+    map102 = 102,
+}
+
+enum MoveState {
+    normal = 0,
+    back = 1,
+    slowStart = 2,
+    item1Start = 3,
+    item2Start = 4,
+    item3Start = 5,
+    revive = 6,
+}
+
+const c = MapType;
+const l = MoveState;
+
+const TANK_SKIN_LEVEL_IDS = {
+    "-29095": true,
+    "-29290": true
 };
-var TANK_SKIN_SPRITE_DIR = "zqddn_zhb/texture/tank/";
-var TANK_SKIN_COLOR = {
+const TANK_SKIN_SPRITE_DIR = "zqddn_zhb/texture/tank/";
+const TANK_SKIN_COLOR = {
     0: "purple",
     1: "yellow",
     2: "blue",
@@ -60,7 +64,7 @@ var TANK_SKIN_COLOR = {
     6: "purple",
     7: "yellow"
 };
-var TANK_SKIN_DIR = {
+const TANK_SKIN_DIR = {
     0: 2,
     45: 0,
     90: 1,
@@ -70,173 +74,178 @@ var TANK_SKIN_DIR = {
     270: 5,
     315: 3
 };
-var W = (function (t) {
-    function e() {
-        var e = (null !== t && t.apply(this, arguments)) || this;
-        e.box2SpriteAtlas = null;
-        e.tankSpriteFrameCache = {};
-        e.tankSpriteFrameLoading = {};
-        e.isDebug = !1;
-        e.boundary = 750;
-        e.mapType = c.map1;
-        e.carRoot = null;
-        e.cannonRoot = null;
-        e.dragonRoot = null;
-        e.warnNode = null;
-        e.roleNode = null;
-        e._cannonNum = Symbol("_cannonNum");
-        e._cannonType = Symbol("_cannonType");
-        e._cannonState = Symbol("_cannonState");
-        e._cannonList = [];
-        e._keepDistance = 30;
-        e._moveSpeed = [50, 500, 700];
-        e._speedIndexList = [0, 70, 160];
-        e._addSpeed = [0, 0, 5, 2];
-        e.cannonAttackList = [[70, 179]];
-        e._bulletModelList = [];
-        e._bulletMoveList = [];
-        e._bulletTarget = Symbol("_bulletTarget");
-        e._dragonTarget = Symbol("_dragonTarget");
-        e._itemType = Symbol("_itemType");
-        e._itemNode = Symbol("_itemNode");
-        e._itemDepend = Symbol("_itemDepend");
-        e._turnBackDestroy = Symbol("_turnBackDestroy");
-        e._moveEnd = Symbol("_moveEnd");
-        e.createFinish = !1;
-        e._slowTime = 12;
-        e._slowCur = 0;
-        e._slowStart = !1;
-        e._warning = !1;
-        e._rolePointIndex = 0;
-        e._mapConfig = [];
-        e._mapConfig2 = [];
-        e._item1Time = 5;
-        e._item1Cur = 0;
-        e._item1Start = !1;
-        e._item1BigSpineList = new cc.NodePool();
-        e._item1SmallSpineList = new cc.NodePool();
-        e._item2Time = 2;
-        e._item2Cur = 0;
-        e._item2Start = !1;
-        e._item3Time = 5;
-        e._item3Cur = 0;
-        e._item3Start = !1;
-        e._item4Time = 8;
-        e._item4Cur = 0;
-        e._item4Start = !1;
-        e._item4SpineList = new cc.NodePool();
-        e._item5Time = 12;
-        e._item5Cur = 0;
-        e._item5Start = !1;
-        e._item5SpineList = new cc.NodePool();
-        e._itemCreatedList = [];
-        e._warningIndex = 0;
-        e._itemPoolList = [];
-        e._itemNodeList = [];
-        e._itemNameList = ["冰封", "击退", "巨龙减速", "射速加快", "射程增加", "少量金币", "大量金币"];
-        e._itemTipsList = ["冰冻效果生效中", "", "减速效果生效中", "射速加快中", "射程增加中", "", ""];
-        e._itemTipsNode = null;
-        e._touchBegin = !1;
-        e.colorTypeAmount = $level_29086_config.colorDes.length;
-        e._dragonSkin = 0;
-        e._roleSkin = 0;
-        e._roleHp = 1;
-        e._roleCurHp = 1;
-        e._roleLevel = 1;
-        e._dragonAttackInterval = 3;
-        e._roleLevel2Time = 3;
-        e._roleLevel2CurTime = 0;
-        e._roleLevel2Count = 0;
-        e._roleLevel5Count = 0;
-        e._roleLevel10Time = 3;
-        e._roleLevel10CurTime = 0;
-        e._roleLevel10Count = 0;
-        e._removeStage = !1;
-        e._removeClick = !1;
-        e._tipRemove = null;
-        e._feidan = new cc.NodePool();
-        e._feidanYanwu = new cc.NodePool();
-        e._feidanBaozha = new cc.NodePool();
-        e.personPosRoot2 = null;
-        e.isTransportCarMove = !1;
-        e.oldSortAmount = 0;
-        e.guideNodes = [];
-        e.guideText = [
+
+@ccclass
+export default class Level29086Control extends $brainLevelBase.default {
+    @property(cc.SpriteAtlas)
+    box2SpriteAtlas: any = null;
+    tankSpriteFrameCache: any = {};
+    tankSpriteFrameLoading: any = {};
+    @property
+    isDebug: any = false;
+    @property
+    boundary: any = 750;
+    @property({
+            type: cc.Enum(c),
+            tooltip: "地图",
+        })
+    mapType: any = c.map1;
+    carRoot: any = null;
+    cannonRoot: any = null;
+    dragonRoot: any = null;
+    warnNode: any = null;
+    roleNode: any = null;
+    _cannonNum: any = Symbol("_cannonNum");
+    _cannonType: any = Symbol("_cannonType");
+    _cannonState: any = Symbol("_cannonState");
+    _cannonList: any = [];
+    _keepDistance: any = 30;
+    _moveSpeed: any = [50, 500, 700];
+    _speedIndexList: any = [0, 70, 160];
+    _addSpeed: any = [0, 0, 5, 2];
+    cannonAttackList: any = [[70, 179]];
+    _bulletModelList: any = [];
+    _bulletMoveList: any = [];
+    _bulletTarget: any = Symbol("_bulletTarget");
+    _dragonTarget: any = Symbol("_dragonTarget");
+    _itemType: any = Symbol("_itemType");
+    _itemNode: any = Symbol("_itemNode");
+    _itemDepend: any = Symbol("_itemDepend");
+    _turnBackDestroy: any = Symbol("_turnBackDestroy");
+    _moveEnd: any = Symbol("_moveEnd");
+    createFinish: any = false;
+    _slowTime: any = 12;
+    _slowCur: any = 0;
+    _slowStart: any = false;
+    _warning: any = false;
+    _rolePointIndex: any = 0;
+    _mapConfig: any = [];
+    _mapConfig2: any = [];
+    _item1Time: any = 5;
+    _item1Cur: any = 0;
+    _item1Start: any = false;
+    _item1BigSpineList: any = new cc.NodePool();
+    _item1SmallSpineList: any = new cc.NodePool();
+    _item2Time: any = 2;
+    _item2Cur: any = 0;
+    _item2Start: any = false;
+    _item3Time: any = 5;
+    _item3Cur: any = 0;
+    _item3Start: any = false;
+    _item4Time: any = 8;
+    _item4Cur: any = 0;
+    _item4Start: any = false;
+    _item4SpineList: any = new cc.NodePool();
+    _item5Time: any = 12;
+    _item5Cur: any = 0;
+    _item5Start: any = false;
+    _item5SpineList: any = new cc.NodePool();
+    _itemCreatedList: any = [];
+    _warningIndex: any = 0;
+    _itemPoolList: any = [];
+    _itemNodeList: any = [];
+    _itemNameList: any = ["冰封", "击退", "巨龙减速", "射速加快", "射程增加", "少量金币", "大量金币"];
+    _itemTipsList: any = ["冰冻效果生效中", "", "减速效果生效中", "射速加快中", "射程增加中", "", ""];
+    _itemTipsNode: any = null;
+    _touchBegin: any = false;
+    colorTypeAmount: any = $level_29086_config.colorDes.length;
+    _dragonSkin: any = 0;
+    _roleSkin: any = 0;
+    _roleHp: any = 1;
+    _roleCurHp: any = 1;
+    _roleLevel: any = 1;
+    _dragonAttackInterval: any = 3;
+    _roleLevel2Time: any = 3;
+    _roleLevel2CurTime: any = 0;
+    _roleLevel2Count: any = 0;
+    _roleLevel5Count: any = 0;
+    _roleLevel10Time: any = 3;
+    _roleLevel10CurTime: any = 0;
+    _roleLevel10Count: any = 0;
+    _removeStage: any = false;
+    _removeClick: any = false;
+    _tipRemove: any = null;
+    _feidan: any = new cc.NodePool();
+    _feidanYanwu: any = new cc.NodePool();
+    _feidanBaozha: any = new cc.NodePool();
+    personPosRoot2: any = null;
+    isTransportCarMove: any = false;
+    oldSortAmount: any = 0;
+    guideNodes: any = [];
+    guideText: any = [
             "箱子会朝着箭头方向移动",
             "这种箱子可以发射10颗炮弹",
             "这种箱子可以发射6颗炮弹",
             "这种箱子可以发射4颗炮弹"
         ];
-        e.currentGuideNode = null;
-        e.guidedNodes = [];
-        e.poolMgr = new $poolMgr.default();
-        e.sortColor_new = [];
-        e.levelDataJSON = {};
-        e.parkingNodes = [];
-        e.between2_4CarArr = [];
-        e.highSpeedRailSpeed = 600;
-        e.turntableCarArr = [];
-        e.colorPersonArr = [];
-        e.unlockParkingTarget = null;
-        e.carparkIng = !1;
-        e.moveCarAmount = 0;
-        e.allPersonAmount = 0;
-        e.allPersonAmount2 = 0;
-        e.curCreatePersonAmount = 0;
-        e.extraWeightConst = 0;
-        e.extraWeight = [];
-        e.carWeight = [];
-        e.parkingWeight = [];
-        e.sortWeight = [];
-        e.allWeight = [];
-        e.colorPersonAmountArr = [];
-        e.colorPersonAmountArrIndex = [];
-        e.colorPersonIndexArr = [];
-        e.uiShowPersonAmount = 0;
-        e.currentPersonColorAmount = [];
-        e.sortPersonNodes = [];
-        e.sortPersonNodes2 = [];
-        e.times = 0;
-        e.createNum = 0;
-        e.isCanStartClick = !1;
-        e._curLastBoxItemNode = null;
-        e._curLastBoxItemNode2 = null;
-        e._mBodyMoveBackDis = Symbol("_mBodyMoveBackDis");
-        e._mBodyMoveDis = Symbol("_mBodyMoveDis");
-        e._mBodyEven = Symbol("_mBodyEven");
-        e._curMoveState = l.normal;
-        e._curMoveState2 = l.normal;
-        e._curvePoints = [];
-        e._curvePoints2 = [];
-        e.isFail = !1;
-        e.isWin = !1;
-        e.isDragonAttack = !1;
-        e.isDragonAttacking = !1;
-        e.isDragonAttack2 = !1;
-        e.isDragonAttacking2 = !1;
-        e.isReviveAmount = 0;
-        e.lastExtraIndexArr = [];
-        e.randomColorArr = [];
-        e.randomColorNum = [];
-        e.batchMap = {};
-        e.pathArr = [];
-        e.carIndex = [];
-        e.carNodeArr = [];
-        e.carAllAmount = 0;
-        e.carMap = {};
-        e.hardPointsIndexs = [];
-        e.localData = {};
-        e.reviveArr = [];
-        e.reviveRemoveArr = [];
-        e.firstSortIndexArr = [];
-        e.isSorting = !1;
-        e.isSortAnim = !1;
-        e.isReviveBack = !1;
-        e.isReviveSort = !1;
-        return e;
-    }
-    __extends(e, t);
-    e.prototype.onLoad = function () {
+    currentGuideNode: any = null;
+    guidedNodes: any = [];
+    poolMgr: any = new $poolMgr.default();
+    sortColor_new: any = [];
+    levelDataJSON: any = {};
+    parkingNodes: any = [];
+    between2_4CarArr: any = [];
+    highSpeedRailSpeed: any = 600;
+    turntableCarArr: any = [];
+    colorPersonArr: any = [];
+    unlockParkingTarget: any = null;
+    carparkIng: any = false;
+    moveCarAmount: any = 0;
+    allPersonAmount: any = 0;
+    allPersonAmount2: any = 0;
+    curCreatePersonAmount: any = 0;
+    extraWeightConst: any = 0;
+    extraWeight: any = [];
+    carWeight: any = [];
+    parkingWeight: any = [];
+    sortWeight: any = [];
+    allWeight: any = [];
+    colorPersonAmountArr: any = [];
+    colorPersonAmountArrIndex: any = [];
+    colorPersonIndexArr: any = [];
+    uiShowPersonAmount: any = 0;
+    currentPersonColorAmount: any = [];
+    sortPersonNodes: any = [];
+    sortPersonNodes2: any = [];
+    times: any = 0;
+    createNum: any = 0;
+    isCanStartClick: any = false;
+    _curLastBoxItemNode: any = null;
+    _curLastBoxItemNode2: any = null;
+    _mBodyMoveBackDis: any = Symbol("_mBodyMoveBackDis");
+    _mBodyMoveDis: any = Symbol("_mBodyMoveDis");
+    _mBodyEven: any = Symbol("_mBodyEven");
+    _curMoveState: any = l.normal;
+    _curMoveState2: any = l.normal;
+    _curvePoints: any = [];
+    _curvePoints2: any = [];
+    isFail: any = false;
+    isWin: any = false;
+    isDragonAttack: any = false;
+    isDragonAttacking: any = false;
+    isDragonAttack2: any = false;
+    isDragonAttacking2: any = false;
+    isReviveAmount: any = 0;
+    lastExtraIndexArr: any = [];
+    randomColorArr: any = [];
+    randomColorNum: any = [];
+    batchMap: any = {};
+    pathArr: any = [];
+    carIndex: any = [];
+    carNodeArr: any = [];
+    carAllAmount: any = 0;
+    carMap: any = {};
+    hardPointsIndexs: any = [];
+    localData: any = {};
+    reviveArr: any = [];
+    reviveRemoveArr: any = [];
+    firstSortIndexArr: any = [];
+    isSorting: any = false;
+    isSortAnim: any = false;
+    isReviveBack: any = false;
+    isReviveSort: any = false;
+
+    onLoad() {
         return __awaiter(this, void 0, void 0, function () {
             var e;
             var o;
@@ -260,8 +269,8 @@ var W = (function (t) {
                         e != this.mapType &&
                         (this.dict["map" + e].removeFromParent(), this.dict["mapBg" + e].removeFromParent());
                 }
-                t.prototype.onLoad.call(this);
-                this.dict.carRoot.active = !1;
+                $brainLevelBase.default.prototype.onLoad.call(this);
+                this.dict.carRoot.active = false;
                 this._itemTipsNode = new cc.Node();
                 this._itemTipsNode.parent = this.dict.game;
                 this._itemTipsNode.position = cc.v2(374.169, 360);
@@ -273,7 +282,7 @@ var W = (function (t) {
                 if (cc.view.getFrameSize().width / cc.view.getFrameSize().height < 0.5) {
                     this.dict.element.y -= 80;
                     this._itemTipsNode.y -= 80;
-                    this.dict.topMask.active = !0;
+                    this.dict.topMask.active = true;
                     this.dict.topMask.y = 504;
                     this.dict.topMask.height = 642;
                 }
@@ -388,14 +397,14 @@ var W = (function (t) {
                     this._speedIndexList = $level_29086_config.MapParam[0].speedIndexList;
                 }
                 this.cannonAttackList = $level_29086_config.MapParam[this.mapType].cannonAttackList;
-                this.setCollisionManager(!0, !1);
+                this.setCollisionManager(true, false);
                 this.carRoot = this.dict.carRoot;
                 this.cannonRoot = this.dict.cannonRoot;
                 this.dragonRoot = this.dict.dragonRoot;
                 this.warnNode = this.dict.warnNode;
                 this.roleNode = this.dict.roleNode;
                 if (this.dict.btns) {
-                    this.dict.btns.active = !1;
+                    this.dict.btns.active = false;
                 }
                 this.dict.hitSpine.scale = 0.4;
                 if (this.dict.tailGas.getComponent($motionTrail.default)) {
@@ -420,8 +429,8 @@ var W = (function (t) {
                 return [2];
             });
         });
-    };
-    e.prototype.handPos = function () {
+    }
+    handPos() {
         var t = cc.v2(-20, -20);
         if ("012-1" == this.currentGuideNode.name) {
             t = cc.v2(0, -20);
@@ -448,8 +457,8 @@ var W = (function (t) {
             .union()
             .repeatForever()
             .start();
-    };
-    e.prototype.shackAction = function (t, e) {
+    }
+    shackAction(t, e) {
         var o = cc.moveBy(t, e, e);
         var i = cc.moveBy(t, -e, -e);
         var r = cc.moveBy(0.8 * t, 0.8 * e, 0.8 * e);
@@ -461,8 +470,8 @@ var W = (function (t) {
         var h = cc.moveBy(0.2 * t, 0.2 * e, 0.2 * e);
         var p = cc.moveBy(0.2 * t, 0.2 * -e, 0.2 * -e);
         return cc.sequence(o, i, r, n, a, s, c, l, h, p);
-    };
-    e.prototype.changeCar = function (t, e, o, i) {
+    }
+    changeCar(t, e, o, i) {
         if (void 0 === o) {
             o = 0;
         }
@@ -477,7 +486,7 @@ var W = (function (t) {
             var g;
             var m = this;
             return __generator(this, function () {
-                t.getComponent($level_29086_boxCarItem.default).isReadyDestroy = !0;
+                t.getComponent($level_29086_boxCarItem.default).isReadyDestroy = true;
                 r = t.getComponent($level_29086_boxCarItem.default).colorImgName;
                 n = t.getComponent($level_29086_boxCarItem.default).lenImgName;
                 if (i) {
@@ -488,7 +497,7 @@ var W = (function (t) {
                 a.getComponent($level_29086_boxCarItem.default).carState = t.getComponent(
                     $level_29086_boxCarItem.default
                 ).carState;
-                a.active = !1;
+                a.active = false;
                 this.carRoot.addChild(a);
                 a.getComponent($level_29086_boxCarItem.default).mgr = this;
                 a.getComponent($level_29086_boxCarItem.default).colorImgName = r;
@@ -571,7 +580,7 @@ var W = (function (t) {
                             m.box2SpriteAtlas.getSpriteFrame(g);
                     }
                     m.applyTankSkin(a, a.getComponent($level_29086_boxCarItem.default).carColor);
-                    a.active = !0;
+                    a.active = true;
                     var o = a.convertToWorldSpaceAR(cc.v2(0, 2250));
                     var i = a.parent.convertToNodeSpaceAR(o);
                     if (
@@ -654,24 +663,24 @@ var W = (function (t) {
                                     m.updateCarWeight();
                                     a.parking.car = a;
                                     var t = a.getComponent($level_29086_boxCarItem.default).seatTotalAmount;
-                                    a.getChildByName("sd").active = !1;
-                                    a.getChildByName("shadow").active = !0;
+                                    a.getChildByName("sd").active = false;
+                                    a.getChildByName("shadow").active = true;
                                     var e = Number(a.name[2]);
                                     var o = a.getComponent($level_29086_boxCarItem.default).carColor;
                                     if (a.getChildByName("body")) {
-                                        a.getChildByName("body").active = !1;
+                                        a.getChildByName("body").active = false;
                                     }
-                                    a.getChildByName("car").active = !1;
-                                    a.getChildByName("sd").active = !1;
-                                    a.getChildByName("shadow").active = !1;
-                                    a.getChildByName("boxSpine").active = !0;
+                                    a.getChildByName("car").active = false;
+                                    a.getChildByName("sd").active = false;
+                                    a.getChildByName("shadow").active = false;
+                                    a.getChildByName("boxSpine").active = true;
                                     a.getChildByName("boxSpine").getComponent(sp.Skeleton).timeScale = 2;
                                     a.getChildByName("boxSpine")
                                         .getComponent(sp.Skeleton)
                                         .setSkin("skin" + (o + 1));
                                     a.getChildByName("boxSpine")
                                         .getComponent(sp.Skeleton)
-                                        .setAnimation(0, "open" + (3 - e + 1), !1);
+                                        .setAnimation(0, "open" + (3 - e + 1), false);
                                     a.getChildByName("boxSpine")
                                         .getComponent(sp.Skeleton)
                                         .setCompleteListener(function () {
@@ -702,14 +711,14 @@ var W = (function (t) {
                                                 .setSkin("skin" + (o + 1));
                                             e.getChildByName("cannon")
                                                 .getComponent(sp.Skeleton)
-                                                .setAnimation(0, "enter", !1);
+                                                .setAnimation(0, "enter", false);
                                             e.getChildByName("cannon")
                                                 .getComponent(sp.Skeleton)
                                                 .setCompleteListener(function () {
                                                     e[m._cannonState] = 1;
                                                     e.getChildByName("cannon")
                                                         .getComponent(sp.Skeleton)
-                                                        .setAnimation(0, "idle", !0);
+                                                        .setAnimation(0, "idle", true);
                                                 });
                                         });
                                     m.putTailGas(a);
@@ -744,8 +753,8 @@ var W = (function (t) {
                 return [2];
             });
         });
-    };
-    e.prototype.load = function (t) {
+    }
+    load(t) {
         return __awaiter(this, void 0, Promise, function () {
             return __generator(this, function () {
                 return [
@@ -762,13 +771,13 @@ var W = (function (t) {
                 ];
             });
         });
-    };
-    e.prototype.putTailGas = function (t) {
+    }
+    putTailGas(t) {
         if (t.getChildByName("tailGas")) {
             this.poolMgr.put(t.getChildByName("tailGas"), "tailGas");
         }
-    };
-    e.prototype.hit = function (t) {
+    }
+    hit(t) {
         var e = cc.instantiate(this.dict.hitSpine);
         if (e) {
             t.addChild(e);
@@ -777,16 +786,16 @@ var W = (function (t) {
                 e.destroy();
             }, 1);
         }
-    };
-    e.prototype.collision = function (t) {
-        t.getComponent($level_29086_boxCarItem.default).isReadyDestroy = !0;
+    }
+    collision(t) {
+        t.getComponent($level_29086_boxCarItem.default).isReadyDestroy = true;
         if (!t.getComponent($level_29086_boxCarItem.default).isFireEngine) {
             var e = t;
             var o = void 0;
             for (var i = 0; i < this.parkingNodes.length; i++) {
                 var r = this.parkingNodes[i];
                 if (r.isEmpty) {
-                    r.isEmpty = !1;
+                    r.isEmpty = false;
                     e.parking = r;
                     o = r;
                     break;
@@ -834,16 +843,16 @@ var W = (function (t) {
                 }
             }
         }
-    };
-    e.prototype.saveParkingWPos = function () {
+    }
+    saveParkingWPos() {
         for (var t = 0; t < this.dict.parkingRoot.children.length; t++) {
             var e = this.dict.parkingRoot.children[t];
             e.currentParkingWPos = e.convertToWorldSpaceAR(cc.v2(0, -168.549));
             e.currentParkingNPos = this.dict.carRoot.convertToNodeSpaceAR(e.currentParkingWPos);
         }
         console.log("初始算好每个车位的停车点的世界坐标");
-    };
-    e.prototype.onLevelReady = function () {
+    }
+    onLevelReady() {
         var t = this;
         this.saveParkingWPos();
         this.dict.carRoot.children.forEach(function (e) {
@@ -916,8 +925,8 @@ var W = (function (t) {
         this._roleCurHp = this._roleHp;
         this.updateRoleHp();
         this.initView();
-    };
-    e.prototype.initView = function () {
+    }
+    initView() {
         return __awaiter(this, void 0, void 0, function () {
             var t;
             var e;
@@ -947,7 +956,7 @@ var W = (function (t) {
             return __generator(this, function () {
                 if (this.dict.guide) {
                     this.scheduleOnce(function () {
-                        W.dict.guide.active = !1;
+                        W.dict.guide.active = false;
                     }, 6);
                 }
                 if (this.levelDataJSON.transport) {
@@ -959,9 +968,9 @@ var W = (function (t) {
                     !(t = this.dict.parkingRoot.children[_]).active ||
                         t.getChildByName("videoLock") ||
                         t.getChildByName("fireSpine") ||
-                        ((t.isEmpty = !0), this.parkingNodes.push(t));
+                        ((t.isEmpty = true), this.parkingNodes.push(t));
                     t.getChildByName("videoLock") &&
-                        ((t.getChildByName("videoLock").active = !0),
+                        ((t.getChildByName("videoLock").active = true),
                         (t.getChildByName("videoLock").getChildByName("text").getComponent(cc.Label).overflow =
                             cc.Label.Overflow.SHRINK),
                         (t.getChildByName("videoLock").getChildByName("text").width = 80),
@@ -1015,13 +1024,13 @@ var W = (function (t) {
                     if (this.levelDataJSON.blackAmount >= this.between2_4CarArr.length) {
                         for (N = 0; N < this.between2_4CarArr.length; N++) {
                             (g = this.between2_4CarArr[N]).getComponent($level_29086_boxCarItem.default).isBlackCar =
-                                !0;
+                                true;
                             i.push(g.getComponent($level_29086_boxCarItem.default).carID);
                         }
                     } else {
                         l = this.getRandomDistinctElements(this.between2_4CarArr, this.levelDataJSON.blackAmount);
                         for (N = 0; N < l.length; N++) {
-                            (g = l[N]).getComponent($level_29086_boxCarItem.default).isBlackCar = !0;
+                            (g = l[N]).getComponent($level_29086_boxCarItem.default).isBlackCar = true;
                             i.push(g.getComponent($level_29086_boxCarItem.default).carID);
                         }
                     }
@@ -1055,7 +1064,7 @@ var W = (function (t) {
                         S = this.carNodeArr[_];
                         k = h[_];
                         i.includes(S.getComponent($level_29086_boxCarItem.default).carID) &&
-                            (S.getComponent($level_29086_boxCarItem.default).isBlackCar = !0);
+                            (S.getComponent($level_29086_boxCarItem.default).isBlackCar = true);
                         this.setCarColorImg(S, k);
                         (A = this.levelDataJSON.carWeight[S.getComponent($level_29086_boxCarItem.default).path - 1]) ||
                             (A = 1);
@@ -1076,29 +1085,29 @@ var W = (function (t) {
                 }
                 (P = cc.instantiate(this.dict.longtou)).getComponent($level_29086_dragonItem.default).dragonColor = 1;
                 this.dragonRoot.addChild(P, 999);
-                P.longtou = !0;
+                P.longtou = true;
                 P.position = cc.v3(this._mapConfig[0][0], this._mapConfig[0][1]);
                 P._moveIndex = 0;
                 P[this._mBodyMoveDis] = 0;
                 P[this._mBodyMoveBackDis] = 0;
-                P[this._mBodyEven] = !0;
-                P.active = !1;
+                P[this._mBodyEven] = true;
+                P.active = false;
                 this.changeDragonSkin(P, function () {
-                    P.active = !0;
+                    P.active = true;
                 });
                 this.updateBodyPos(P);
                 this.dict.hpPrefab.parent = P;
                 this.dict.hpPrefab.position = cc.v2();
-                this.dict.hpPrefab.active = !1;
+                this.dict.hpPrefab.active = false;
                 cc.tween(P)
                     .delay($levelUtils.default.getRandomInt(3, 8))
                     .call(function () {
                         if (W.isWin || W.isReviveBack || W._item1Start) {
                             //
                         } else {
-                            P.getComponent(sp.Skeleton).setAnimation(0, "angry", !1);
-                            P.getComponent(sp.Skeleton).addAnimation(0, "angry", !1);
-                            P.getComponent(sp.Skeleton).addAnimation(0, "idle1", !0);
+                            P.getComponent(sp.Skeleton).setAnimation(0, "angry", false);
+                            P.getComponent(sp.Skeleton).addAnimation(0, "angry", false);
+                            P.getComponent(sp.Skeleton).addAnimation(0, "idle1", true);
                         }
                     })
                     .delay(1.5)
@@ -1111,15 +1120,15 @@ var W = (function (t) {
                         $level_29086_dragonItem.default
                     ).dragonColor = 1;
                     this.dragonRoot.addChild(x, 999);
-                    x.longtou = !0;
+                    x.longtou = true;
                     x.position = cc.v3(this._mapConfig[0][0], this._mapConfig[0][1]);
                     x._moveIndex = 0;
                     x[this._mBodyMoveDis] = 0;
                     x[this._mBodyMoveBackDis] = 0;
-                    x[this._mBodyEven] = !1;
-                    x.active = !1;
+                    x[this._mBodyEven] = false;
+                    x.active = false;
                     this.changeDragonSkin(x, function () {
-                        x.active = !0;
+                        x.active = true;
                     });
                     this.updateBodyPos(x);
                     cc.tween(x)
@@ -1128,9 +1137,9 @@ var W = (function (t) {
                             if (W.isWin || W.isReviveBack || W._item1Start) {
                                 //
                             } else {
-                                x.getComponent(sp.Skeleton).setAnimation(0, "angry", !1);
-                                x.getComponent(sp.Skeleton).addAnimation(0, "angry", !1);
-                                x.getComponent(sp.Skeleton).addAnimation(0, "idle1", !0);
+                                x.getComponent(sp.Skeleton).setAnimation(0, "angry", false);
+                                x.getComponent(sp.Skeleton).addAnimation(0, "angry", false);
+                                x.getComponent(sp.Skeleton).addAnimation(0, "idle1", true);
                             }
                         })
                         .delay(1.5)
@@ -1139,8 +1148,8 @@ var W = (function (t) {
                         .start();
                     this._curLastBoxItemNode2 = x;
                 }
-                this.createPerson(!1, function () {
-                    W.createFinish = !0;
+                this.createPerson(false, function () {
+                    W.createFinish = true;
                 });
                 this.sortPersonNodes.unshift(P);
                 if (x) {
@@ -1149,16 +1158,16 @@ var W = (function (t) {
                 b = this._mapConfig[this.roleNode._moveIndex];
                 R = cc.v2(b[0], b[1]);
                 R = this.dict.personPosRoot.convertToWorldSpaceAR(R);
-                this.roleNode.active = !1;
+                this.roleNode.active = false;
                 this.changeRoleSkin(this.roleNode, function () {
-                    W.roleNode.active = !0;
+                    W.roleNode.active = true;
                 });
                 this.roleNode.position = this.roleNode.parent.convertToNodeSpaceAR(R).add(cc.v2(0, -20));
                 this.updateRoleHp();
                 this.updateRoleHpPos();
-                (T = this.dict.roleText).active = !0;
+                (T = this.dict.roleText).active = true;
                 T.scale = 0;
-                this.dict.roleHpNode.active = !1;
+                this.dict.roleHpNode.active = false;
                 cc.tween(T)
                     .to(0.3, {
                         scale: 1
@@ -1200,7 +1209,7 @@ var W = (function (t) {
                         scale: 0
                     })
                     .call(function () {
-                        W.dict.roleHpNode.active = !0;
+                        W.dict.roleHpNode.active = true;
                     })
                     .start();
                 this.roleNode._targetPos = this.roleNode.position;
@@ -1216,13 +1225,13 @@ var W = (function (t) {
                 this.dict["f29086.csm"].scale = 0.8;
                 this.updateHp();
                 this.onTouch();
-                this.isCanStartClick = !0;
+                this.isCanStartClick = true;
                 return [2];
             });
         });
-    };
-    e.prototype.checkHasCarMove = function () {
-        var t = !1;
+    }
+    checkHasCarMove() {
+        var t = false;
         var e = this.carRoot.children.concat(this.turntableCarArr);
         for (var o = 0; o < e.length; o++) {
             var i = e[o];
@@ -1231,20 +1240,20 @@ var W = (function (t) {
                 i.getComponent($level_29086_boxCarItem.default).carState != $level_29086_config.CarState.Normal &&
                 i.getComponent($level_29086_boxCarItem.default).carState != $level_29086_config.CarState.Parking
             ) {
-                t = !0;
+                t = true;
                 break;
             }
         }
         return t;
-    };
-    e.prototype.checkHasCarMoveAmount = function () {
+    }
+    checkHasCarMoveAmount() {
         var t = 0;
         var e = this.carRoot.children.concat(this.turntableCarArr);
         for (var o = 0; o < e.length; o++) {
             var i = e[o];
             if (
                 i &&
-                cc.isValid(i, !0) &&
+                cc.isValid(i, true) &&
                 i.active &&
                 i.getComponent($level_29086_boxCarItem.default).carState != $level_29086_config.CarState.Idle &&
                 i.getComponent($level_29086_boxCarItem.default).carState != $level_29086_config.CarState.OutParking
@@ -1253,8 +1262,8 @@ var W = (function (t) {
             }
         }
         return t;
-    };
-    e.prototype.onTouch = function () {
+    }
+    onTouch() {
         this.node.on(cc.Node.EventType.TOUCH_START, this.touchStart, this);
         for (var t = 0; t < this.dict.parkingRoot.children.length; t++) {
             var e = this.dict.parkingRoot.children[t];
@@ -1262,29 +1271,29 @@ var W = (function (t) {
                 e.on(cc.Node.EventType.TOUCH_START, this.touchStart_parking, this);
             }
         }
-    };
-    e.prototype.fun_unlockNewPos = function () {
+    }
+    fun_unlockNewPos() {
         for (var t = 0; t < this.dict.parkingRoot.children.length; t++) {
             var e = this.dict.parkingRoot.children[t];
             if (e.getChildByName("videoLock")) {
                 this.unlockParkingTarget = e;
                 e.getChildByName("videoLock").destroy();
-                e.getChildByName("empty").active = !0;
-                e.isEmpty = !0;
+                e.getChildByName("empty").active = true;
+                e.isEmpty = true;
                 this.parkingNodes.push(e);
                 return void this.playUnlockSpine(e);
             }
         }
-    };
-    e.prototype.touchStart_parking = function (t) {
+    }
+    touchStart_parking(t) {
         var e = this;
         if (!this.isWin && !this._removeStage) {
             var o = t.target;
             $platformManager.Platform.showRewardAds(function (t) {
                 if (0 == t && o.getChildByName("videoLock")) {
                     o.getChildByName("videoLock").destroy();
-                    o.getChildByName("empty").active = !0;
-                    o.isEmpty = !0;
+                    o.getChildByName("empty").active = true;
+                    o.isEmpty = true;
                     e.parkingNodes.push(o);
                     cc.game.emit("gamelog_Thinking", $shuShuConst.ShuShuConst.reward_btn, {
                         lv: $userManager.User.getTempData($userConst.TempData.CURRENT_LEVEL_ID),
@@ -1297,30 +1306,30 @@ var W = (function (t) {
                 }
             });
         }
-    };
-    e.prototype.playUnlockSpine = function (t) {
+    }
+    playUnlockSpine(t) {
         var e = cc.instantiate(this.dict.jiesuo);
         this.node.addChild(e);
         var o = t.convertToWorldSpaceAR(cc.v2(0, 0));
         var i = this.node.convertToNodeSpaceAR(o);
         e.position = i;
-        e.getComponent(sp.Skeleton).premultipliedAlpha = !1;
-        e.getComponent(sp.Skeleton).setAnimation(0, "animation", !1);
+        e.getComponent(sp.Skeleton).premultipliedAlpha = false;
+        e.getComponent(sp.Skeleton).setAnimation(0, "animation", false);
         var r = t.getChildByName("unlockTips");
         if (r) {
             r.removeFromParent();
-            r.active = !1;
+            r.active = false;
         }
         cc.game.emit("unlockVideoLock", this.func_hasLockParking());
-    };
-    e.prototype.func_unlockParking = function () {
+    }
+    func_unlockParking() {
         this.playUnlockSpine(this.unlockParkingTarget);
         this.unlockParkingTarget.getChildByName("videoLock").destroy();
-        this.unlockParkingTarget.getChildByName("empty").active = !0;
-        this.unlockParkingTarget.isEmpty = !0;
+        this.unlockParkingTarget.getChildByName("empty").active = true;
+        this.unlockParkingTarget.isEmpty = true;
         this.parkingNodes.push(this.unlockParkingTarget);
-    };
-    e.prototype.touchStart = function (t) {
+    }
+    touchStart(t) {
         if (this.isCanStartClick) {
             t.target;
             var e = t.getLocation();
@@ -1332,7 +1341,7 @@ var W = (function (t) {
                 var r = o[i];
                 var n = r.getChildByName("car").getComponent(cc.PolygonCollider);
                 if (r.active && cc.Intersection.pointInPolygon(e, this.getWPosByPolygon(n))) {
-                    this._touchBegin = !0;
+                    this._touchBegin = true;
                     if (
                         this._removeStage &&
                         !this._removeClick &&
@@ -1382,28 +1391,28 @@ var W = (function (t) {
                         this.dict.hand.active &&
                         (this.guidedNodes.push(r), this.currentGuideNode == r)
                     ) {
-                        var c = !1;
+                        var c = false;
                         for (var l = 0; l < this.guideNodes.length; l++) {
                             var h = this.guideNodes[l];
                             if (-1 == this.guidedNodes.indexOf(h)) {
                                 this.currentGuideNode = h;
                                 this.handPos();
-                                c = !0;
+                                c = true;
                                 break;
                             }
                         }
                         if (c) {
                             //
                         } else {
-                            this.dict.hand.active = !1;
-                            this.dict.handText.active = !1;
-                            this.dict.handText.parent.active = !1;
+                            this.dict.hand.active = false;
+                            this.dict.handText.active = false;
+                            this.dict.handText.parent.active = false;
                         }
                     }
-                    var p = !1;
+                    var p = false;
                     for (l = 0; l < this.parkingNodes.length; l++) {
                         if (this.parkingNodes[l].isEmpty) {
-                            p = !0;
+                            p = true;
                             break;
                         }
                     }
@@ -1443,14 +1452,14 @@ var W = (function (t) {
                     if (a) {
                         a.getComponent($level_29086_boxCarItem.default).otherCarNode = this.getOtherCarByDistance(
                             a,
-                            !0
+                            true
                         );
                         a.getComponent($level_29086_boxCarItem.default).oldPos = a.position;
                     }
                     if (s) {
                         s.getComponent($level_29086_boxCarItem.default).otherCarNode = this.getOtherCarByDistance(
                             s,
-                            !0
+                            true
                         );
                         s.getComponent($level_29086_boxCarItem.default).oldPos = s.position;
                     }
@@ -1481,8 +1490,8 @@ var W = (function (t) {
                 }
             }
         }
-    };
-    e.prototype.checkHasCollision = function (t) {
+    }
+    checkHasCollision(t) {
         var e;
         var o;
         var i;
@@ -1529,13 +1538,13 @@ var W = (function (t) {
                     cc.Intersection.lineLine(e, o, y, C) ||
                     cc.Intersection.lineLine(n, a, y, C)
                 ) {
-                    return !0;
+                    return true;
                 }
             }
         }
-        return !1;
-    };
-    e.prototype.addTailGasSpine = function (t) {
+        return false;
+    }
+    addTailGasSpine(t) {
         return __awaiter(this, void 0, void 0, function () {
             var e;
             return __generator(this, function () {
@@ -1543,13 +1552,13 @@ var W = (function (t) {
                 t.addChild(e);
                 e.position = cc.v2(0, -t.height);
                 if (e.getComponent($motionTrail.default)) {
-                    e.getComponent($motionTrail.default).active = !0;
+                    e.getComponent($motionTrail.default).active = true;
                 }
                 return [2];
             });
         });
-    };
-    e.prototype.getWPosByPolygon = function (t) {
+    }
+    getWPosByPolygon(t) {
         var e = t.points;
         var o = [];
         for (var i = 0; i < e.length; i++) {
@@ -1558,8 +1567,8 @@ var W = (function (t) {
             o.push(n);
         }
         return o;
-    };
-    e.prototype.getRandomDistinctElements = function (t, e) {
+    }
+    getRandomDistinctElements(t, e) {
         var o = [];
         for (var i = 0; i < e; i++) {
             var r = Math.floor(Math.random() * (t.length - i));
@@ -1571,21 +1580,21 @@ var W = (function (t) {
             }
         }
         return o;
-    };
-    e.prototype.getTankDirIndex = function (t) {
+    }
+    getTankDirIndex(t) {
         var e = Math.round((((t % 360) + 360) % 360) / 45) * 45;
         e = 360 == e ? 0 : e;
         return TANK_SKIN_DIR[e];
-    };
-    e.prototype.getTankSpritePath = function (t, e) {
+    }
+    getTankSpritePath(t, e) {
         var o = TANK_SKIN_COLOR[e];
         var i = this.getTankDirIndex(t.angle);
         if (void 0 === o || void 0 === i) {
             return null;
         }
         return TANK_SKIN_SPRITE_DIR + "tank_" + o + "_" + i;
-    };
-    e.prototype.loadTankSpriteFrame = function (t, e) {
+    }
+    loadTankSpriteFrame(t, e) {
         var o = this;
         if (this.tankSpriteFrameCache[t]) {
             e(this.tankSpriteFrameCache[t]);
@@ -1611,8 +1620,8 @@ var W = (function (t) {
                 t(r);
             });
         });
-    };
-    e.prototype.applyTankSkin = function (t, e) {
+    }
+    applyTankSkin(t, e) {
         if (!TANK_SKIN_LEVEL_IDS[this.levelID] || t.isCarPark) {
             return;
         }
@@ -1629,26 +1638,26 @@ var W = (function (t) {
             });
         }
         if (n) {
-            n.active = !1;
+            n.active = false;
         }
         if (t.getChildByName("shadow")) {
-            t.getChildByName("shadow").active = !1;
+            t.getChildByName("shadow").active = false;
         }
         this.loadTankSpriteFrame(o, function (e) {
             if (!e || !cc.isValid(t) || !cc.isValid(i)) {
                 return;
             }
             i.getComponent(cc.Sprite).spriteFrame = e;
-            i.active = !0;
+            i.active = true;
             if (r && cc.isValid(r)) {
-                r.active = !1;
+                r.active = false;
             }
             if (n && cc.isValid(n)) {
-                n.active = !1;
+                n.active = false;
             }
         });
-    };
-    e.prototype.setCarColorImg = function (t, e) {
+    }
+    setCarColorImg(t, e) {
         var o;
         var i;
         var r = t.getComponent($level_29086_boxCarItem.default);
@@ -1664,8 +1673,8 @@ var W = (function (t) {
         r.lenImgName = $level_29086_config.CarLenImg[r.seatTotalAmount];
         o = "f29086_" + $level_29086_config.getCarImgByColor(t, e);
         i = "f29086_" + $level_29086_config.getCarBodyImgByColor(t, e);
-        t.parent.active = !0;
-        t.active = !0;
+        t.parent.active = true;
+        t.active = true;
         t.getChildByName("car").getComponent(cc.Sprite).spriteFrame = this.box2SpriteAtlas.getSpriteFrame(o);
         if (t.getChildByName("body")) {
             t.getChildByName("body").getComponent(cc.Sprite).spriteFrame = this.box2SpriteAtlas.getSpriteFrame(i);
@@ -1677,10 +1686,10 @@ var W = (function (t) {
             this.levelDataJSON.carWeight[r.path] = 0;
         }
         if (t.isCarPark) {
-            t.active = !1;
+            t.active = false;
         }
-    };
-    e.prototype.updateCarWeight = function () {
+    }
+    updateCarWeight() {
         var t = this;
         this.carWeight = new Array(this.colorTypeAmount).fill(0);
         var e = this.carRoot.children.concat(this.turntableCarArr);
@@ -1697,7 +1706,7 @@ var W = (function (t) {
                 var n = i.getPath(r);
                 r.getComponent($level_29086_boxCarItem.default).path = n;
                 if (1 == n && r.getComponent($level_29086_boxCarItem.default).isBlackCar && !r.isNoBlack) {
-                    r.isScaleAnim = !0;
+                    r.isScaleAnim = true;
                     cc.tween(r)
                         .to(0.2, {
                             scale: 1.2
@@ -1706,8 +1715,8 @@ var W = (function (t) {
                             scale: 1
                         })
                         .call(function () {
-                            r.isScaleAnim = !1;
-                            r.getChildByName("dir").active = !1;
+                            r.isScaleAnim = false;
+                            r.getChildByName("dir").active = false;
                             var e = "texture/" + t.folder + "/" + t.folder + "_3";
                             if (128 == Math.round(Math.abs(r.angle))) {
                                 e = "texture/" + t.folder + "/" + t.folder + "_4";
@@ -1723,7 +1732,7 @@ var W = (function (t) {
                                 if (t) {
                                     //
                                 } else {
-                                    r.getChildByName("dir").active = !0;
+                                    r.getChildByName("dir").active = true;
                                     if (e) {
                                         r.getChildByName("dir").getComponent(cc.Sprite).spriteFrame =
                                             new cc.SpriteFrame(e);
@@ -1733,13 +1742,13 @@ var W = (function (t) {
                             var o = r.getComponent($level_29086_boxCarItem.default);
                             var i = "" + o.colorImgName + o.dirImgName + o.lenImgName;
                             var n = "texture/" + t.folder + "/" + t.folder + "_" + i;
-                            r.getChildByName("car").active = !1;
-                            r.isNoBlack = !0;
+                            r.getChildByName("car").active = false;
+                            r.isNoBlack = true;
                             cc.resources.load(n, function (t, e) {
                                 if (t) {
                                     //
                                 } else {
-                                    r.getChildByName("car").active = !0;
+                                    r.getChildByName("car").active = true;
                                     if (e) {
                                         r.getChildByName("car").getComponent(cc.Sprite).spriteFrame =
                                             new cc.SpriteFrame(e);
@@ -1766,10 +1775,10 @@ var W = (function (t) {
         for (var r = 0; r < e.length; r++) {
             o(r);
         }
-    };
-    e.prototype.createPerson = function (t, e) {
+    }
+    createPerson(t, e) {
         if (void 0 === t) {
-            t = !1;
+            t = false;
         }
         var o = 0;
         for (var i = 0; i < this.currentPersonColorAmount.length; i++) {
@@ -1784,17 +1793,17 @@ var W = (function (t) {
             } else {
                 (r = cc.instantiate(this.dict.longwei)).getComponent($level_29086_dragonItem.default).dragonColor = 1;
                 this.dragonRoot.addChild(r, 0);
-                r.longwei = !0;
+                r.longwei = true;
                 r.position = cc.v3(this._mapConfig[0][0], this._mapConfig[0][1]);
                 r._moveIndex = 0;
                 r[this._mBodyMoveDis] =
                     this._curLastBoxItemNode[this._mBodyMoveDis] -
                     (this._curLastBoxItemNode.longtou ? 1.7 * this._keepDistance : 1.5 * this._keepDistance);
                 r[this._mBodyMoveBackDis] = 0;
-                r[this._mBodyEven] = !0;
-                r.active = !1;
+                r[this._mBodyEven] = true;
+                r.active = false;
                 this.changeDragonSkin(r, function () {
-                    r.active = !0;
+                    r.active = true;
                 });
                 this.sortPersonNodes.push(r);
                 this._curLastBoxItemNode = r;
@@ -1802,17 +1811,17 @@ var W = (function (t) {
             if (this.personPosRoot2 && !this.sortPersonNodes2[this.sortPersonNodes2.length - 1].longwei) {
                 (n = cc.instantiate(this.dict.longwei)).getComponent($level_29086_dragonItem.default).dragonColor = 1;
                 this.dragonRoot.addChild(n, 0);
-                n.longwei = !0;
+                n.longwei = true;
                 n.position = cc.v3(this._mapConfig[0][0], this._mapConfig[0][1]);
                 n._moveIndex = 0;
                 n[this._mBodyMoveDis] =
                     this._curLastBoxItemNode2[this._mBodyMoveDis] -
                     (this._curLastBoxItemNode2.longtou ? 1.7 * this._keepDistance : 1.5 * this._keepDistance);
                 n[this._mBodyMoveBackDis] = 0;
-                n[this._mBodyEven] = !1;
-                n.active = !1;
+                n[this._mBodyEven] = false;
+                n.active = false;
                 this.changeDragonSkin(n, function () {
-                    n.active = !0;
+                    n.active = true;
                 });
                 this.sortPersonNodes2.push(n);
                 this._curLastBoxItemNode2 = n;
@@ -1853,7 +1862,7 @@ var W = (function (t) {
                     } else {
                         this.colorPersonIndexArr[a] += 1;
                     }
-                    var d = !0;
+                    var d = true;
                     for (var u = 0; u < s; u++) {
                         var g = 0;
                         if (this._itemConfig) {
@@ -1869,14 +1878,14 @@ var W = (function (t) {
                         if (this.personPosRoot2) {
                             if (this.sortPersonNodes.length || this.sortPersonNodes2.length) {
                                 if (this.sortPersonNodes.length && !this.sortPersonNodes2.length) {
-                                    d = !1;
+                                    d = false;
                                 } else {
                                     this.sortPersonNodes.length &&
                                         this.sortPersonNodes2.length &&
                                         (d = !(this.sortPersonNodes.length > this.sortPersonNodes2.length));
                                 }
                             } else {
-                                d = !0;
+                                d = true;
                             }
                         }
                         if (t) {
@@ -1903,7 +1912,7 @@ var W = (function (t) {
                                     (this._curLastBoxItemNode.longtou
                                         ? 1.7 * this._keepDistance
                                         : 1.5 * this._keepDistance);
-                                y[this._mBodyEven] = !0;
+                                y[this._mBodyEven] = true;
                                 this.sortPersonNodes.push(y);
                                 this._curLastBoxItemNode = y;
                             } else {
@@ -1912,7 +1921,7 @@ var W = (function (t) {
                                     (this._curLastBoxItemNode2.longtou
                                         ? 1.7 * this._keepDistance
                                         : 1.5 * this._keepDistance);
-                                y[this._mBodyEven] = !1;
+                                y[this._mBodyEven] = false;
                                 this.sortPersonNodes2.push(y);
                                 this._curLastBoxItemNode2 = y;
                             }
@@ -1941,7 +1950,7 @@ var W = (function (t) {
                                     (this._curLastBoxItemNode.longtou
                                         ? 1.7 * this._keepDistance
                                         : 1.5 * this._keepDistance);
-                                y[this._mBodyEven] = !0;
+                                y[this._mBodyEven] = true;
                                 this.sortPersonNodes.push(y);
                                 this._curLastBoxItemNode = y;
                             } else {
@@ -1950,7 +1959,7 @@ var W = (function (t) {
                                     (this._curLastBoxItemNode2.longtou
                                         ? 1.7 * this._keepDistance
                                         : 1.5 * this._keepDistance);
-                                y[this._mBodyEven] = !1;
+                                y[this._mBodyEven] = false;
                                 this.sortPersonNodes2.push(y);
                                 this._curLastBoxItemNode2 = y;
                             }
@@ -1970,8 +1979,8 @@ var W = (function (t) {
                 }
             }
         }
-    };
-    e.prototype.createItem = function (t) {
+    }
+    createItem(t) {
         if (!t) {
             return null;
         }
@@ -1983,25 +1992,25 @@ var W = (function (t) {
             this._itemNameList[t - 1]
         );
         e.parent = this.dict.itemRoot;
-        e.active = !0;
+        e.active = true;
         var o = e.getChildByName("spine");
         if (o) {
-            o.active = !1;
+            o.active = false;
         }
         if (1 == t || 5 == t) {
             if (e.getChildByName("spine")) {
-                o.active = !0;
+                o.active = true;
             } else {
                 var i = cc.instantiate(this.dict["f29086.jn_texiao"]);
                 i.name = "spine";
                 i.parent = e;
-                i.active = !0;
+                i.active = true;
                 i.position = cc.v2(0, 90);
             }
         }
         return e;
-    };
-    e.prototype.update = function (t) {
+    }
+    update(t) {
         if (
             game.dragonMoving &&
             ((t = 0.016),
@@ -2025,18 +2034,18 @@ var W = (function (t) {
                             this._roleLevel5Count++,
                                 this.itemActive(2),
                                 this.isDragonAttack &&
-                                    ((this.isDragonAttack = !1),
-                                    (this.isDragonAttacking = !1),
+                                    ((this.isDragonAttack = false),
+                                    (this.isDragonAttacking = false),
                                     this.sortPersonNodes.length &&
-                                        ((this.sortPersonNodes[0][this._moveEnd] = !1),
+                                        ((this.sortPersonNodes[0][this._moveEnd] = false),
                                         this.sortPersonNodes[0].stopAllActions())),
                                 this.isDragonAttack2 &&
-                                    ((this.isDragonAttack2 = !1),
-                                    (this.isDragonAttacking2 = !1),
+                                    ((this.isDragonAttack2 = false),
+                                    (this.isDragonAttacking2 = false),
                                     this.sortPersonNodes2.length &&
-                                        ((this.sortPersonNodes2[0][this._moveEnd] = !1),
+                                        ((this.sortPersonNodes2[0][this._moveEnd] = false),
                                         this.sortPersonNodes2[0].stopAllActions())),
-                                this.hideWudi(!0);
+                                this.hideWudi(true);
                         } else {
                             this.hideWudi();
                         }
@@ -2071,12 +2080,12 @@ var W = (function (t) {
                     this._slowCur += t;
                     if (this._slowCur >= this._slowTime) {
                         this._slowCur = 0;
-                        this._slowStart = !1;
+                        this._slowStart = false;
                     }
                 }
                 if (this._item1Start && ((this._item1Cur += t), this._item1Cur >= this._item1Time)) {
                     this._item1Cur = 0;
-                    this._item1Start = !1;
+                    this._item1Start = false;
                     for (r = 0; r < this.sortPersonNodes.length; r++) {
                         if ((_ = this.sortPersonNodes[r]).parent) {
                             if (_.longtou || _.longwei) {
@@ -2100,19 +2109,19 @@ var W = (function (t) {
                     this._item2Cur += t;
                     if (this._item2Cur >= this._item2Time) {
                         this._item2Cur = 0;
-                        this._item2Start = !1;
+                        this._item2Start = false;
                     }
                 }
                 if (this._item3Start) {
                     this._item3Cur += t;
                     if (this._item3Cur >= this._item3Time) {
                         this._item3Cur = 0;
-                        this._item3Start = !1;
+                        this._item3Start = false;
                     }
                 }
                 if (this._item4Start && ((this._item4Cur += t), this._item4Cur >= this._item4Time)) {
                     this._item4Cur = 0;
-                    this._item4Start = !1;
+                    this._item4Start = false;
                     for (r = 0; r < this.cannonRoot.children.length; r++) {
                         var n = this.cannonRoot.children[r];
                         this.hideItem4Spine(n);
@@ -2120,7 +2129,7 @@ var W = (function (t) {
                 }
                 if (this._item5Start && ((this._item5Cur += t), this._item5Cur >= this._item5Time)) {
                     this._item5Cur = 0;
-                    this._item5Start = !1;
+                    this._item5Start = false;
                     for (r = 0; r < this.cannonRoot.children.length; r++) {
                         n = this.cannonRoot.children[r];
                         this.hideItem5Spine(n);
@@ -2160,7 +2169,7 @@ var W = (function (t) {
                                 }
                             }
                             this._curLastBoxItemNode = this.sortPersonNodes[this.sortPersonNodes.length - 1];
-                            e.getComponent(sp.Skeleton).setAnimation(0, "idle1", !0);
+                            e.getComponent(sp.Skeleton).setAnimation(0, "idle1", true);
                         }
                         if (o && 0 == o[this._mBodyMoveBackDis]) {
                             for (r = this.sortPersonNodes2.length - 1; r >= 0; r--) {
@@ -2188,12 +2197,12 @@ var W = (function (t) {
                                 }
                             }
                             this._curLastBoxItemNode2 = this.sortPersonNodes2[this.sortPersonNodes2.length - 1];
-                            o.getComponent(sp.Skeleton).setAnimation(0, "idle1", !0);
+                            o.getComponent(sp.Skeleton).setAnimation(0, "idle1", true);
                         }
                         return void (
                             ((e && 0 == e[this._mBodyMoveBackDis]) || !e) &&
                             ((o && 0 == o[this._mBodyMoveBackDis]) || !o) &&
-                            ((this.isReviveBack = !1), this.checkRes())
+                            ((this.isReviveBack = false), this.checkRes())
                         );
                     }
                     this.moveInUpdate(t, 0);
@@ -2235,7 +2244,7 @@ var W = (function (t) {
                             e.position.sub(this._curvePoints[this._curvePoints.length - 1].position).mag() <= 0 &&
                             0 == e[this._mBodyMoveBackDis]
                         ) {
-                            (e[this._moveEnd] = !0), (this.isDragonAttack = !0), this.doDragonAttack();
+                            (e[this._moveEnd] = true), (this.isDragonAttack = true), this.doDragonAttack();
                         } else {
                             this.checkWarning(e._moveIndex), this.checkRole(e._moveIndex);
                         }
@@ -2246,7 +2255,7 @@ var W = (function (t) {
                             o.position.sub(this._curvePoints2[this._curvePoints2.length - 1].position).mag() <= 0 &&
                             0 == o[this._mBodyMoveBackDis]
                         ) {
-                            (o[this._moveEnd] = !0), (this.isDragonAttack2 = !0), this.doDragonAttack();
+                            (o[this._moveEnd] = true), (this.isDragonAttack2 = true), this.doDragonAttack();
                         } else {
                             this.checkWarning(o._moveIndex), this.checkRole(o._moveIndex);
                         }
@@ -2329,8 +2338,8 @@ var W = (function (t) {
                 }
             }
         }
-    };
-    e.prototype.moveInUpdate = function (t, e) {
+    }
+    moveInUpdate(t, e) {
         var o;
         if (!this.isWin) {
             var i = this.sortPersonNodes[0];
@@ -2344,9 +2353,9 @@ var W = (function (t) {
                         } else {
                             a = 0;
                         }
-                        var s = !1;
+                        var s = false;
                         if (a < 0) {
-                            s = !0;
+                            s = true;
                             a += c = this.getMoveDis(e, this.isReviveBack ? l.revive : l.back);
                             n[this._mBodyMoveDis] -= c - (a > 0 ? a : 0);
                             n[this._mBodyMoveBackDis] = Math.min(0, a);
@@ -2376,8 +2385,8 @@ var W = (function (t) {
                 }
             }
         }
-    };
-    e.prototype.moveInUpdate2 = function (t, e) {
+    }
+    moveInUpdate2(t, e) {
         var o;
         if (!this.isWin) {
             var i = this.sortPersonNodes2[0];
@@ -2391,9 +2400,9 @@ var W = (function (t) {
                         } else {
                             a = 0;
                         }
-                        var s = !1;
+                        var s = false;
                         if (a < 0) {
-                            s = !0;
+                            s = true;
                             a += c = this.getMoveDis(e, this.isReviveBack ? l.revive : l.back);
                             n[this._mBodyMoveDis] -= c - (a > 0 ? a : 0);
                             n[this._mBodyMoveBackDis] = Math.min(0, a);
@@ -2423,8 +2432,8 @@ var W = (function (t) {
                 }
             }
         }
-    };
-    e.prototype.getMoveDis = function (t, e) {
+    }
+    getMoveDis(t, e) {
         if (void 0 === e) {
             e = this._curMoveState;
         }
@@ -2454,8 +2463,8 @@ var W = (function (t) {
             t *= 1 + o / 100;
         }
         return t;
-    };
-    e.prototype.getAddSpeed = function () {
+    }
+    getAddSpeed() {
         if (!this._addSpeed[0] && !this._addSpeed[1]) {
             return 0;
         }
@@ -2471,10 +2480,10 @@ var W = (function (t) {
             }
         }
         return t;
-    };
-    e.prototype.updateBodyPos = function (t, e) {
+    }
+    updateBodyPos(t, e) {
         if (void 0 === e) {
-            e = !1;
+            e = false;
         }
         var o;
         if (t[this._mBodyEven]) {
@@ -2500,8 +2509,8 @@ var W = (function (t) {
         }
         t._moveIndex = o[2].mapIndex;
         t.setPosition(o[0]);
-    };
-    e.prototype.getPosByDis = function (t) {
+    }
+    getPosByDis(t) {
         if (t < 0) {
             if (this._curvePoints.length > 0) {
                 return [this._curvePoints[0].position, this._curvePoints[0], this._curvePoints[1], 1];
@@ -2526,8 +2535,8 @@ var W = (function (t) {
             this._curvePoints[this._curvePoints.length - 1],
             1
         ];
-    };
-    e.prototype.getPos2ByDis = function (t) {
+    }
+    getPos2ByDis(t) {
         if (t < 0) {
             if (this._curvePoints2.length > 0) {
                 return [this._curvePoints2[0].position, this._curvePoints2[0], this._curvePoints2[1], 1];
@@ -2552,8 +2561,8 @@ var W = (function (t) {
             this._curvePoints2[this._curvePoints2.length - 1],
             1
         ];
-    };
-    e.prototype.moveBodyBack = function () {
+    }
+    moveBodyBack() {
         var t = this;
         if (this.sortPersonNodes.length) {
             var e = 0.5 * this.sortPersonNodes[0][this._mBodyMoveDis];
@@ -2567,8 +2576,8 @@ var W = (function (t) {
                 e[t._mBodyMoveBackDis] = -o;
             });
         }
-    };
-    e.prototype.moveBodyRevive = function () {
+    }
+    moveBodyRevive() {
         var t = this;
         if (this.sortPersonNodes.length) {
             this.sortPersonNodes[0][this._mBodyMoveDis];
@@ -2582,8 +2591,8 @@ var W = (function (t) {
                 e[t._mBodyMoveBackDis] -= e[t._mBodyMoveDis];
             });
         }
-    };
-    e.prototype.removeBody = function (t) {
+    }
+    removeBody(t) {
         var e = this.sortPersonNodes.indexOf(t);
         if (-1 !== e) {
             this.sortPersonNodes.splice(e, 1);
@@ -2594,8 +2603,8 @@ var W = (function (t) {
             this.sortPersonNodes2.splice(o, 1);
             this.backBodyWithPick3(t, o);
         }
-    };
-    e.prototype.backBodyWithPick2 = function (t, e) {
+    }
+    backBodyWithPick2(t, e) {
         var o = this;
         this.sortPersonNodes.slice(0, e).forEach(function (t) {
             var e;
@@ -2604,13 +2613,13 @@ var W = (function (t) {
         });
         t.destroy();
         if (this.isDragonAttack) {
-            this.isDragonAttack = !1;
-            this.isDragonAttacking = !1;
-            this.sortPersonNodes[0][this._moveEnd] = !1;
+            this.isDragonAttack = false;
+            this.isDragonAttacking = false;
+            this.sortPersonNodes[0][this._moveEnd] = false;
             this.sortPersonNodes[0].stopAllActions();
         }
-    };
-    e.prototype.backBodyWithPick3 = function (t, e) {
+    }
+    backBodyWithPick3(t, e) {
         var o = this;
         this.sortPersonNodes2.slice(0, e).forEach(function (t) {
             var e;
@@ -2619,32 +2628,32 @@ var W = (function (t) {
         });
         t.destroy();
         if (this.isDragonAttack2) {
-            this.isDragonAttack2 = !1;
-            this.isDragonAttacking2 = !1;
-            this.sortPersonNodes2[0][this._moveEnd] = !1;
+            this.isDragonAttack2 = false;
+            this.isDragonAttacking2 = false;
+            this.sortPersonNodes2[0][this._moveEnd] = false;
             this.sortPersonNodes2[0].stopAllActions();
         }
-    };
-    e.prototype.itemNodeMove = function () {
+    }
+    itemNodeMove() {
         for (var t = 0; t < this._itemNodeList.length; t++) {
             var e = this._itemNodeList[t];
             if (e[this._itemDepend]) {
                 e.position = e[this._itemDepend].position;
             }
         }
-    };
-    e.prototype.checkCannonAttack = function (t) {
+    }
+    checkCannonAttack(t) {
         for (var e = 0; e < this.cannonAttackList.length; e++) {
             var o = this.cannonAttackList[e];
             if (t >= o[0] && t <= o[1]) {
-                return !0;
+                return true;
             }
         }
-        return !1;
-    };
-    e.prototype.cannonAttack = function (t, e) {
+        return false;
+    }
+    cannonAttack(t, e) {
         var o = this;
-        this.playRemoteSound($levelConstant.domain + "audio/f29086/f29086_Shoot.mp3", !1);
+        this.playRemoteSound($levelConstant.domain + "audio/f29086/f29086_Shoot.mp3", false);
         t[this._cannonState] = 2;
         t.parking.car.getComponent($level_29086_boxCarItem.default).emptySeatAmount =
             t.parking.car.getComponent($level_29086_boxCarItem.default).emptySeatAmount - 1;
@@ -2667,16 +2676,16 @@ var W = (function (t) {
         a.getChildByName("xiaochu")
             .getComponent(sp.Skeleton)
             .setSkin("skin" + (t[this._cannonType] + 1));
-        a.active = !1;
+        a.active = false;
         e[this._bulletTarget] = a;
         a[this._dragonTarget] = e;
-        t.getChildByName("cannon").getComponent(sp.Skeleton).setAnimation(0, "attack", !1);
+        t.getChildByName("cannon").getComponent(sp.Skeleton).setAnimation(0, "attack", false);
         cc.tween(t)
             .delay(0.1)
             .call(function () {
                 t[o._cannonNum]--;
                 t.getChildByName("num").getComponent(cc.Label).string = "x" + t[o._cannonNum];
-                a.active = !0;
+                a.active = true;
                 o._bulletMoveList.push(a);
             })
             .start();
@@ -2690,35 +2699,35 @@ var W = (function (t) {
             .setCompleteListener(function () {
                 t.getChildByName("cannon").getComponent(sp.Skeleton).setCompleteListener(null);
                 if (t[o._cannonNum] <= 0) {
-                    t.getChildByName("cannon").getComponent(sp.Skeleton).setAnimation(0, "exit", !1);
+                    t.getChildByName("cannon").getComponent(sp.Skeleton).setAnimation(0, "exit", false);
                     t.getChildByName("cannon")
                         .getComponent(sp.Skeleton)
                         .setCompleteListener(function () {
                             t.getChildByName("cannon").getComponent(sp.Skeleton).setCompleteListener(null);
-                            t.active = !1;
-                            t.removeFromParent(!0);
+                            t.active = false;
+                            t.removeFromParent(true);
                             o._cannonList.push(t);
-                            t.parking.isEmpty = !0;
+                            t.parking.isEmpty = true;
                             t.parking.car = null;
                             o.moveCarAmount -= 1;
                         });
                 } else {
-                    t.getChildByName("cannon").getComponent(sp.Skeleton).setAnimation(0, "idle", !0);
+                    t.getChildByName("cannon").getComponent(sp.Skeleton).setAnimation(0, "idle", true);
                     t[o._cannonState] = 1;
                 }
             });
-    };
-    e.prototype.bulletArrived = function (t, e) {
+    }
+    bulletArrived(t, e) {
         var o = this;
-        this.playRemoteSound($levelConstant.domain + "audio/f29086/f29086_Blow.mp3", !1);
+        this.playRemoteSound($levelConstant.domain + "audio/f29086/f29086_Blow.mp3", false);
         this._bulletMoveList.splice(e, 1);
         this.allPersonAmount--;
         cc.game.emit("allPersonAmount", this.allPersonAmount, this.allPersonAmount2);
         this.uiShowPersonAmount--;
         this.updateHp();
-        t.getChildByName("bullet").active = !1;
+        t.getChildByName("bullet").active = false;
         t.getChildByName("xiaochu").opacity = 255;
-        t.getChildByName("xiaochu").getComponent(sp.Skeleton).setAnimation(0, "animation", !1);
+        t.getChildByName("xiaochu").getComponent(sp.Skeleton).setAnimation(0, "animation", false);
         var i = t[this._dragonTarget];
         var r = i[this._itemType];
         if (r) {
@@ -2732,8 +2741,8 @@ var W = (function (t) {
                     var e = cc.instantiate(o.dict["f29086.xiaoshi"]);
                     e.parent = o.dict["f29086.xiaoshi"].parent;
                     e.position = o.transformPosition(t.children[0], e);
-                    e.active = !0;
-                    e.getComponent(sp.Skeleton).setAnimation(0, "animation", !1);
+                    e.active = true;
+                    e.getComponent(sp.Skeleton).setAnimation(0, "animation", false);
                     e.getComponent(sp.Skeleton).setCompleteListener(function () {
                         e.destroy();
                     });
@@ -2754,27 +2763,27 @@ var W = (function (t) {
             .getComponent(sp.Skeleton)
             .setCompleteListener(function () {
                 t.getChildByName("xiaochu").getComponent(sp.Skeleton).setCompleteListener(null);
-                t.active = !1;
+                t.active = false;
                 o._bulletModelList.push(t);
             });
-    };
-    e.prototype.itemActive = function (t, e) {
+    }
+    itemActive(t, e) {
         switch (t) {
             case 1:
                 this.func_item1();
                 break;
             case 2:
                 this._item2Cur = 0;
-                this._item2Start = !0;
+                this._item2Start = true;
                 this.moveBodyBack();
                 break;
             case 3:
                 this._item3Cur = 0;
-                this._item3Start = !0;
+                this._item3Start = true;
                 break;
             case 4:
                 this._item4Cur = 0;
-                this._item4Start = !0;
+                this._item4Start = true;
                 for (var o = 0; o < this.cannonRoot.children.length; o++) {
                     var i = this.cannonRoot.children[o];
                     this.showItem4Spine(i);
@@ -2789,8 +2798,8 @@ var W = (function (t) {
             case 7:
                 this.func_item7(e);
         }
-    };
-    e.prototype.checkWarning = function (t) {
+    }
+    checkWarning(t) {
         var e = $level_29086_config.MapParam[this.mapType].warnPoints;
         var o = 0;
         for (var i = e.length - 1; i >= 0; i--) {
@@ -2808,7 +2817,7 @@ var W = (function (t) {
                         (s = this.dict.parkingRoot.children[n]).getChildByName("videoLock") &&
                         s.getChildByName("videoLock").active
                     ) {
-                        (c = this.dict.unlockTips).active = !0;
+                        (c = this.dict.unlockTips).active = true;
                         c.parent = s;
                         c.position = cc.v2(20, 50);
                         c.stopAllActions();
@@ -2836,7 +2845,7 @@ var W = (function (t) {
                         var c;
                         if ((c = this.dict.unlockTips)) {
                             c.removeFromParent();
-                            c.active = !1;
+                            c.active = false;
                         }
                         break;
                     }
@@ -2848,7 +2857,7 @@ var W = (function (t) {
             cc.game.emit("f29086_warningIndex", this._warningIndex);
         }
         if (!this._warning && o) {
-            this._warning = !0;
+            this._warning = true;
             r = (1 == o ? 3 : 2 == o ? 1.5 : 0) / 2;
             this.warnNode.stopAllActions();
             cc.tween(this.warnNode)
@@ -2865,11 +2874,11 @@ var W = (function (t) {
             if (this._warning && !o) {
                 this.warnNode.stopAllActions();
                 this.warnNode.opacity = 0;
-                this._warning = !1;
+                this._warning = false;
             }
         }
-    };
-    e.prototype.checkRole = function (t) {
+    }
+    checkRole(t) {
         var e = $level_29086_config.MapParam[this.mapType].roleWarn;
         if (-29095 == this.levelID) {
             e = $level_29086_config.MapParam[0].roleWarn;
@@ -2877,27 +2886,27 @@ var W = (function (t) {
         var o = $level_29086_config.MapParam[this.mapType].rolePoint;
         if (t >= e[this._rolePointIndex] && this.roleNode._moveIndex >= o[this._rolePointIndex]) {
             this._rolePointIndex += 1;
-            this.roleNode.moving = !0;
+            this.roleNode.moving = true;
         }
         var i = this.roleNode.getChildByName("role").getComponent(sp.Skeleton);
         if (this.roleNode.moving) {
             this.roleMoving();
             this.updateRoleHpPos();
             if (this.roleNode._moveIndex >= o[this._rolePointIndex]) {
-                this.roleNode.moving = !1;
+                this.roleNode.moving = false;
             }
         }
         if (this.roleNode.moving && "zou" != i.animation) {
-            this.roleNode.getChildByName("role").getComponent(sp.Skeleton).setAnimation(0, "zou", !0);
+            this.roleNode.getChildByName("role").getComponent(sp.Skeleton).setAnimation(0, "zou", true);
         } else {
             if (this.roleNode.moving || "haipa" == i.animation) {
                 //
             } else {
-                this.roleNode.getChildByName("role").getComponent(sp.Skeleton).setAnimation(0, "haipa", !0);
+                this.roleNode.getChildByName("role").getComponent(sp.Skeleton).setAnimation(0, "haipa", true);
             }
         }
-    };
-    e.prototype.roleMoving = function () {
+    }
+    roleMoving() {
         var t = this.roleNode;
         var e = this._mapConfig;
         var o = t._moveIndex;
@@ -2938,26 +2947,26 @@ var W = (function (t) {
                 t.position = t._targetPos;
             }
         }
-    };
-    e.prototype.getBullet = function () {
+    }
+    getBullet() {
         var t;
         (t = this._bulletModelList.length
             ? this._bulletModelList.shift()
             : cc.instantiate(this.dict.bulletPrefab)).parent = this.dict.bulletRoot;
         t.angle = 0;
-        t.getChildByName("bullet").active = !0;
+        t.getChildByName("bullet").active = true;
         t.getChildByName("xiaochu").opacity = 0;
         t[this._dragonTarget] = null;
         return t;
-    };
-    e.prototype.getCannon = function () {
+    }
+    getCannon() {
         var t;
         (t = this._cannonList.length
             ? this._cannonList.shift()
             : cc.instantiate(this.dict.cannonPrefab)).getChildByName("cannon").angle = 0;
         t.getChildByName("num").getComponent(cc.Label).string = "";
-        t.getChildByName("body").active = !0;
-        t.active = !0;
+        t.getChildByName("body").active = true;
+        t.active = true;
         if (!this._item4Start && t.getChildByName("item4Spine")) {
             this.hideItem4Spine(t);
         }
@@ -2965,8 +2974,8 @@ var W = (function (t) {
             this.hideItem5Spine(t);
         }
         return t;
-    };
-    e.prototype.updateItemTips = function () {
+    }
+    updateItemTips() {
         var t = [
             [this._item1Cur, 1],
             [this._item2Cur, 2],
@@ -2980,17 +2989,17 @@ var W = (function (t) {
             var e = t[0][1];
             var o = this._itemTipsList[e - 1];
             if (o) {
-                this._itemTipsNode.active = !0;
+                this._itemTipsNode.active = true;
                 this._itemTipsNode.getComponent(cc.Label).string = $languageManager.default.formatStr(
                     o + "%dS",
                     this["_item" + e + "Time"] - Math.round(t[0][0])
                 );
             }
         } else {
-            this._itemTipsNode.active = !1;
+            this._itemTipsNode.active = false;
         }
-    };
-    e.prototype.updateParkingWeight = function () {
+    }
+    updateParkingWeight() {
         this.parkingWeight = new Array(this.colorTypeAmount).fill(0);
         for (var t = 0; t < this.dict.parkingRoot.children.length; t++) {
             var e = this.dict.parkingRoot.children[t];
@@ -3011,18 +3020,18 @@ var W = (function (t) {
                 }
             } catch (a) {}
         }
-    };
-    e.prototype.updateHp = function () {
+    }
+    updateHp() {
         var t = this.allPersonAmount;
         var e = this.allPersonAmount2;
         this.dict.hpCount.getComponent(cc.Label).string = "" + t;
         this.dict.hpImg.getComponent(cc.Sprite).fillRange = t / e;
-    };
-    e.prototype.carAnim = function (t) {
+    }
+    carAnim(t) {
         if (t.isCarAnim) {
             //
         } else {
-            t.isCarAnim = !0;
+            t.isCarAnim = true;
             cc.tween(t.parent.parent)
                 .to(0.1, {
                     scale: 0.9
@@ -3031,12 +3040,12 @@ var W = (function (t) {
                     scale: 1
                 })
                 .call(function () {
-                    t.isCarAnim = !1;
+                    t.isCarAnim = false;
                 })
                 .start();
         }
-    };
-    e.prototype.checkTipText = function () {
+    }
+    checkTipText() {
         var t = 0;
         for (var e = 0; e < this.parkingNodes.length; e++) {
             if (this.parkingNodes[e].isEmpty) {
@@ -3052,16 +3061,16 @@ var W = (function (t) {
                 cc.game.emit("checkTipText", 0);
             }
         }
-    };
-    e.prototype.checkRes = function () {
+    }
+    checkRes() {
         var t = this;
         if (!this.isWin && 0 == this.allPersonAmount) {
-            this.isWin = !0;
+            this.isWin = true;
             var e = null;
             var o = null;
             for (var i = 0; i < this.sortPersonNodes.length; i++) {
                 if ((r = this.sortPersonNodes[i]).longtou || r.longwei) {
-                    r.getComponent(sp.Skeleton).setAnimation(0, "die", !1);
+                    r.getComponent(sp.Skeleton).setAnimation(0, "die", false);
                     cc.tween(r)
                         .to(0.5, {
                             opacity: 0
@@ -3075,7 +3084,7 @@ var W = (function (t) {
             for (i = 0; i < this.sortPersonNodes2.length; i++) {
                 var r;
                 if ((r = this.sortPersonNodes2[i]).longtou || r.longwei) {
-                    r.getComponent(sp.Skeleton).setAnimation(0, "die", !1);
+                    r.getComponent(sp.Skeleton).setAnimation(0, "die", false);
                     cc.tween(r)
                         .to(0.5, {
                             opacity: 0
@@ -3088,7 +3097,7 @@ var W = (function (t) {
             }
             if (e) {
                 this.showDragonBall(e, function () {
-                    t.roleNode.getChildByName("role").getComponent(sp.Skeleton).setAnimation(0, "shengli", !0);
+                    t.roleNode.getChildByName("role").getComponent(sp.Skeleton).setAnimation(0, "shengli", true);
                     t.playRight();
                 });
             }
@@ -3096,13 +3105,13 @@ var W = (function (t) {
                 this.showDragonBall(o);
             }
         }
-    };
-    e.prototype.setColorPersonImg = function (t, e) {
+    }
+    setColorPersonImg(t, e) {
         e.getComponent(cc.Sprite).spriteFrame = this.box2SpriteAtlas.getSpriteFrame(
             "f29086_" + (t + 1 + 4e3 + 100 * this._dragonSkin)
         );
-    };
-    e.prototype.shuffleArray = function (t) {
+    }
+    shuffleArray(t) {
         var e;
         for (var o = t.length - 1; o > 0; o--) {
             var i = Math.floor(Math.random() * (o + 1));
@@ -3111,8 +3120,8 @@ var W = (function (t) {
             t[i] = e[1];
         }
         return t;
-    };
-    e.prototype.getAmountByColor = function (t) {
+    }
+    getAmountByColor(t) {
         if (!this.colorPersonAmountArr[t]) {
             this.colorPersonAmountArr[t] = [];
             var e = [];
@@ -3140,8 +3149,8 @@ var W = (function (t) {
             }
             return e;
         }
-    };
-    e.prototype.flatten = function (t) {
+    }
+    flatten(t) {
         var e = this;
         return t.reduce(function (t, o) {
             if (Array.isArray(o)) {
@@ -3150,8 +3159,8 @@ var W = (function (t) {
                 return t.concat(o);
             }
         }, []);
-    };
-    e.prototype.consoleWeight = function (t, e) {
+    }
+    consoleWeight(t, e) {
         var o = JSON.parse(JSON.stringify(e));
         for (var i = 0; i < o.length; i++) {
             var r = o[i];
@@ -3159,8 +3168,8 @@ var W = (function (t) {
             o[i] = r;
         }
         console.log(t, o);
-    };
-    e.prototype.getPersonColor = function () {
+    }
+    getPersonColor() {
         if (this.reviveArr.length) {
             var t = this.reviveArr.shift();
             this.isReviveAmount = 1;
@@ -3189,8 +3198,8 @@ var W = (function (t) {
             }),
             this.allWeight
         );
-    };
-    e.prototype.updateSortWeight = function () {
+    }
+    updateSortWeight() {
         this.sortWeight = new Array(this.colorTypeAmount).fill(0);
         for (var t = 0; t < this.sortPersonNodes.length; t++) {
             if (!(o = this.sortPersonNodes[t]).longtou && !o.longwei && o.parent) {
@@ -3207,8 +3216,8 @@ var W = (function (t) {
                 this.sortWeight[e] += this.levelDataJSON.sortWeight;
             }
         }
-    };
-    e.prototype.getCarColor = function (t, e) {
+    }
+    getCarColor(t, e) {
         var o = this.carNodeArr.length;
         var i = Math.round(((t + 1) / o) * 100);
         for (var r = 0; r < e.length; r++) {
@@ -3233,8 +3242,8 @@ var W = (function (t) {
                 return s;
             }
         }
-    };
-    e.prototype.setCarID = function () {
+    }
+    setCarID() {
         var t = this;
         this.carNodeArr.sort(function (t, e) {
             return (
@@ -3253,8 +3262,8 @@ var W = (function (t) {
             }
         });
         this.carAllAmount = this.carNodeArr.length;
-    };
-    e.prototype.getArrByLen = function (t, e) {
+    }
+    getArrByLen(t, e) {
         t = this.sortColor_new;
         var o = [];
         for (var i = 0; i < t.length; i++) {
@@ -3264,10 +3273,10 @@ var W = (function (t) {
             }
         }
         return o;
-    };
-    e.prototype.getOtherCarByDistance = function (t, e) {
+    }
+    getOtherCarByDistance(t, e) {
         if (void 0 === e) {
-            e = !1;
+            e = false;
         }
         var o = [];
         var i = this.carRoot.children.concat(this.turntableCarArr);
@@ -3294,13 +3303,13 @@ var W = (function (t) {
             var r = [o.convertToWorldSpaceAR(cc.v2(0, 0)), o.convertToWorldSpaceAR(cc.v2(0, -o.height))];
             var n = [i.convertToWorldSpaceAR(cc.v2(0, 0)), i.convertToWorldSpaceAR(cc.v2(0, -i.height))];
             return (
-                cc.Intersection.pointLineDistance(a, r[0], r[1], !0) -
-                cc.Intersection.pointLineDistance(a, n[0], n[1], !0)
+                cc.Intersection.pointLineDistance(a, r[0], r[1], true) -
+                cc.Intersection.pointLineDistance(a, n[0], n[1], true)
             );
         });
         return o;
-    };
-    e.prototype.getPath = function (t) {
+    }
+    getPath(t) {
         if (t.path) {
             return t.path;
         }
@@ -3337,7 +3346,7 @@ var W = (function (t) {
             this.carMap[t.uuid].b2 = r;
         }
         var s = this.getOtherCarByDistance(t);
-        var c = !1;
+        var c = false;
         if (t.collisionArr) {
             //
         } else {
@@ -3385,7 +3394,7 @@ var W = (function (t) {
                     cc.Intersection.lineLine(e, o, g, m) ||
                     cc.Intersection.lineLine(i, r, g, m)
                 ) {
-                    c = !0;
+                    c = true;
                     if (p.path) {
                         l += p.path;
                     } else {
@@ -3399,8 +3408,8 @@ var W = (function (t) {
         } else {
             return (t.path = 1), 1;
         }
-    };
-    e.prototype.fetchMaxIndex = function (t, e) {
+    }
+    fetchMaxIndex(t, e) {
         return t
             .map(function (t, e) {
                 return {
@@ -3417,8 +3426,8 @@ var W = (function (t) {
             .map(function (t) {
                 return t.key;
             });
-    };
-    e.prototype.getLevelProgressByCar = function () {
+    }
+    getLevelProgressByCar() {
         var t = this.carRoot.children.concat(this.turntableCarArr);
         var e = 0;
         for (var o = 0; o < t.length; o++) {
@@ -3438,13 +3447,13 @@ var W = (function (t) {
                 if (!this.hardPointsIndexs.includes(o) && n[0] <= r && n[1] >= r) {
                     console.log("触发卡点", n);
                     this.hardPointsIndexs.push(o);
-                    return !0;
+                    return true;
                 }
             }
         }
-        return !1;
-    };
-    e.prototype.randomByWeight = function (t, e) {
+        return false;
+    }
+    randomByWeight(t, e) {
         if (t.length != e.length) {
             console.warn("random2输入不合法: resultArr.length != weightArr.length");
             return null;
@@ -3495,24 +3504,24 @@ var W = (function (t) {
             }
         }
         return null;
-    };
-    e.prototype.arraysEqual = function (t, e) {
+    }
+    arraysEqual(t, e) {
         if (t.length !== e.length) {
-            return !1;
+            return false;
         }
         for (var o = 0; o < t.length; o++) {
             if (t[o] !== e[o]) {
-                return !1;
+                return false;
             }
         }
-        return !0;
-    };
-    e.prototype.randomNum = function (t, e, o) {
+        return true;
+    }
+    randomNum(t, e, o) {
         var i = e - t;
         var r = o || Math.random();
         return t + Math.round(r * i);
-    };
-    e.prototype.getLocal = function (t) {
+    }
+    getLocal(t) {
         if (this.localData[t]) {
             return this.localData[t];
         }
@@ -3522,12 +3531,12 @@ var W = (function (t) {
         } else {
             return null;
         }
-    };
-    e.prototype.setLocal = function (t, e) {
+    }
+    setLocal(t, e) {
         this.localData[t] = e;
         cc.sys.localStorage.setItem("" + this.levelID + t, JSON.stringify(e));
-    };
-    e.prototype.show = function (t, e, o) {
+    }
+    show(t, e, o) {
         if (void 0 === e) {
             e = 0.8;
         }
@@ -3536,7 +3545,7 @@ var W = (function (t) {
         }
         var i = cc.instantiate(this.dict.tipPrefab);
         this.dict.game.addChild(i);
-        i.active = !0;
+        i.active = true;
         i.stopAllActions();
         i.children[1].getComponent(cc.Label).string = t;
         i.setPosition(cc.v2(0, -60));
@@ -3555,11 +3564,11 @@ var W = (function (t) {
                 i.destroy();
             })
             .start();
-    };
-    e.prototype.transformPosition = function (t, e) {
+    }
+    transformPosition(t, e) {
         return e.parent.convertToNodeSpaceAR(t.convertToWorldSpaceAR(cc.Vec2.ZERO));
-    };
-    e.prototype.func_sort = function () {
+    }
+    func_sort() {
         return __awaiter(this, void 0, void 0, function () {
             var t;
             var e;
@@ -3570,8 +3579,8 @@ var W = (function (t) {
                 if (this.isSorting) {
                     return [2];
                 }
-                this.isSorting = !0;
-                this.isSortAnim = !0;
+                this.isSorting = true;
+                this.isSortAnim = true;
                 for (t = this._bulletMoveList.length - 1; t >= 0; t--) {
                     e = this._bulletMoveList[t];
                     o = e[this._dragonTarget];
@@ -3591,7 +3600,7 @@ var W = (function (t) {
                     this.hideItem5Spine(o);
                     this.removeBody(o);
                     this.checkRes();
-                    e.active = !1;
+                    e.active = false;
                     this._bulletModelList.push(e);
                 }
                 this.schedule(
@@ -3618,8 +3627,8 @@ var W = (function (t) {
                 cc.tween(this.node)
                     .delay(1.5)
                     .call(function () {
-                        r.isSortAnim = !1;
-                        r.isWin = !1;
+                        r.isSortAnim = false;
+                        r.isWin = false;
                         r.consoleWeight("总权重", r.allWeight);
                         console.log("排队颜色顺序", r.fetchMaxIndex(r.allWeight, $level_29086_config.colorDes.length));
                         var t = r.fetchMaxIndex(r.allWeight, $level_29086_config.colorDes.length);
@@ -3640,19 +3649,19 @@ var W = (function (t) {
                         }
                         var i = 0;
                         var n = r.sortPersonNodes.length + r.sortPersonNodes2.length;
-                        var a = !0;
+                        var a = true;
                         var s = 0;
                         var c = 0;
                         for (o = 0; o < n; o++) {
                             if (r.personPosRoot2) {
                                 if (s || c) {
                                     if (s && !c) {
-                                        a = !1;
+                                        a = false;
                                     } else {
                                         s && c && (a = !(!r.sortPersonNodes[s] || (r.sortPersonNodes2[c] && s > c)));
                                     }
                                 } else {
-                                    a = !0;
+                                    a = true;
                                 }
                             }
                             var l = void 0;
@@ -3675,14 +3684,14 @@ var W = (function (t) {
                                 console.log($level_29086_config.colorDes[h]);
                             }
                         }
-                        r.isSorting = !1;
+                        r.isSorting = false;
                     })
                     .start();
                 return [2];
             });
         });
-    };
-    e.prototype.revive = function () {
+    }
+    revive() {
         return __awaiter(this, void 0, void 0, function () {
             var t;
             var e;
@@ -3716,24 +3725,24 @@ var W = (function (t) {
                     this.hideItem4Spine(o);
                     this.hideItem5Spine(o);
                     this.removeBody(o);
-                    e.active = !1;
+                    e.active = false;
                     this._bulletModelList.push(e);
                 }
-                this.isDragonAttack = !1;
-                this.isDragonAttacking = !1;
-                this.isDragonAttack2 = !1;
-                this.isDragonAttacking2 = !1;
+                this.isDragonAttack = false;
+                this.isDragonAttacking = false;
+                this.isDragonAttack2 = false;
+                this.isDragonAttacking2 = false;
                 if (this.sortPersonNodes.length) {
-                    this.sortPersonNodes[0][this._moveEnd] = !1;
+                    this.sortPersonNodes[0][this._moveEnd] = false;
                     this.sortPersonNodes[0].stopAllActions();
                 }
                 if (this.sortPersonNodes2.length) {
-                    this.sortPersonNodes2[0][this._moveEnd] = !1;
+                    this.sortPersonNodes2[0][this._moveEnd] = false;
                     this.sortPersonNodes2[0].stopAllActions();
                 }
                 this.moveBodyRevive();
-                this.isReviveBack = !0;
-                this.isReviveSort = !0;
+                this.isReviveBack = true;
+                this.isReviveSort = true;
                 this.reviveArr = [];
                 r = function (t, e, o) {
                     var i;
@@ -3761,8 +3770,8 @@ var W = (function (t) {
                     };
                 };
                 this.scheduleOnce(function () {
-                    n.isWin = !1;
-                    var t = !0;
+                    n.isWin = false;
+                    var t = true;
                     var e = function (e) {
                         for (var o = n.cannonRoot.children[e], i = o[n._cannonType], a = 0; a < o[n._cannonNum]; a++) {
                             var s;
@@ -3777,10 +3786,10 @@ var W = (function (t) {
                                 }
                             } else {
                                 c = (s = r(c, t, i)).dragon;
-                                t = !0;
+                                t = true;
                             }
                             if (c) {
-                                c[n._turnBackDestroy] = !0;
+                                c[n._turnBackDestroy] = true;
                             } else {
                                 n.currentPersonColorAmount[i] += 1;
                                 var h = n.colorPersonAmountArr[i].length - 1;
@@ -3797,12 +3806,12 @@ var W = (function (t) {
                         cc.tween(o)
                             .delay(0.05 * e)
                             .call(function () {
-                                o.getChildByName("cannon").getComponent(sp.Skeleton).setAnimation(0, "exit", !1);
+                                o.getChildByName("cannon").getComponent(sp.Skeleton).setAnimation(0, "exit", false);
                                 o.getChildByName("cannon")
                                     .getComponent(sp.Skeleton)
                                     .setCompleteListener(function () {
                                         o.getChildByName("cannon").getComponent(sp.Skeleton).setCompleteListener(null);
-                                        o.getChildByName("body").active = !1;
+                                        o.getChildByName("body").active = false;
                                         var t = null;
                                         if (o.getChildByName("xiaoshi")) {
                                             t = o.getChildByName("xiaoshi");
@@ -3811,15 +3820,15 @@ var W = (function (t) {
                                             t.parent = o;
                                             t.position = cc.v2();
                                         }
-                                        t.active = !0;
-                                        t.getComponent(sp.Skeleton).setAnimation(0, "animation", !1);
+                                        t.active = true;
+                                        t.getComponent(sp.Skeleton).setAnimation(0, "animation", false);
                                         cc.tween(o)
                                             .delay(0.5)
                                             .call(function () {
-                                                o.active = !1;
-                                                o.removeFromParent(!0);
+                                                o.active = false;
+                                                o.removeFromParent(true);
                                                 n._cannonList.push(o);
-                                                o.parking.isEmpty = !0;
+                                                o.parking.isEmpty = true;
                                                 o.parking.car = null;
                                                 n.moveCarAmount -= 1;
                                             })
@@ -3832,15 +3841,15 @@ var W = (function (t) {
                         e(o);
                     }
                     n.scheduleOnce(function () {
-                        n.isReviveSort = !1;
-                        n.roleNode.getChildByName("role").getComponent(sp.Skeleton).setAnimation(0, "haipa", !0);
+                        n.isReviveSort = false;
+                        n.roleNode.getChildByName("role").getComponent(sp.Skeleton).setAnimation(0, "haipa", true);
                     });
                 });
                 return [2];
             });
         });
-    };
-    e.prototype.func_revive = function () {
+    }
+    func_revive() {
         var t = this;
         if (!(this.isReviveBack || this.isReviveSort || this.dict.dazhao.active)) {
             if (this.func_hasLockParking()) {
@@ -3848,14 +3857,14 @@ var W = (function (t) {
                     var o = this.dict.parkingRoot.children[e];
                     if (o.getChildByName("videoLock") && o.getChildByName("videoLock").active) {
                         o.getChildByName("videoLock").destroy();
-                        o.getChildByName("empty").active = !0;
+                        o.getChildByName("empty").active = true;
                         this.playUnlockSpine(o);
                         var i = o.getChildByName("unlockTips");
                         if (i) {
                             i.removeFromParent();
-                            i.active = !1;
+                            i.active = false;
                         }
-                        o.isEmpty = !0;
+                        o.isEmpty = true;
                         this.parkingNodes.push(o);
                         cc.game.emit("unlockVideoLock", this.func_hasLockParking());
                         break;
@@ -3870,55 +3879,55 @@ var W = (function (t) {
                 });
             }
         }
-    };
-    e.prototype.reviveAnim = function (t) {
+    }
+    reviveAnim(t) {
         var e = this;
-        this.isWin = !0;
-        this.dict.dazhao.active = !0;
-        this.dict.dazhao.getComponent(sp.Skeleton).setAnimation(0, "animation", !1);
+        this.isWin = true;
+        this.dict.dazhao.active = true;
+        this.dict.dazhao.getComponent(sp.Skeleton).setAnimation(0, "animation", false);
         this.dict.dazhao.getComponent(sp.Skeleton).setCompleteListener(function () {
             e.dict.dazhao.getComponent(sp.Skeleton).setCompleteListener(null);
-            e.dict.dazhao.active = !1;
+            e.dict.dazhao.active = false;
         });
         this.scheduleOnce(function () {
             if (t) {
                 t();
             }
         }, 0.6);
-    };
-    e.prototype.func_hasLockParking = function () {
+    }
+    func_hasLockParking() {
         for (var t = 0; t < this.dict.parkingRoot.children.length; t++) {
             var e = this.dict.parkingRoot.children[t];
             if (e.getChildByName("videoLock") && e.getChildByName("videoLock").active) {
-                return !0;
+                return true;
             }
         }
-        return !1;
-    };
-    e.prototype.func_checkSlowDown = function () {
+        return false;
+    }
+    func_checkSlowDown() {
         if (!this.isWin && !this._removeStage && !this._slowStart) {
-            return !0;
+            return true;
         }
-    };
-    e.prototype.func_slowDown = function () {
-        this._slowStart = !0;
+    }
+    func_slowDown() {
+        this._slowStart = true;
         this._slowCur = 0;
-    };
-    e.prototype.func_item1 = function () {
+    }
+    func_item1() {
         cc.game.emit("f29086_item1");
-    };
-    e.prototype.func_item5 = function () {
+    }
+    func_item5() {
         cc.game.emit("f29086_item5");
-    };
-    e.prototype.func_item6 = function (t) {
+    }
+    func_item6(t) {
         cc.game.emit("f29086_addCoin", 20, t);
-    };
-    e.prototype.func_item7 = function (t) {
+    }
+    func_item7(t) {
         cc.game.emit("f29086_addCoin", 500, t);
-    };
-    e.prototype.func_item1CB = function () {
+    }
+    func_item1CB() {
         this._item1Cur = 0;
-        this._item1Start = !0;
+        this._item1Start = true;
         for (var t = 0; t < this.sortPersonNodes.length; t++) {
             if ((e = this.sortPersonNodes[t]).parent) {
                 if (e.longtou || e.longwei) {
@@ -3938,107 +3947,107 @@ var W = (function (t) {
                 }
             }
         }
-    };
-    e.prototype.func_item5CB = function () {
+    }
+    func_item5CB() {
         this._item5Cur = 0;
-        this._item5Start = !0;
+        this._item5Start = true;
         for (var t = 0; t < this.cannonRoot.children.length; t++) {
             var e = this.cannonRoot.children[t];
             this.showItem5Spine(e);
         }
-    };
-    e.prototype.showItem1BigSpine = function (t) {
+    }
+    showItem1BigSpine(t) {
         var e = t.getChildByName("item1BigSpine");
         if (e) {
-            e.active = !0;
+            e.active = true;
         } else {
             var o = void 0;
             (o = this._item1BigSpineList.size()
                 ? this._item1BigSpineList.get()
                 : cc.instantiate(this.dict["f29086.bingkuai_da"])).name = "item1BigSpine";
             o.parent = t;
-            o.active = !0;
+            o.active = true;
             o.position = cc.v2(0, 0);
         }
-    };
-    e.prototype.hideItem1BigSpine = function (t) {
+    }
+    hideItem1BigSpine(t) {
         var e = t.getChildByName("item1BigSpine");
         if (e) {
-            e.active = !1;
+            e.active = false;
         }
-    };
-    e.prototype.showItem1SmallSpine = function (t) {
+    }
+    showItem1SmallSpine(t) {
         if (!t.getChildByName("item1SmallSpine")) {
             var e = void 0;
             (e = this._item1SmallSpineList.size()
                 ? this._item1SmallSpineList.get()
                 : cc.instantiate(this.dict["f29086.bingkuai_xiao"])).name = "item1SmallSpine";
             e.parent = t;
-            e.active = !0;
+            e.active = true;
             e.position = cc.v2(0, 0);
         }
-    };
-    e.prototype.hideItem1SmallSpine = function (t) {
+    }
+    hideItem1SmallSpine(t) {
         var e = t.getChildByName("item1SmallSpine");
         if (e) {
-            e.active = !1;
+            e.active = false;
             e.removeFromParent();
             this._item1SmallSpineList.put(e);
         }
-    };
-    e.prototype.showItem4Spine = function (t) {
+    }
+    showItem4Spine(t) {
         if (!t.getChildByName("item4Spine")) {
             var e = void 0;
             (e = this._item4SpineList.size()
                 ? this._item4SpineList.get()
                 : cc.instantiate(this.dict["f29086.pt_texiao1"])).name = "item4Spine";
             e.parent = t;
-            e.active = !0;
+            e.active = true;
             e.position = cc.v2(0, -35);
         }
-    };
-    e.prototype.hideItem4Spine = function (t) {
+    }
+    hideItem4Spine(t) {
         var e = t.getChildByName("item4Spine");
         if (e) {
-            e.active = !1;
+            e.active = false;
             e.removeFromParent();
             this._item4SpineList.put(e);
         }
-    };
-    e.prototype.showItem5Spine = function (t) {
+    }
+    showItem5Spine(t) {
         if (!t.getChildByName("item5Spine")) {
             var e = void 0;
             (e = this._item5SpineList.size()
                 ? this._item5SpineList.get()
                 : cc.instantiate(this.dict["f29086.pt_texiao2"])).name = "item5Spine";
             e.parent = t;
-            e.active = !0;
+            e.active = true;
             e.position = cc.v2(0, -35);
         }
-    };
-    e.prototype.hideItem5Spine = function (t) {
+    }
+    hideItem5Spine(t) {
         var e = t.getChildByName("item5Spine");
         if (e) {
-            e.active = !1;
+            e.active = false;
             e.removeFromParent();
             this._item5SpineList.put(e);
         }
-    };
-    e.prototype.showWudi = function () {
+    }
+    showWudi() {
         var t = this.roleNode.getChildByName("wudi");
         if (t) {
-            t.active = !0;
+            t.active = true;
         } else {
             var e = cc.instantiate(this.dict["f29086.wudi"]);
             e.name = "wudi";
             e.parent = this.roleNode;
             e.position = cc.v2();
-            e.active = !0;
+            e.active = true;
         }
-    };
-    e.prototype.hideWudi = function (t) {
+    }
+    hideWudi(t) {
         if (void 0 === t) {
-            t = !1;
+            t = false;
         }
         var e = this.roleNode.getChildByName("wudi");
         if (e) {
@@ -4048,15 +4057,15 @@ var W = (function (t) {
                         scale: 1.8 * e.scale
                     })
                     .call(function () {
-                        e.active = !1;
+                        e.active = false;
                     })
                     .start();
             } else {
-                e.active = !1;
+                e.active = false;
             }
         }
-    };
-    e.prototype.changeDragonSkin = function (t, e) {
+    }
+    changeDragonSkin(t, e) {
         if (this._dragonSkin) {
             var o;
             var i;
@@ -4098,8 +4107,8 @@ var W = (function (t) {
                 e();
             }
         }
-    };
-    e.prototype.changeRoleSkin = function (t, e) {
+    }
+    changeRoleSkin(t, e) {
         if (this._roleSkin) {
             var o;
             var i;
@@ -4149,15 +4158,15 @@ var W = (function (t) {
                 e();
             }
         }
-    };
-    e.prototype.updateRoleHp = function () {
+    }
+    updateRoleHp() {
         var t = this.dict.roleHpNode;
         var e = t.getChildByName("list");
         var o = this.dict.roleHpImg;
         if (e.childrenCount) {
             if (this._roleCurHp < e.childrenCount) {
                 for (i = e.childrenCount - 1; i >= this._roleCurHp; i--) {
-                    e.children[i].removeFromParent(!0);
+                    e.children[i].removeFromParent(true);
                 }
             }
         } else {
@@ -4165,29 +4174,29 @@ var W = (function (t) {
                 var r = cc.instantiate(o);
                 r.parent = t.getChildByName("list");
                 r.position = cc.v2();
-                r.active = !0;
+                r.active = true;
             }
         }
         if (1 == this._roleCurHp) {
             for (i = 0; i < e.childrenCount; i) {
-                e.children[i].removeFromParent(!0);
+                e.children[i].removeFromParent(true);
             }
             e.width = 0;
         } else {
             e.width = o.width * this._roleCurHp;
         }
         e.getComponent(cc.Layout).updateLayout();
-    };
-    e.prototype.updateRoleHpPos = function () {
+    }
+    updateRoleHpPos() {
         this.dict.roleHpNode.position = this.transformPosition(this.roleNode, this.dict.roleHpNode);
-    };
-    e.prototype.showDragonBall = function (t, e) {
+    }
+    showDragonBall(t, e) {
         var o = cc.instantiate(this.dict.dragonBallImg);
         var i = cc.instantiate(this.dict.dragonBallBg);
         o.parent = this.dict.dragonBallImg.parent;
         i.parent = this.dict.dragonBallBg.parent;
-        o.active = !0;
-        i.active = !0;
+        o.active = true;
+        i.active = true;
         i.scale = 0.5;
         o.setSiblingIndex(999);
         o.position = this.transformPosition(t, o);
@@ -4211,7 +4220,7 @@ var W = (function (t) {
                 if (e) {
                     e();
                 }
-                o.active = !1;
+                o.active = false;
                 o.stopAllActions();
             })
             .start();
@@ -4221,12 +4230,12 @@ var W = (function (t) {
                 position: this.transformPosition(this.roleNode, i)
             })
             .call(function () {
-                i.active = !1;
+                i.active = false;
                 i.stopAllActions();
             })
             .start();
-    };
-    e.prototype.doRoleLevel10Skill = function () {
+    }
+    doRoleLevel10Skill() {
         this._roleLevel10Count = 1;
         for (var t = 0; t < this.sortPersonNodes.length; t++) {
             if ((e = this.sortPersonNodes[t]).parent) {
@@ -4247,11 +4256,11 @@ var W = (function (t) {
                 }
             }
         }
-    };
-    e.prototype.doDragonAttack = function () {
+    }
+    doDragonAttack() {
         var t = this;
         if (!this.isDragonAttacking) {
-            this.isDragonAttacking = !0;
+            this.isDragonAttacking = true;
             var e = this.sortPersonNodes[0];
             if (e) {
                 var o = this.transformPosition(this.roleNode, e);
@@ -4266,8 +4275,8 @@ var W = (function (t) {
                             t._roleLevel2Count++;
                             t.showWudi();
                         }
-                        e.getComponent(sp.Skeleton).setAnimation(0, "angry", !1);
-                        e.getComponent(sp.Skeleton).addAnimation(0, "idle1", !0);
+                        e.getComponent(sp.Skeleton).setAnimation(0, "angry", false);
+                        e.getComponent(sp.Skeleton).addAnimation(0, "idle1", true);
                         if (t._roleLevel2Count && t._roleLevel2CurTime < t._roleLevel2Time) {
                             //
                         } else {
@@ -4277,11 +4286,11 @@ var W = (function (t) {
                                 t.roleNode
                                     .getChildByName("role")
                                     .getComponent(sp.Skeleton)
-                                    .setAnimation(0, "shibai", !0),
+                                    .setAnimation(0, "shibai", true),
                                     t.scheduleOnce(function () {
-                                        e.getComponent(sp.Skeleton).setAnimation(0, "idle2", !0);
+                                        e.getComponent(sp.Skeleton).setAnimation(0, "idle2", true);
                                         e.stopAllActions();
-                                        t.isWin = !0;
+                                        t.isWin = true;
                                         cc.log("levelReviveHelper");
                                         $levelReviveHelper.default.levelFailEvent("是否需要复活", function () {
                                             t.func_revive();
@@ -4291,11 +4300,11 @@ var W = (function (t) {
                                 t.roleNode
                                     .getChildByName("role")
                                     .getComponent(sp.Skeleton)
-                                    .setAnimation(0, "shibai", !1),
+                                    .setAnimation(0, "shibai", false),
                                     t.roleNode
                                         .getChildByName("role")
                                         .getComponent(sp.Skeleton)
-                                        .addAnimation(0, "haipa", !0);
+                                        .addAnimation(0, "haipa", true);
                             }
                         }
                     })
@@ -4306,7 +4315,7 @@ var W = (function (t) {
             }
         }
         if (!this.isDragonAttacking2) {
-            this.isDragonAttacking2 = !0;
+            this.isDragonAttacking2 = true;
             var i = this.sortPersonNodes[0];
             if (i) {
                 o = this.transformPosition(this.roleNode, i);
@@ -4321,8 +4330,8 @@ var W = (function (t) {
                             t._roleLevel2Count++;
                             t.showWudi();
                         }
-                        i.getComponent(sp.Skeleton).setAnimation(0, "angry", !1);
-                        i.getComponent(sp.Skeleton).addAnimation(0, "idle1", !0);
+                        i.getComponent(sp.Skeleton).setAnimation(0, "angry", false);
+                        i.getComponent(sp.Skeleton).addAnimation(0, "idle1", true);
                         if (t._roleLevel2Count && t._roleLevel2CurTime < t._roleLevel2Time) {
                             //
                         } else {
@@ -4332,11 +4341,11 @@ var W = (function (t) {
                                 t.roleNode
                                     .getChildByName("role")
                                     .getComponent(sp.Skeleton)
-                                    .setAnimation(0, "shibai", !0),
+                                    .setAnimation(0, "shibai", true),
                                     t.scheduleOnce(function () {
-                                        i.getComponent(sp.Skeleton).setAnimation(0, "idle2", !0);
+                                        i.getComponent(sp.Skeleton).setAnimation(0, "idle2", true);
                                         i.stopAllActions();
-                                        t.isWin = !0;
+                                        t.isWin = true;
                                         cc.log("levelReviveHelper");
                                         $levelReviveHelper.default.levelFailEvent("是否需要复活", function () {
                                             t.func_revive();
@@ -4346,11 +4355,11 @@ var W = (function (t) {
                                 t.roleNode
                                     .getChildByName("role")
                                     .getComponent(sp.Skeleton)
-                                    .setAnimation(0, "shibai", !1),
+                                    .setAnimation(0, "shibai", false),
                                     t.roleNode
                                         .getChildByName("role")
                                         .getComponent(sp.Skeleton)
-                                        .addAnimation(0, "haipa", !0);
+                                        .addAnimation(0, "haipa", true);
                             }
                         }
                     })
@@ -4360,25 +4369,25 @@ var W = (function (t) {
                     .start();
             }
         }
-    };
-    e.prototype.func_checkRemove = function () {
+    }
+    func_checkRemove() {
         if (
             !this.isWin &&
             !this._removeStage &&
             this.carRoot.children.length &&
             !(this.carRoot.children.length - this.parkingNodes.length <= 0)
         ) {
-            return !0;
+            return true;
         }
-    };
-    e.prototype.func_remove = function () {
+    }
+    func_remove() {
         if (this.func_checkRemove()) {
             if (this.dict.transportLayer) {
-                this.dict.transportLayer.getComponent($level_29086_transport.default).isMove = !1;
+                this.dict.transportLayer.getComponent($level_29086_transport.default).isMove = false;
             }
-            this._removeStage = !0;
+            this._removeStage = true;
             if (this._tipRemove) {
-                this._tipRemove.active = !0;
+                this._tipRemove.active = true;
             } else {
                 var t = cc.instantiate(this.dict.tipPrefab);
                 t.parent = this.dict.tipPrefab.parent;
@@ -4389,13 +4398,13 @@ var W = (function (t) {
                     t.y = 188;
                 }
                 t.scale = 0.8;
-                t.active = !0;
+                t.active = true;
                 t.children[1].getComponent(cc.Label).string = "请选择箱子";
                 this._tipRemove = t;
             }
         }
-    };
-    e.prototype.remove = function (t) {
+    }
+    remove(t) {
         var e = this;
         var o = function (t, o, i) {
             var r;
@@ -4426,10 +4435,10 @@ var W = (function (t) {
                 inputList1: o
             };
         };
-        this._removeClick = !0;
-        this._tipRemove.active = !1;
+        this._removeClick = true;
+        this._tipRemove.active = false;
         var i;
-        var r = !0;
+        var r = true;
         var n = t.getComponent($level_29086_boxCarItem.default).carColor;
         var a = [];
         for (var s = 0; s < t.getComponent($level_29086_boxCarItem.default).emptySeatAmount; s++) {
@@ -4445,10 +4454,10 @@ var W = (function (t) {
                 }
             } else {
                 l = (c = o(l, r, n)).dragon;
-                r = !0;
+                r = true;
             }
             if (l) {
-                l.readyDestroy = !0;
+                l.readyDestroy = true;
                 a.push(l);
             } else {
                 this.currentPersonColorAmount[n] += 1;
@@ -4472,20 +4481,20 @@ var W = (function (t) {
         } else {
             i = this.sortPersonNodes[0];
         }
-        t.active = !1;
+        t.active = false;
         var d = this.getFeidan();
         var g = this.getFeidanYanwu();
         var f = this.getFeidanBaozha();
         d.position = this.transformPosition(t.getChildByName("car"), d);
         d.y -= t.getChildByName("car").height / 2;
-        d.active = !0;
+        d.active = true;
         g.position = this.transformPosition(t.getChildByName("car"), g);
         g.y -= t.getChildByName("car").height / 2;
-        g.active = !0;
-        g.getComponent(sp.Skeleton).setAnimation(0, "animation", !1);
+        g.active = true;
+        g.getComponent(sp.Skeleton).setAnimation(0, "animation", false);
         g.getComponent(sp.Skeleton).setCompleteListener(function () {
             g.getComponent(sp.Skeleton).setCompleteListener(null);
-            g.active = !1;
+            g.active = false;
             e._feidanYanwu.put(g);
         });
         f.position = this.transformPosition(i, f);
@@ -4497,17 +4506,17 @@ var W = (function (t) {
                 position: v
             })
             .call(function () {
-                cc.game.emit("needLimitNoHandle", !1);
+                cc.game.emit("needLimitNoHandle", false);
                 if (e.dict.transportLayer) {
-                    e.dict.transportLayer.getComponent($level_29086_transport.default).isMove = !0;
+                    e.dict.transportLayer.getComponent($level_29086_transport.default).isMove = true;
                 }
-                d.active = !1;
+                d.active = false;
                 e._feidan.put(d);
-                f.active = !0;
-                f.getComponent(sp.Skeleton).setAnimation(0, "zha_da", !1);
+                f.active = true;
+                f.getComponent(sp.Skeleton).setAnimation(0, "zha_da", false);
                 f.getComponent(sp.Skeleton).setCompleteListener(function () {
                     f.getComponent(sp.Skeleton).setCompleteListener(null);
-                    f.active = !1;
+                    f.active = false;
                     e._feidanBaozha.put(f);
                 });
                 for (var o = a.length - 1; o >= 0; o--) {
@@ -4525,54 +4534,38 @@ var W = (function (t) {
                     e.dict.transportLayer.getComponent($level_29086_transport.default).reduceCarAmount(t);
                 }
                 t.destroy();
-                e._removeClick = !1;
-                e._removeStage = !1;
+                e._removeClick = false;
+                e._removeStage = false;
                 e.checkRes();
             })
             .start();
-    };
-    e.prototype.getFeidan = function () {
+    }
+    getFeidan() {
         var t;
         (t = this._feidan.size() > 0 ? this._feidan.get() : cc.instantiate(this.dict["f29086.feidan"])).parent =
             this.dict["f29086.feidan"].parent;
-        t.active = !1;
+        t.active = false;
         return t;
-    };
-    e.prototype.getFeidanYanwu = function () {
+    }
+    getFeidanYanwu() {
         var t;
         (t =
             this._feidanYanwu.size() > 0
                 ? this._feidanYanwu.get()
                 : cc.instantiate(this.dict["f29086.feidan_yanwu"])).parent = this.dict["f29086.feidan_yanwu"].parent;
-        t.active = !1;
+        t.active = false;
         return t;
-    };
-    e.prototype.getFeidanBaozha = function () {
+    }
+    getFeidanBaozha() {
         var t;
         (t =
             this._feidanBaozha.size() > 0
                 ? this._feidanBaozha.get()
                 : cc.instantiate(this.dict["f29086.baozha"])).parent = this.dict["f29086.baozha"].parent;
-        t.active = !1;
+        t.active = false;
         return t;
-    };
-    e.prototype.getAngle = function (t, e) {
+    }
+    getAngle(t, e) {
         return (180 * Math.atan2(e.y - t.y, e.x - t.x)) / Math.PI;
-    };
-    __decorate([B(cc.SpriteAtlas)], e.prototype, "box2SpriteAtlas", void 0);
-    __decorate([B], e.prototype, "isDebug", void 0);
-    __decorate([B], e.prototype, "boundary", void 0);
-    __decorate(
-        [
-            B({
-                type: cc.Enum(c),
-                tooltip: "地图"
-            })
-        ],
-        e.prototype,
-        "mapType",
-        void 0
-    );
-    return __decorate([T], e);
-})($brainLevelBase.default);
-exports.default = W;
+    }
+}
