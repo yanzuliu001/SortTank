@@ -45,10 +45,37 @@ var B = R.property;
     t[(t.item3Start = 5)] = "item3Start";
     t[(t.revive = 6)] = "revive";
 })(l || (l = {}));
+var TANK_SKIN_LEVEL_IDS = {
+    "-29095": !0,
+    "-29290": !0
+};
+var TANK_SKIN_SPRITE_DIR = "zqddn_zhb/texture/tank/";
+var TANK_SKIN_COLOR = {
+    0: "purple",
+    1: "yellow",
+    2: "blue",
+    3: "blue",
+    4: "green",
+    5: "purple",
+    6: "purple",
+    7: "yellow"
+};
+var TANK_SKIN_DIR = {
+    0: 2,
+    45: 0,
+    90: 1,
+    135: 4,
+    180: 7,
+    225: 6,
+    270: 5,
+    315: 3
+};
 var W = (function (t) {
     function e() {
         var e = (null !== t && t.apply(this, arguments)) || this;
         e.box2SpriteAtlas = null;
+        e.tankSpriteFrameCache = {};
+        e.tankSpriteFrameLoading = {};
         e.isDebug = !1;
         e.boundary = 750;
         e.mapType = c.map1;
@@ -543,6 +570,7 @@ var W = (function (t) {
                         a.getChildByName("body").getComponent(cc.Sprite).spriteFrame =
                             m.box2SpriteAtlas.getSpriteFrame(g);
                     }
+                    m.applyTankSkin(a, a.getComponent($level_29086_boxCarItem.default).carColor);
                     a.active = !0;
                     var o = a.convertToWorldSpaceAR(cc.v2(0, 2250));
                     var i = a.parent.convertToNodeSpaceAR(o);
@@ -616,6 +644,7 @@ var W = (function (t) {
                                 a.getChildByName("body").getComponent(cc.Sprite).spriteFrame =
                                     m.box2SpriteAtlas.getSpriteFrame(g);
                             }
+                            m.applyTankSkin(a, a.getComponent($level_29086_boxCarItem.default).carColor);
                             l = h.sub(a.position).mag();
                             cc.tween(a)
                                 .to(l / a.getComponent($level_29086_boxCarItem.default).speed, {
@@ -1543,6 +1572,82 @@ var W = (function (t) {
         }
         return o;
     };
+    e.prototype.getTankDirIndex = function (t) {
+        var e = Math.round((((t % 360) + 360) % 360) / 45) * 45;
+        e = 360 == e ? 0 : e;
+        return TANK_SKIN_DIR[e];
+    };
+    e.prototype.getTankSpritePath = function (t, e) {
+        var o = TANK_SKIN_COLOR[e];
+        var i = this.getTankDirIndex(t.angle);
+        if (void 0 === o || void 0 === i) {
+            return null;
+        }
+        return TANK_SKIN_SPRITE_DIR + "tank_" + o + "_" + i;
+    };
+    e.prototype.loadTankSpriteFrame = function (t, e) {
+        var o = this;
+        if (this.tankSpriteFrameCache[t]) {
+            e(this.tankSpriteFrameCache[t]);
+            return;
+        }
+        if (this.tankSpriteFrameLoading[t]) {
+            this.tankSpriteFrameLoading[t].push(e);
+            return;
+        }
+        this.tankSpriteFrameLoading[t] = [e];
+        cc.resources.load(t, cc.SpriteFrame, function (i, r) {
+            var n = o.tankSpriteFrameLoading[t] || [];
+            delete o.tankSpriteFrameLoading[t];
+            if (i || !r) {
+                cc.warn && cc.warn("load tank sprite failed:", t, i);
+                n.forEach(function (t) {
+                    t(null);
+                });
+                return;
+            }
+            o.tankSpriteFrameCache[t] = r;
+            n.forEach(function (t) {
+                t(r);
+            });
+        });
+    };
+    e.prototype.applyTankSkin = function (t, e) {
+        if (!TANK_SKIN_LEVEL_IDS[this.levelID] || t.isCarPark) {
+            return;
+        }
+        var o = this.getTankSpritePath(t, e);
+        var i = t.getChildByName("car");
+        if (!o || !i) {
+            return;
+        }
+        var r = t.getChildByName("body");
+        var n = t.getChildByName("sd");
+        if (!n) {
+            n = t.children.find(function (t) {
+                return t.name && t.name.indexOf("=sd") >= 0;
+            });
+        }
+        if (n) {
+            n.active = !1;
+        }
+        if (t.getChildByName("shadow")) {
+            t.getChildByName("shadow").active = !1;
+        }
+        this.loadTankSpriteFrame(o, function (e) {
+            if (!e || !cc.isValid(t) || !cc.isValid(i)) {
+                return;
+            }
+            i.getComponent(cc.Sprite).spriteFrame = e;
+            i.active = !0;
+            if (r && cc.isValid(r)) {
+                r.active = !1;
+            }
+            if (n && cc.isValid(n)) {
+                n.active = !1;
+            }
+        });
+    };
     e.prototype.setCarColorImg = function (t, e) {
         var o;
         var i;
@@ -1565,6 +1670,7 @@ var W = (function (t) {
         if (t.getChildByName("body")) {
             t.getChildByName("body").getComponent(cc.Sprite).spriteFrame = this.box2SpriteAtlas.getSpriteFrame(i);
         }
+        this.applyTankSkin(t, e);
         if (this.levelDataJSON.carWeight[r.path]) {
             //
         } else {
