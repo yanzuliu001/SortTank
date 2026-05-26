@@ -1,1 +1,0 @@
-{"version":3,"sources":["assets/scripts/ObserverConst.js"],"names":["r","exports"],"mappings":";;;;;;AAAA,IAAIA,CAAJ;;AACA,IAAIA,CAAJ,EAAO,CACH;AACH,CAFD,MAEO;EACHA,CAAC,GAAG,EAAJ;AACH;;AACDC,OAAO,WAAP,GAAkBD,CAAlB","sourceRoot":"/","sourcesContent":["var r;\nif (r) {\n    //\n} else {\n    r = {};\n}\nexports.default = r;\n"]}
