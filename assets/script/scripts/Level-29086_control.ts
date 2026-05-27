@@ -49,21 +49,10 @@ enum MoveState {
 const c = MapType;
 const l = MoveState;
 
-const TANK_SKIN_LEVEL_IDS = {
-    "-29095": true,
-    "-29290": true
-};
-const TANK_SKIN_SPRITE_DIR = "zqddn_zhb/texture/tank/";
-const TANK_SKIN_COLOR = {
-    0: "purple",
-    1: "yellow",
-    2: "blue",
-    3: "blue",
-    4: "green",
-    5: "purple",
-    6: "purple",
-    7: "yellow"
-};
+const TANK_SKIN_LEVEL_IDS = $level_29086_config.TankSkinLevelIds;
+const TANK_SKIN_SPRITE_DIR = $level_29086_config.TankSkinTextureDir;
+const TANK_SKIN_TYPE_ASSET = $level_29086_config.TankSkinTypeDefaultAsset;
+const TANK_SKIN_BY_COLOR = $level_29086_config.TankSkinByColor;
 const TANK_SKIN_DIR = {
     0: 2,
     45: 0,
@@ -1586,13 +1575,33 @@ export default class Level29086Control extends $brainLevelBase.default {
         e = 360 == e ? 0 : e;
         return TANK_SKIN_DIR[e];
     }
-    getTankSpritePath(t, e) {
-        var o = TANK_SKIN_COLOR[e];
-        var i = this.getTankDirIndex(t.angle);
-        if (void 0 === o || void 0 === i) {
-            return null;
+    getTankSkinAssetPrefixes(t) {
+        var e = TANK_SKIN_BY_COLOR[t];
+        if (!e) {
+            return [];
         }
-        return TANK_SKIN_SPRITE_DIR + "tank_" + o + "_" + i;
+        var o = [];
+        if (e.tankAssetPrefix) {
+            o.push(e.tankAssetPrefix);
+        }
+        if (e.assetPrefix && o.indexOf(e.assetPrefix) < 0) {
+            o.push(e.assetPrefix);
+        }
+        var i = TANK_SKIN_TYPE_ASSET[e.type];
+        if (i && o.indexOf(i) < 0) {
+            o.push(i);
+        }
+        return o;
+    }
+    getTankSpritePaths(t, e) {
+        var o = this.getTankSkinAssetPrefixes(e);
+        var i = this.getTankDirIndex(t.angle);
+        if (!o.length || void 0 === i) {
+            return [];
+        }
+        return o.map(function (t) {
+            return TANK_SKIN_SPRITE_DIR + t + "_" + i;
+        });
     }
     loadTankSpriteFrame(t, e) {
         var o = this;
@@ -1621,13 +1630,31 @@ export default class Level29086Control extends $brainLevelBase.default {
             });
         });
     }
+    loadTankSpriteFrameFromPaths(t, e) {
+        var o = this;
+        var i = 0;
+        var r = function () {
+            if (i >= t.length) {
+                e(null);
+                return;
+            }
+            o.loadTankSpriteFrame(t[i++], function (t) {
+                if (t) {
+                    e(t);
+                    return;
+                }
+                r();
+            });
+        };
+        r();
+    }
     applyTankSkin(t, e) {
         if (!TANK_SKIN_LEVEL_IDS[this.levelID] || t.isCarPark) {
             return;
         }
-        var o = this.getTankSpritePath(t, e);
+        var o = this.getTankSpritePaths(t, e);
         var i = t.getChildByName("car");
-        if (!o || !i) {
+        if (!o.length || !i) {
             return;
         }
         var r = t.getChildByName("body");
@@ -1643,7 +1670,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         if (t.getChildByName("shadow")) {
             t.getChildByName("shadow").active = false;
         }
-        this.loadTankSpriteFrame(o, function (e) {
+        this.loadTankSpriteFrameFromPaths(o, function (e) {
             if (!e || !cc.isValid(t) || !cc.isValid(i)) {
                 return;
             }

@@ -2632,6 +2632,58 @@ export enum CarColor {
     Brown = 7
 }
 export const colorDes = ["红0", "黄1", "浅蓝2", "蓝3", "绿4", "紫5", "粉6", "棕7"];
+
+// 坦克改造资源配置：
+// 现阶段每种车型只有 A 色资源，B 色先复用同车型 A 色资源。
+// 后续补齐 B 色后，只需要把对应 TankSkinByColor 项的 tankAssetPrefix / partAssetPrefix 指向 B 色资源前缀。
+export const TankSkinLevelIds = {
+    "-29095": true,
+    "-29290": true
+};
+export const TankSkinTextureDir = "zqddn_zhb/texture/tank/";
+export const TankPartTextureDir = "zqddn_zhb/texture/tank/";
+export const TankSkinTypeDefaultAsset = {
+    tank: "tank_yellow_a",
+    destroyer: "tank_blue_a",
+    howitzer: "tank_green_a",
+    rocket: "tank_purple_a"
+};
+export const TankPartTypeDefaultAsset = {
+    tank: "part_yellow_a",
+    destroyer: "part_blue_a",
+    howitzer: "part_green_a",
+    rocket: "part_purple_a"
+};
+export const TankSkinByColor = {
+    // 颜色ID 1 / 文档颜色1：坦克 A 色，当前黄色坦克资源 tank_yellow_a_0..7，对应零件 part_yellow_a。
+    1: { type: "tank", variant: "a", planColor: 1 },
+    // 颜色ID 7 / 文档颜色2：坦克 B 色，当前临时复用 tank_yellow_a_0..7；补资源后建议使用 tank_yellow_b / part_yellow_b。
+    7: { type: "tank", variant: "b", planColor: 2 },
+    // 颜色ID 2 / 文档颜色3：歼击车 A 色，当前蓝色坦克资源 tank_blue_a_0..7，对应零件 part_blue_a。
+    2: { type: "destroyer", variant: "a", planColor: 3 },
+    // 颜色ID 3 / 文档颜色4：歼击车 B 色，当前临时复用 tank_blue_a_0..7；补资源后建议使用 tank_blue_b / part_blue_b。
+    3: { type: "destroyer", variant: "b", planColor: 4 },
+    // 颜色ID 4 / 文档颜色5：自行火炮 A 色，当前绿色坦克资源 tank_green_a_0..7，对应零件 part_green_a。
+    4: { type: "howitzer", variant: "a", planColor: 5 },
+    // 颜色ID 5 / 文档颜色6：自行火炮 B 色，当前临时复用 tank_green_a_0..7；补资源后建议使用 tank_green_b / part_green_b。
+    5: { type: "howitzer", variant: "b", planColor: 6 },
+    // 颜色ID 6 / 文档颜色7：火箭车 A 色，当前紫色坦克资源 tank_purple_a_0..7，对应零件 part_purple_a。
+    6: { type: "rocket", variant: "a", planColor: 7 },
+    // 颜色ID 0 / 文档颜色8：火箭车 B 色，当前临时复用 tank_purple_a_0..7；补资源后建议使用 tank_purple_b / part_purple_b。
+    0: { type: "rocket", variant: "b", planColor: 8 }
+};
+export function getTankPartAssetPrefixByColor(t) {
+    var e = TankSkinByColor[t];
+    if (!e) {
+        return null;
+    }
+    return e.partAssetPrefix || TankPartTypeDefaultAsset[e.type] || null;
+}
+export function getTankPartSpritePathByColor(t) {
+    var e = getTankPartAssetPrefixByColor(t);
+    return e ? TankPartTextureDir + e : null;
+}
+
 export const CarDir = [1, 1];
 export const CarDirImg = {
     52: 4,
