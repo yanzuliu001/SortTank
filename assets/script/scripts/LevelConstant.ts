@@ -1,14 +1,10 @@
-exports.LEVEL_EVENT =
-    exports.FONT_URL =
-    exports.AUDIO_URL =
-    exports.ASSET_LOCAL_BUNDLE =
-    exports.domain_local =
-    exports.domain =
-    void 0;
-exports.domain = "https://static.zuiqiangyingyu.net/wb_webview/brain_level_asset_depository/";
-exports.domain_local = "http://192.168.20.143/";
-exports.ASSET_LOCAL_BUNDLE = "resources";
-exports.AUDIO_URL = {
+// @ts-nocheck
+
+export const domain = "https://static.zuiqiangyingyu.net/wb_webview/brain_level_asset_depository/";
+export const domain_local = "http://192.168.20.143/";
+export const ASSET_LOCAL_BUNDLE = "resources";
+
+export const AUDIO_URL = {
     CLICK: "audio/common/click.mp3",
     RIGHT: "audio/common/right.mp3",
     ERROR: "audio/common/error.mp3",
@@ -48,10 +44,12 @@ exports.AUDIO_URL = {
     BGM8: "audio/common/bgm8.mp3",
     BGM9: "audio/common/bgm9.mp3"
 };
-exports.FONT_URL = {
+
+export const FONT_URL = {
     TX: "font/ttzhuncuyuanja.ttf"
 };
-exports.LEVEL_EVENT = {
+
+export const LEVEL_EVENT = {
     GAME_HIDEBG: "game_hidebg",
     GAME_SHOWBG: "game_showbg",
     GAME_CHANGEBG: "game_changebg",
