@@ -2634,7 +2634,7 @@ export enum CarColor {
 export const colorDes = ["红0", "黄1", "浅蓝2", "蓝3", "绿4", "紫5", "粉6", "棕7"];
 
 // 坦克改造资源配置：
-// 现阶段每种车型只有 A 色资源，B 色先复用同车型 A 色资源。
+// 现阶段每种车型只有 A 色资源；B 色未来补齐后作为独立颜色配置，不合并到 A 色资源。
 // 后续补齐 B 色后，只需要把对应 TankSkinByColor 项的 tankAssetPrefix / partAssetPrefix 指向 B 色资源前缀。
 export const TankSkinLevelIds = {
     "-29095": true,
@@ -2649,27 +2649,27 @@ export const TankSkinTypeDefaultAsset = {
     rocket: "tank_purple_a"
 };
 export const TankPartTypeDefaultAsset = {
-    tank: "part_yellow_a",
-    destroyer: "part_blue_a",
-    howitzer: "part_green_a",
-    rocket: "part_purple_a"
+    tank: "tank_yellow_a",
+    destroyer: "tank_blue_a",
+    howitzer: "tank_green_a",
+    rocket: "tank_purple_a"
 };
 export const TankSkinByColor = {
-    // 颜色ID 1 / 文档颜色1：坦克 A 色，当前黄色坦克资源 tank_yellow_a_0..7，对应零件 part_yellow_a。
+    // 颜色ID 1 / 文档颜色1：坦克 A 色，当前黄色坦克资源 tank_yellow_a_0..7，对应零件 tank_yellow_a。
     1: { type: "tank", variant: "a", planColor: 1 },
-    // 颜色ID 7 / 文档颜色2：坦克 B 色，当前临时复用 tank_yellow_a_0..7；补资源后建议使用 tank_yellow_b / part_yellow_b。
+    // 颜色ID 7 / 文档颜色2：坦克 B 色，补资源后建议使用 tank_yellow_b / tank_yellow_b_0..7。
     7: { type: "tank", variant: "b", planColor: 2 },
-    // 颜色ID 2 / 文档颜色3：歼击车 A 色，当前蓝色坦克资源 tank_blue_a_0..7，对应零件 part_blue_a。
+    // 颜色ID 2 / 文档颜色3：歼击车 A 色，当前蓝色坦克资源 tank_blue_a_0..7，对应零件 tank_blue_a。
     2: { type: "destroyer", variant: "a", planColor: 3 },
-    // 颜色ID 3 / 文档颜色4：歼击车 B 色，当前临时复用 tank_blue_a_0..7；补资源后建议使用 tank_blue_b / part_blue_b。
+    // 颜色ID 3 / 文档颜色4：歼击车 B 色，补资源后建议使用 tank_blue_b / tank_blue_b_0..7。
     3: { type: "destroyer", variant: "b", planColor: 4 },
-    // 颜色ID 4 / 文档颜色5：自行火炮 A 色，当前绿色坦克资源 tank_green_a_0..7，对应零件 part_green_a。
+    // 颜色ID 4 / 文档颜色5：自行火炮 A 色，当前绿色坦克资源 tank_green_a_0..7，对应零件 tank_green_a。
     4: { type: "howitzer", variant: "a", planColor: 5 },
-    // 颜色ID 5 / 文档颜色6：自行火炮 B 色，当前临时复用 tank_green_a_0..7；补资源后建议使用 tank_green_b / part_green_b。
+    // 颜色ID 5 / 文档颜色6：自行火炮 B 色，补资源后建议使用 tank_green_b / tank_green_b_0..7。
     5: { type: "howitzer", variant: "b", planColor: 6 },
-    // 颜色ID 6 / 文档颜色7：火箭车 A 色，当前紫色坦克资源 tank_purple_a_0..7，对应零件 part_purple_a。
+    // 颜色ID 6 / 文档颜色7：火箭车 A 色，当前紫色坦克资源 tank_purple_a_0..7，对应零件 tank_purple_a。
     6: { type: "rocket", variant: "a", planColor: 7 },
-    // 颜色ID 0 / 文档颜色8：火箭车 B 色，当前临时复用 tank_purple_a_0..7；补资源后建议使用 tank_purple_b / part_purple_b。
+    // 颜色ID 0 / 文档颜色8：火箭车 B 色，补资源后建议使用 tank_purple_b / tank_purple_b_0..7。
     0: { type: "rocket", variant: "b", planColor: 8 }
 };
 export function getTankPartAssetPrefixByColor(t) {
@@ -2677,12 +2677,45 @@ export function getTankPartAssetPrefixByColor(t) {
     if (!e) {
         return null;
     }
-    return e.partAssetPrefix || TankPartTypeDefaultAsset[e.type] || null;
+    if (e.partAssetPrefix) {
+        return e.partAssetPrefix;
+    }
+    if (e.variant && "a" != e.variant) {
+        return null;
+    }
+    return TankPartTypeDefaultAsset[e.type] || null;
 }
 export function getTankPartSpritePathByColor(t) {
     var e = getTankPartAssetPrefixByColor(t);
     return e ? TankPartTextureDir + e : null;
 }
+export const TankAssemblyLevelIds = {
+    "-29095": true
+};
+export const TankAssemblyProgressTextureDir = "zqddn_zhb/texture/sorttank/";
+export const TankAssemblyProgressStages = [
+    { progress: 30, sprite: "sort_tank_icon1" },
+    { progress: 70, sprite: "sort_tank_icon2" },
+    { progress: 100, sprite: "sort_tank_icon3" }
+];
+export const TankAssemblyInitialProgress = 30;
+export const TankAssemblyTypes = [
+    // 当前已有 A 色资源：黄色坦克，对应颜色 ID 1。未来 tank_yellow_b 需要新增独立配置项，不复用本项。
+    { colorId: 1, counterNode: "p0", counterSprite: "tank_yellow_a_4", partSprite: "tank_yellow_a" },
+    // 当前已有 A 色资源：蓝色坦克，对应颜色 ID 2。
+    { colorId: 2, counterNode: "p1", counterSprite: "tank_blue_a_4", partSprite: "tank_blue_a" },
+    // 当前已有 A 色资源：绿色坦克，对应颜色 ID 4。
+    { colorId: 4, counterNode: "p2", counterSprite: "tank_green_a_4", partSprite: "tank_green_a" },
+    // 当前已有 A 色资源：紫色坦克，对应颜色 ID 6。
+    { colorId: 6, counterNode: "p3", counterSprite: "tank_purple_a_4", partSprite: "tank_purple_a" }
+];
+export const TankAssemblyConveyorConfig = {
+    spawnInterval: 0.9,
+    startDelay: 1.2,
+    moveSpeed: 160,
+    absorbDuration: 0.25,
+    partScale: 0.55
+};
 
 export const CarDir = [1, 1];
 export const CarDirImg = {
