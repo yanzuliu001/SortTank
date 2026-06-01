@@ -2714,7 +2714,7 @@ export const TankAssemblyConveyorConfig = {
     startDelay: 1.2,
     moveSpeed: 160,
     absorbDuration: 0.25,
-    partScale: 0.55
+    partScale: 1
 };
 
 export const CarDir = [1, 1];
