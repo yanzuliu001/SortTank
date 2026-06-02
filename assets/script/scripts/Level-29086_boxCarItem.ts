@@ -82,7 +82,7 @@ export default class Level29086BoxCarItem extends cc.Component {
 
         if (
             this.carState == Level29086Config.CarState.OnBottomLeft &&
-            this.node.x <= -(this.mgr.boundary / 2 + this.node.width / 2)
+            this.node.x <= this.mgr.getRouteSideLimitX(this.node, -1)
         ) {
             this.carState = Level29086Config.CarState.GoingRoad;
             this.mgr.changeCar(this.node, 2);
@@ -91,7 +91,7 @@ export default class Level29086BoxCarItem extends cc.Component {
 
         if (
             this.carState == Level29086Config.CarState.OnBottomRight &&
-            this.node.x >= this.mgr.boundary / 2 + this.node.width / 2
+            this.node.x >= this.mgr.getRouteSideLimitX(this.node, 1)
         ) {
             this.carState = Level29086Config.CarState.GoingRoad;
             this.mgr.changeCar(this.node, 2);
@@ -276,8 +276,11 @@ export default class Level29086BoxCarItem extends cc.Component {
             this.checkMovingCollisionWithIdleCars();
         }
 
-        const roadWorldPos = this.mgr.dict.road.parent.convertToWorldSpaceAR(this.mgr.dict.road.position);
-        const roadLocalPos = this.node.parent.convertToNodeSpaceAR(roadWorldPos);
+        const roadLocalPos = this.mgr.getRouteRoadLocalPosition
+            ? this.mgr.getRouteRoadLocalPosition(this.node.parent)
+            : this.node.parent.convertToNodeSpaceAR(
+                  this.mgr.dict.road.parent.convertToWorldSpaceAR(this.mgr.dict.road.position)
+              );
 
         if (this.node.y >= roadLocalPos.y - 2 * this.minLen) {
             console.log("检测碰到公路");
@@ -298,25 +301,27 @@ export default class Level29086BoxCarItem extends cc.Component {
             return true;
         }
 
-        if (this.node.x <= -(this.mgr.boundary / 2 + this.node.width / 2)) {
+        if (this.node.x <= this.mgr.getRouteSideLimitX(this.node, -1)) {
             this.carState = Level29086Config.CarState.GoingRoad;
             this.mgr.changeCar(this.node, 2);
             return true;
         }
 
-        if (this.node.x >= this.mgr.boundary / 2 + this.node.width / 2) {
+        if (this.node.x >= this.mgr.getRouteSideLimitX(this.node, 1)) {
             this.carState = Level29086Config.CarState.GoingRoad;
             this.mgr.changeCar(this.node, 2);
             return true;
         }
 
-        if (this.node.y <= -620 && this.node.x > 0) {
+        const bottomTurnY = this.mgr.getRouteBottomTurnY ? this.mgr.getRouteBottomTurnY(this.node.parent) : -620;
+
+        if (this.node.y <= bottomTurnY && this.node.x > 0) {
             this.carState = Level29086Config.CarState.OnBottomRight;
             this.mgr.changeCar(this.node, 1, 1, "01" + this.lenImgName + "-1");
             return true;
         }
 
-        if (this.node.y <= -620 && this.node.x < 0) {
+        if (this.node.y <= bottomTurnY && this.node.x < 0) {
             this.carState = Level29086Config.CarState.OnBottomLeft;
             this.mgr.changeCar(this.node, 1, 2, "01" + this.lenImgName + "-0");
             return true;

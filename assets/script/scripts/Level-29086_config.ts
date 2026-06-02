@@ -2690,7 +2690,18 @@ export function getTankPartSpritePathByColor(t) {
     return e ? TankPartTextureDir + e : null;
 }
 export const TankAssemblyLevelIds = {
-    "-29095": true
+    "-29095": true,
+    "-29290": true,
+};
+// 坦克组装演示关卡不展示原玩法手势引导。
+export const TankAssemblyGuideDisabledLevelIds = {
+    "-29095": true,
+    "-29290": true,
+};
+// 坦克组装演示关卡不展示公共底部道具栏。
+export const TankAssemblyBottomButtonsHiddenLevelIds = {
+    "-29095": true,
+    "-29290": true,
 };
 export const TankAssemblyProgressTextureDir = "zqddn_zhb/texture/sorttank/";
 export const TankAssemblyProgressStages = [
@@ -2699,6 +2710,18 @@ export const TankAssemblyProgressStages = [
     { progress: 100, sprite: "sort_tank_icon3" }
 ];
 export const TankAssemblyInitialProgress = 30;
+// 底部坦克方向箭头，资源放在 TankAssemblyProgressTextureDir 下，命名为 tank_arrow_0..7。
+export const TankAssemblyArrowEnabled = true;
+export const TankAssemblyArrowSpritePrefix = "tank_arrow_";
+export const TankAssemblyArrowScale = 1;
+export const TankAssemblyArrowOffset = [0, 0];
+// 顶部传送带 + 坦克计数板开关。当前先关闭，只保留中间停车位和底部坦克移动。
+export const TankAssemblyTopEnabled = false;
+// 顶部关闭时的演示流程：这些关卡里，全部底部坦克停入组装位后自动进入下一顺序关。
+export const TankAssemblyAutoNextWhenTopDisabledLevelIds = {
+    "-29095": true
+};
+export const TankAssemblyAutoNextDelay = 0.35;
 export const TankAssemblyTypes = [
     // 当前已有 A 色资源：黄色坦克，对应颜色 ID 1。未来 tank_yellow_b 需要新增独立配置项，不复用本项。
     { colorId: 1, counterNode: "p0", counterSprite: "tank_yellow_a_4", partSprite: "tank_yellow_a" },
@@ -2715,6 +2738,14 @@ export const TankAssemblyConveyorConfig = {
     moveSpeed: 160,
     absorbDuration: 0.25,
     partScale: 1
+};
+export const TankAssemblyRouteConfig = {
+    // 旧版 750x1334 prefab 中，下排停车位中心到出车横向路面的 carRoot 本地坐标间距。
+    parkingRoadGap: 50,
+    // 左右侧转向上行时，车身与屏幕边缘保留的最小距离。
+    sideScreenMargin: 12,
+    // 向下行驶坦克触发底部转弯时，距离屏幕底部保留的距离。
+    bottomTurnScreenMargin: 145
 };
 
 export const CarDir = [1, 1];

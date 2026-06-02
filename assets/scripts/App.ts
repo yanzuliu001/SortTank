@@ -34,6 +34,8 @@ const FONT_INDEX_BY_LANG = {
     tw: 2
 };
 
+const DIRECT_TANK_ASSEMBLY_DEMO = true;
+
 const { ccclass, property } = cc._decorator;
 
 @ccclass
@@ -191,6 +193,12 @@ class App extends cc.Component {
         language.init();
         language.setFont(this.fonts[FONT_INDEX_BY_LANG[language.lan]]);
         SceneManager.default.init(this.loadingPrefab);
+        if (DIRECT_TANK_ASSEMBLY_DEMO) {
+            SceneManager.default.hasAnim = false;
+            if (SceneManager.default.sceneRoot) {
+                SceneManager.default.sceneRoot.destroyAllChildren();
+            }
+        }
         AudioManager.Audio.init();
         ReportManager.Report.init();
         this.initStopDebug();
@@ -382,7 +390,7 @@ class App extends cc.Component {
         this.scheduleOnce(() => {
             console.log("两秒没跳转直接进入");
             this.sucEnterMain();
-        }, 3);
+        }, DIRECT_TANK_ASSEMBLY_DEMO ? 0 : 3);
     }
 
     updateSkin() {
@@ -450,6 +458,11 @@ class App extends cc.Component {
         }
 
         this.updateSkin();
+        if (DIRECT_TANK_ASSEMBLY_DEMO) {
+            this.startOppo();
+            this.gotoGame();
+            return;
+        }
 
         // if (0 != (autoFullScreenAdInterval = BmsManager.BMS.getKey("AutoFullScreenAd"))) {
         //     this.schedule(function() {

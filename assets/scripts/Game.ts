@@ -23,6 +23,7 @@ const ScreenshotUtils = require("./ScreenshotUtils");
 const TipManager = require("./TipManager");
 const ConfigManager = require("./ConfigManager");
 const ConfigConst = require("./ConfigConst");
+const TankAssemblyConfig = require("../script/scripts/Level-29086_config");
 const OPPOAndroidAdUtils = require("./OPPOAndroidAdUtils");
 const OPPOMiniADUtils = require("./OPPOMiniADUtils");
 const ShuShuConst = require("./ShuShuConst");
@@ -1347,9 +1348,13 @@ class Game extends BaseUI.default {
                                                 "Level_page_" + this.currentMode + "_" + this.currentLevel
                                             );
                                             UserManager.User.setTempData("levelTime", new Date().getTime());
+                                            var shouldHideTankAssemblyBottomButtons =
+                                                TankAssemblyConfig.TankAssemblyBottomButtonsHiddenLevelIds &&
+                                                TankAssemblyConfig.TankAssemblyBottomButtonsHiddenLevelIds[c];
                                             if (
                                                 0 == this.currentMode &&
-                                                1 == UserManager.User.getTempData(UserConst.TempData.CURRENT_LEVEL)
+                                                (shouldHideTankAssemblyBottomButtons ||
+                                                    1 == UserManager.User.getTempData(UserConst.TempData.CURRENT_LEVEL))
                                             ) {
                                                 this.dict.content.active = !1;
                                             } else {

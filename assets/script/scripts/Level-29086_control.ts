@@ -18,6 +18,8 @@ const $userConst = require("../../scripts/UserConst");
 const $localStorageManager = require("../../scripts/LocalStorageManager");
 const $localStorageConst = require("../../scripts/LocalStorageConst");
 const $languageManager = require("../../scripts/LanguageManager");
+const $eventManager = require("../../scripts/EventManager");
+const $eventConst = require("../../scripts/EventConst");
 
 const { ccclass, property } = cc._decorator;
 
@@ -406,6 +408,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                 this.dragonRoot = this.dict.dragonRoot;
                 this.warnNode = this.dict.warnNode;
                 this.roleNode = this.dict.roleNode;
+                this.refreshTankAssemblyRouteLayout();
                 if (this.dict.btns) {
                     this.dict.btns.active = false;
                 }
@@ -417,7 +420,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                     this.dict.tailGas.getComponent($motionTrail.default).headOpacity = 230;
                     this.dict.tailGas.getComponent($motionTrail.default).tailOpacity = 40;
                 }
-                if (this.dict.hand && this.dict.hand.active) {
+                if (!this.disableFirstLevelGuide() && this.dict.hand && this.dict.hand.active) {
                     this.guideNodes.push(this.dict.carRoot.children[1]);
                     this.guideNodes.push(this.dict.carRoot.children[0]);
                     this.guideNodes.push(this.dict.carRoot.children[3]);
@@ -432,6 +435,33 @@ export default class Level29086Control extends $brainLevelBase.default {
                 return [2];
             });
         });
+    }
+    shouldDisableTankAssemblyGuide() {
+        return (
+            $level_29086_config.TankAssemblyGuideDisabledLevelIds &&
+            $level_29086_config.TankAssemblyGuideDisabledLevelIds[this.levelID]
+        );
+    }
+    disableFirstLevelGuide() {
+        if (!this.shouldDisableTankAssemblyGuide()) {
+            return false;
+        }
+        this.guideNodes = [];
+        this.guidedNodes = [];
+        this.currentGuideNode = null;
+        if (this.dict.guide) {
+            this.dict.guide.active = false;
+        }
+        if (this.dict.hand) {
+            this.dict.hand.active = false;
+        }
+        if (this.dict.handText) {
+            this.dict.handText.active = false;
+            if (this.dict.handText.parent) {
+                this.dict.handText.parent.active = false;
+            }
+        }
+        return true;
     }
     handPos() {
         var t = cc.v2(-20, -20);
@@ -531,10 +561,10 @@ export default class Level29086Control extends $brainLevelBase.default {
                                 a.position = cc.v2(t.x + t.width / 2, t.y);
                             } else {
                                 1 == o
-                                    ? ((l = this.dict.road.parent.convertToWorldSpaceAR(this.dict.road.position)),
+                                    ? ((l = this.getRouteRoadWorldPosition()),
                                       (c = a.parent.convertToNodeSpaceAR(l)),
                                       (a.position = cc.v2(t.x + t.width / 2, c.y)))
-                                    : ((l = this.dict.road.parent.convertToWorldSpaceAR(this.dict.road.position)),
+                                    : ((l = this.getRouteRoadWorldPosition()),
                                       (c = a.parent.convertToNodeSpaceAR(l)),
                                       (a.position = cc.v2(t.x - t.width / 2, c.y)));
                             }
@@ -736,18 +766,32 @@ export default class Level29086Control extends $brainLevelBase.default {
                         a.getComponent($level_29086_boxCarItem.default).carState ==
                         $level_29086_config.CarState.GoingRoad
                     ) {
-                        n = m.dict.road.parent.convertToWorldSpaceAR(m.dict.road.position);
-                        var f = a.parent.convertToWorldSpaceAR(a.position);
-                        l = Math.abs(f.y - n.y);
-                        m.addTailGasSpine(a);
-                        cc.tween(a)
-                            .by(l / a.getComponent($level_29086_boxCarItem.default).speed, {
-                                y: l
-                            })
-                            .call(function () {
-                                m.collision(a);
-                            })
-                            .start();
+                        if (m.isTankAssemblyLevel()) {
+                            var d = m.getRouteRoadLocalPosition(a.parent);
+                            l = Math.abs(a.y - d.y);
+                            m.addTailGasSpine(a);
+                            cc.tween(a)
+                                .to(l / a.getComponent($level_29086_boxCarItem.default).speed, {
+                                    y: d.y
+                                })
+                                .call(function () {
+                                    m.collision(a);
+                                })
+                                .start();
+                        } else {
+                            n = m.dict.road.parent.convertToWorldSpaceAR(m.dict.road.position);
+                            var f = a.parent.convertToWorldSpaceAR(a.position);
+                            l = Math.abs(f.y - n.y);
+                            m.addTailGasSpine(a);
+                            cc.tween(a)
+                                .by(l / a.getComponent($level_29086_boxCarItem.default).speed, {
+                                    y: l
+                                })
+                                .call(function () {
+                                    m.collision(a);
+                                })
+                                .start();
+                        }
                     } else {
                         m.addTailGasSpine(a);
                         cc.tween(a)
@@ -810,7 +854,9 @@ export default class Level29086Control extends $brainLevelBase.default {
             }
             if (o) {
                 var n = e.parent.convertToWorldSpaceAR(e.position);
-                var a = o.currentParkingWPos;
+                var a = this.getParkingEntryWorldPosition(o);
+                o.currentParkingWPos = a;
+                o.currentParkingNPos = this.dict.carRoot.convertToNodeSpaceAR(a);
                 if (n.x >= a.x) {
                     e.getComponent($level_29086_boxCarItem.default).carState = $level_29086_config.CarState.InRoadLeft;
                     if (e.getComponent($level_29086_boxCarItem.default).isRichCar) {
@@ -865,6 +911,112 @@ export default class Level29086Control extends $brainLevelBase.default {
             $level_29086_config.TankAssemblyLevelIds[this.levelID]
         );
     }
+    isTankAssemblyTopEnabled() {
+        return this.isTankAssemblyLevel() && false !== $level_29086_config.TankAssemblyTopEnabled;
+    }
+    setTankAssemblyTopVisible(t) {
+        if (this.dict.assemblyTopRoot) {
+            this.dict.assemblyTopRoot.active = t;
+        }
+    }
+    shouldAutoNextWhenTankAssemblyTopDisabled() {
+        return (
+            this.isTankAssemblyLevel() &&
+            !this.isTankAssemblyTopEnabled() &&
+            $level_29086_config.TankAssemblyAutoNextWhenTopDisabledLevelIds &&
+            $level_29086_config.TankAssemblyAutoNextWhenTopDisabledLevelIds[this.levelID]
+        );
+    }
+    checkTankAssemblyAutoNextWhenTopDisabled() {
+        if (!this.shouldAutoNextWhenTankAssemblyTopDisabled() || this.tankAssemblyAutoNextTriggered) {
+            return;
+        }
+        var t = this.tankAssemblyTotalCarAmount || this.carNodeArr.length;
+        if (!t) {
+            return;
+        }
+        var e = 0;
+        for (var o = 0; o < this.parkingNodes.length; o++) {
+            var i = this.parkingNodes[o];
+            if (i && !i.isEmpty && i.assemblyCar) {
+                e++;
+            }
+        }
+        this.tankAssemblyParkedAmount = e;
+        if (e < t) {
+            return;
+        }
+        this.tankAssemblyAutoNextTriggered = true;
+        console.log("顶部关闭演示流程：全部坦克已停入，自动进入下一关", e, "/", t);
+        var r = this;
+        this.scheduleOnce(function () {
+            if (cc.isValid(r.node)) {
+                $eventManager.Event.emit($eventConst.default.CLICK_NEXT);
+            }
+        }, $level_29086_config.TankAssemblyAutoNextDelay || 0.35);
+    }
+    refreshTankAssemblyRouteLayout() {
+        if (!this.isTankAssemblyLevel()) {
+            return;
+        }
+        if (this.dict.parkingRoot && this.dict.parkingRoot.width > 0) {
+            this.boundary = this.dict.parkingRoot.width;
+        }
+    }
+    getRouteRoadWorldPosition() {
+        if (!this.isTankAssemblyLevel()) {
+            return this.dict.road.parent.convertToWorldSpaceAR(this.dict.road.position);
+        }
+        if (!this.dict.carRoot) {
+            return this.dict.road.parent.convertToWorldSpaceAR(this.dict.road.position);
+        }
+        return this.dict.carRoot.convertToWorldSpaceAR(cc.v2(0, this.getTankAssemblyRoadLocalY()));
+    }
+    getRouteRoadLocalPosition(t) {
+        return t.convertToNodeSpaceAR(this.getRouteRoadWorldPosition());
+    }
+    getRouteSideLimitX(t, e) {
+        var o = e < 0 ? -1 : 1;
+        if (!this.isTankAssemblyLevel()) {
+            return o * (this.boundary / 2 + t.width / 2);
+        }
+        var i = $level_29086_config.TankAssemblyRouteConfig || {};
+        var r = i.sideScreenMargin || 12;
+        var n = this.node.width || cc.winSize.width;
+        var a = this.node.convertToWorldSpaceAR(cc.v2(o * n / 2, 0));
+        var s = t.parent.convertToNodeSpaceAR(a).x;
+        return s - o * (t.width / 2 + r);
+    }
+    getRouteBottomTurnY(t) {
+        if (!this.isTankAssemblyLevel()) {
+            return -620;
+        }
+        var e = $level_29086_config.TankAssemblyRouteConfig || {};
+        var o = e.bottomTurnScreenMargin || 145;
+        var i = this.node.height || cc.winSize.height;
+        var r = this.node.convertToWorldSpaceAR(cc.v2(0, -i / 2 + o));
+        return t.convertToNodeSpaceAR(r).y;
+    }
+    getTankAssemblyRoadLocalY() {
+        var t = null;
+        if (this.dict.parkingRoot && this.dict.carRoot) {
+            for (var e = 0; e < this.dict.parkingRoot.childrenCount; e++) {
+                var o = this.dict.parkingRoot.children[e];
+                if (o.active) {
+                    var i = this.getParkingEntryWorldPosition(o);
+                    var r = this.dict.carRoot.convertToNodeSpaceAR(i);
+                    t = null == t ? r.y : Math.min(t, r.y);
+                }
+            }
+        }
+        if (null == t) {
+            return this.dict.carRoot.convertToNodeSpaceAR(
+                this.dict.road.parent.convertToWorldSpaceAR(this.dict.road.position)
+            ).y;
+        }
+        var n = $level_29086_config.TankAssemblyRouteConfig || {};
+        return t - (n.parkingRoadGap || 18);
+    }
     getParkingEntryWorldPosition(t) {
         var e = this.isTankAssemblyLevel() && t.getChildByName("tankStop");
         if (e) {
@@ -881,6 +1033,8 @@ export default class Level29086Control extends $brainLevelBase.default {
     }
     initTankAssemblyParkingSlots() {
         this.parkingNodes = [];
+        this.tankAssemblyParkedAmount = 0;
+        this.tankAssemblyAutoNextTriggered = false;
         for (var t = 0; t < this.dict.parkingRoot.childrenCount; t++) {
             var e = this.dict.parkingRoot.children[t];
             var o = e.getChildByName("tankStop");
@@ -932,14 +1086,15 @@ export default class Level29086Control extends $brainLevelBase.default {
         return this.tankAssemblyTypeByColor[t] || null;
     }
     initTankAssemblyConveyor() {
+        this.setTankAssemblyTopVisible(this.isTankAssemblyTopEnabled());
         this.tankAssemblyPartLayer = this.dict.partLayer || this.dict.dragonRoot;
         this.tankAssemblyAbsorbLayer = this.dict.absorbEffectLayer || this.tankAssemblyPartLayer;
         this.tankAssemblyCountBoardRoot = this.dict.countBoardRoot;
         this.tankAssemblyParts = [];
         this.tankAssemblyTypeByColor = {};
         this.tankAssemblyCounters = {};
-        this.tankAssemblySpawnTimer = -(TANK_ASSEMBLY_CONVEYOR_CONFIG.startDelay || 0);
-        this.tankAssemblySpawnStarted = true;
+        this.tankAssemblySpawnTimer = this.isTankAssemblyTopEnabled() ? -(TANK_ASSEMBLY_CONVEYOR_CONFIG.startDelay || 0) : 0;
+        this.tankAssemblySpawnStarted = this.isTankAssemblyTopEnabled();
         this.tankAssemblyEnded = false;
         this.tankAssemblyCompletedAmount = 0;
         this.tankAssemblyTotalCarAmount = this.carNodeArr.length;
@@ -958,6 +1113,10 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
         if (this.dict.roleText) {
             this.dict.roleText.active = false;
+        }
+        if (!this.isTankAssemblyTopEnabled()) {
+            this.clearTankAssemblyParts();
+            return;
         }
         this.buildTankAssemblyPathPoints();
         this.initTankAssemblyCountBoard();
@@ -1014,6 +1173,9 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
     }
     updateTankAssemblyConveyor(t) {
+        if (!this.isTankAssemblyTopEnabled()) {
+            return;
+        }
         if (!this.tankAssemblySpawnStarted || this.tankAssemblyEnded || !this.tankAssemblyPartLayer) {
             return;
         }
@@ -1320,7 +1482,9 @@ export default class Level29086Control extends $brainLevelBase.default {
             var B;
             var W = this;
             return __generator(this, function () {
-                if (this.dict.guide) {
+                if (this.disableFirstLevelGuide()) {
+                    //
+                } else if (this.dict.guide) {
                     this.scheduleOnce(function () {
                         W.dict.guide.active = false;
                     }, 6);
@@ -1992,6 +2156,62 @@ export default class Level29086Control extends $brainLevelBase.default {
             return TANK_SKIN_SPRITE_DIR + t + "_" + i;
         });
     }
+    getTankArrowSpritePath(t) {
+        if (!$level_29086_config.TankAssemblyArrowEnabled) {
+            return null;
+        }
+        var e = this.getTankDirIndex(t.angle);
+        if (void 0 === e) {
+            return null;
+        }
+        var o = $level_29086_config.TankAssemblyArrowSpritePrefix || "tank_arrow_";
+        return $level_29086_config.TankAssemblyProgressTextureDir + o + e;
+    }
+    getOrCreateTankArrowNode(t) {
+        var e = t.getChildByName("dir") || t.getChildByName("tankArrow");
+        if (!e) {
+            e = new cc.Node("dir");
+            t.addChild(e);
+            e.addComponent(cc.Sprite);
+        } else if (!e.getComponent(cc.Sprite)) {
+            e.addComponent(cc.Sprite);
+        }
+        e.setSiblingIndex(t.childrenCount - 1);
+        return e;
+    }
+    layoutTankArrowNode(t, e) {
+        var o = t.getChildByName("car");
+        var i = cc.v2(0, -t.height / 2);
+        var n = 0;
+        if (o) {
+            var a = cc.v2((0.5 - o.anchorX) * o.width, (0.5 - o.anchorY) * o.height);
+            i = t.convertToNodeSpaceAR(o.convertToWorldSpaceAR(a));
+            n = o.angle || 0;
+        }
+        var r = $level_29086_config.TankAssemblyArrowOffset || [0, 0];
+        e.position = cc.v2(i.x + (r[0] || 0), i.y + (r[1] || 0));
+        e.scale = $level_29086_config.TankAssemblyArrowScale || 1;
+        e.angle = n;
+        e.active = true;
+    }
+    applyTankArrow(t) {
+        if (!this.isTankAssemblyLevel() || t.isCarPark) {
+            return;
+        }
+        var e = this.getTankArrowSpritePath(t);
+        if (!e) {
+            return;
+        }
+        var o = this.getOrCreateTankArrowNode(t);
+        this.layoutTankArrowNode(t, o);
+        var i = o.getComponent(cc.Sprite);
+        this.loadTankSpriteFrame(e, function (e) {
+            if (e && cc.isValid(t) && cc.isValid(o)) {
+                i.spriteFrame = e;
+                o.active = true;
+            }
+        });
+    }
     loadTankSpriteFrame(t, e) {
         var o = this;
         if (this.tankSpriteFrameCache[t]) {
@@ -2101,11 +2321,13 @@ export default class Level29086Control extends $brainLevelBase.default {
         this.putTailGas(t);
         t.stopAllActions();
         t.active = false;
+        this.checkTankAssemblyAutoNextWhenTopDisabled();
     }
     applyTankSkin(t, e) {
         if (!TANK_SKIN_LEVEL_IDS[this.levelID] || t.isCarPark) {
             return;
         }
+        var a = this;
         var o = this.getTankSpritePaths(t, e);
         var i = t.getChildByName("car");
         if (!o.length || !i) {
@@ -2136,6 +2358,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             if (n && cc.isValid(n)) {
                 n.active = false;
             }
+            a.applyTankArrow(t);
         });
     }
     setCarColorImg(t, e) {
