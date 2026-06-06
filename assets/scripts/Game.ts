@@ -1237,6 +1237,8 @@ class Game extends BaseUI.default {
                         }
                         k = "zqddn_zhb/prefab/level/zqddn_zhb_level" + c;
                         UserManager.User.setTempData(UserConst.TempData.CURRENT_LEVEL_ID, c);
+                        // 进入坦克组装演示关前先隐藏 Game 场景底栏，避免加载关卡 prefab 时短暂露出。
+                        this.setTankAssemblyBottomBar0Hidden(c, this.isTankAssemblyBottomButtonsHiddenLevel(c));
                         ResManager.Res.load(k).then(function (t) {
                             return __awaiter(V, void 0, void 0, function () {
                                 var e;
@@ -1244,7 +1246,7 @@ class Game extends BaseUI.default {
                                 var r;
                                 var o;
                                 var a;
-                                var c;
+                                var collectTexture;
                                 var u = this;
                                 return __generator(this, function (s) {
                                     switch (s.label) {
@@ -1324,11 +1326,11 @@ class Game extends BaseUI.default {
                                                   ])
                                                 : [3, 3];
                                         case 2:
-                                            c = s.sent();
+                                            collectTexture = s.sent();
                                             this.dict.collectIcon.getComponent(cc.Sprite).spriteFrame =
-                                                new cc.SpriteFrame(c);
+                                                new cc.SpriteFrame(collectTexture);
                                             this.dict.collectIcon2.getComponent(cc.Sprite).spriteFrame =
-                                                new cc.SpriteFrame(c);
+                                                new cc.SpriteFrame(collectTexture);
                                             return [3, 4];
                                         case 3:
                                             MemoryStorageManager.default.set(
@@ -1349,16 +1351,25 @@ class Game extends BaseUI.default {
                                             );
                                             UserManager.User.setTempData("levelTime", new Date().getTime());
                                             var shouldHideTankAssemblyBottomButtons =
-                                                TankAssemblyConfig.TankAssemblyBottomButtonsHiddenLevelIds &&
-                                                TankAssemblyConfig.TankAssemblyBottomButtonsHiddenLevelIds[c];
+                                                this.isTankAssemblyBottomButtonsHiddenLevel(c);
                                             if (
-                                                0 == this.currentMode &&
-                                                (shouldHideTankAssemblyBottomButtons ||
+                                                shouldHideTankAssemblyBottomButtons ||
+                                                (0 == this.currentMode &&
                                                     1 == UserManager.User.getTempData(UserConst.TempData.CURRENT_LEVEL))
                                             ) {
                                                 this.dict.content.active = !1;
                                             } else {
                                                 this.dict.content.active = !0;
+                                            }
+                                            // 坦克组装演示关卡只保留关卡 prefab 内的坦克操作区，隐藏 Game 场景公共底栏。
+                                            this.setTankAssemblyBottomBar0Hidden(
+                                                c,
+                                                shouldHideTankAssemblyBottomButtons
+                                            );
+                                            if (shouldHideTankAssemblyBottomButtons) {
+                                                this.scheduleOnce(function () {
+                                                    V.setTankAssemblyBottomBar0Hidden(c, true);
+                                                }, 0);
                                             }
                                             return [2];
                                     }
@@ -1667,6 +1678,75 @@ class Game extends BaseUI.default {
             this.dict.homeBtn.active = !0;
         } else {
             this.dict.homeBtn.active = !1;
+        }
+    }
+
+    isTankAssemblyBottomButtonsHiddenLevel(t) {
+        var e = TankAssemblyConfig.TankAssemblyBottomButtonsHiddenLevelIds || {};
+        var n = Number(t);
+        // 配置缺失或关卡 ID 类型变化时仍保证坦克组装演示关隐藏 Game 公共底栏。
+        return !!(e[t] || e[String(t)] || e[n] || -29095 == n || -29290 == n);
+    }
+
+    findChildByNameDeep(t, e) {
+        if (!t) {
+            return null;
+        }
+        if (t.name == e) {
+            return t;
+        }
+        for (var n = 0; n < t.childrenCount; n++) {
+            var r = this.findChildByNameDeep(t.children[n], e);
+            if (r) {
+                return r;
+            }
+        }
+        return null;
+    }
+
+    getBottomBar0Node() {
+        return (
+            this.dict.bottomBar0 ||
+            (this.node && this.node.getChildByName("bottomBar0")) ||
+            cc.find("Canvas/sceneRoot/Game/bottomBar0") ||
+            cc.find("New Node/Canvas/sceneRoot/Game/bottomBar0") ||
+            this.findChildByNameDeep(cc.director.getScene(), "bottomBar0")
+        );
+    }
+
+    setTankAssemblyBottomBar0Hidden(t, e) {
+        var n = this.getBottomBar0Node();
+        if (!e) {
+            if (n) {
+                n.active = true;
+                n.opacity = 255;
+            }
+            return;
+        }
+        var r = [];
+        var o = ["content", "clearBtn", "sortBtn", "refreshBtn", "updateBtn", "removeBtn", "screwBoxBtn"];
+        if (n) {
+            r.push(n);
+            for (var a = 0; a < o.length; a++) {
+                if (n.getChildByName(o[a])) {
+                    r.push(n.getChildByName(o[a]));
+                }
+            }
+        }
+        if (this.dict.content) {
+            r.push(this.dict.content);
+        }
+        for (var c = 0; c < o.length; c++) {
+            if (this.dict[o[c]]) {
+                r.push(this.dict[o[c]]);
+            }
+        }
+        // bottomBar0 是 Game 场景公共底栏，-29095/-29290 演示关卡不使用这套按钮。
+        for (var u = 0; u < r.length; u++) {
+            if (r[u]) {
+                r[u].active = false;
+                r[u].opacity = 0;
+            }
         }
     }
 

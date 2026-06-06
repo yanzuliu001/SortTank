@@ -249,6 +249,7 @@ export default class Level29086Control extends $brainLevelBase.default {
     tankAssemblyEnded: any = false;
     tankAssemblyCompletedAmount: any = 0;
     tankAssemblyTotalCarAmount: any = 0;
+    tankAssemblyDebugLogged: any = {};
 
     onLoad() {
         return __awaiter(this, void 0, void 0, function () {
@@ -409,9 +410,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                 this.warnNode = this.dict.warnNode;
                 this.roleNode = this.dict.roleNode;
                 this.refreshTankAssemblyRouteLayout();
-                if (this.dict.btns) {
-                    this.dict.btns.active = false;
-                }
+                this.hideTankAssemblyBottomButtons();
                 this.dict.hitSpine.scale = 0.4;
                 if (this.dict.tailGas.getComponent($motionTrail.default)) {
                     this.dict.tailGas.getComponent($motionTrail.default).length = 25;
@@ -441,6 +440,26 @@ export default class Level29086Control extends $brainLevelBase.default {
             $level_29086_config.TankAssemblyGuideDisabledLevelIds &&
             $level_29086_config.TankAssemblyGuideDisabledLevelIds[this.levelID]
         );
+    }
+    shouldHideTankAssemblyBottomButtons() {
+        return (
+            $level_29086_config.TankAssemblyBottomButtonsHiddenLevelIds &&
+            $level_29086_config.TankAssemblyBottomButtonsHiddenLevelIds[this.levelID]
+        );
+    }
+    hideTankAssemblyBottomButtons() {
+        var t = ["btns", "btnRoot", "updateBtn", "removeBtn", "sortBtn"];
+        if (!this.shouldHideTankAssemblyBottomButtons()) {
+            if (this.dict.btns) {
+                this.dict.btns.active = false;
+            }
+            return;
+        }
+        for (var e = 0; e < t.length; e++) {
+            if (this.dict[t[e]]) {
+                this.dict[t[e]].active = false;
+            }
+        }
     }
     disableFirstLevelGuide() {
         if (!this.shouldDisableTankAssemblyGuide()) {
@@ -915,8 +934,9 @@ export default class Level29086Control extends $brainLevelBase.default {
         return this.isTankAssemblyLevel() && false !== $level_29086_config.TankAssemblyTopEnabled;
     }
     setTankAssemblyTopVisible(t) {
-        if (this.dict.assemblyTopRoot) {
-            this.dict.assemblyTopRoot.active = t;
+        var e = this.findTankAssemblyNode("assemblyTopRoot");
+        if (e) {
+            e.active = t;
         }
     }
     shouldAutoNextWhenTankAssemblyTopDisabled() {
@@ -1087,9 +1107,15 @@ export default class Level29086Control extends $brainLevelBase.default {
     }
     initTankAssemblyConveyor() {
         this.setTankAssemblyTopVisible(this.isTankAssemblyTopEnabled());
-        this.tankAssemblyPartLayer = this.dict.partLayer || this.dict.dragonRoot;
-        this.tankAssemblyAbsorbLayer = this.dict.absorbEffectLayer || this.tankAssemblyPartLayer;
-        this.tankAssemblyCountBoardRoot = this.dict.countBoardRoot;
+        this.tankAssemblyPartLayer = this.findTankAssemblyNode("partLayer") || this.dict.dragonRoot;
+        this.tankAssemblyAbsorbLayer = this.findTankAssemblyNode("absorbEffectLayer") || this.tankAssemblyPartLayer;
+        this.tankAssemblyCountBoardRoot = this.findTankAssemblyNode("countBoardRoot");
+        if (this.tankAssemblyPartLayer) {
+            this.tankAssemblyPartLayer.active = true;
+        }
+        if (this.tankAssemblyAbsorbLayer) {
+            this.tankAssemblyAbsorbLayer.active = true;
+        }
         this.tankAssemblyParts = [];
         this.tankAssemblyTypeByColor = {};
         this.tankAssemblyCounters = {};
@@ -1119,6 +1145,17 @@ export default class Level29086Control extends $brainLevelBase.default {
             return;
         }
         this.buildTankAssemblyPathPoints();
+        var t = this.getTankAssemblyConveyorPathRoot();
+        this.logTankAssemblyDebug("initConveyor", "传送带初始化", {
+            levelID: this.levelID,
+            topEnabled: this.isTankAssemblyTopEnabled(),
+            partLayer: this.tankAssemblyPartLayer && this.tankAssemblyPartLayer.name,
+            absorbLayer: this.tankAssemblyAbsorbLayer && this.tankAssemblyAbsorbLayer.name,
+            countBoardRoot: this.tankAssemblyCountBoardRoot && this.tankAssemblyCountBoardRoot.name,
+            pathRoot: t && t.name,
+            pathRootChildren: t && t.childrenCount,
+            pathPointCount: this.tankAssemblyPathPoints.length
+        });
         this.initTankAssemblyCountBoard();
     }
     initTankAssemblyCountBoard() {
@@ -1155,34 +1192,143 @@ export default class Level29086Control extends $brainLevelBase.default {
         if (!this.tankAssemblyPartLayer) {
             return;
         }
-        var t = this.dict.personPosRoot;
+        var t = this.getTankAssemblyConveyorPathRoot();
         if (t && t.childrenCount > 0) {
-            for (var e = 0; e < t.childrenCount; e++) {
-                var o = t.children[e];
-                var i = o.convertToWorldSpaceAR(cc.v2(0, 0));
-                this.tankAssemblyPathPoints.push(this.tankAssemblyPartLayer.convertToNodeSpaceAR(i));
+            var e = this.getTankAssemblyConveyorPointNodes(t);
+            this.logTankAssemblyDebug("pathRoot", "读取 conveyorPathRoot 路径点", {
+                pathRoot: t.name,
+                pointCount: e.length,
+                firstPoint: e[0] && { name: e[0].name, x: e[0].x, y: e[0].y },
+                secondPoint: e[1] && { name: e[1].name, x: e[1].x, y: e[1].y }
+            });
+            for (var o = 0; o < e.length; o++) {
+                var i = e[o];
+                // conveyorPathRoot 是全屏路径容器，c001/c002... 的 position 就是路径点坐标。
+                var r = t.convertToWorldSpaceAR(cc.v2(i.x, i.y));
+                this.tankAssemblyPathPoints.push(this.tankAssemblyPartLayer.convertToNodeSpaceAR(r));
+            }
+            if (this.tankAssemblyPathPoints.length >= 2) {
+                return;
+            }
+            this.tankAssemblyPathPoints = [];
+        }
+        this.logTankAssemblyDebug("pathFallback", "未使用 conveyorPathRoot，回退旧路径", {
+            hasConveyorPathRoot: !!t,
+            conveyorChildren: t && t.childrenCount
+        });
+        var n = this.dict.personPosRoot;
+        if (n && n.childrenCount > 0) {
+            for (o = 0; o < n.childrenCount; o++) {
+                i = n.children[o];
+                r = i.convertToWorldSpaceAR(cc.v2(0, 0));
+                this.tankAssemblyPathPoints.push(this.tankAssemblyPartLayer.convertToNodeSpaceAR(r));
             }
         } else {
-            if (t && this._mapConfig && this._mapConfig.length) {
-                for (e = 0; e < this._mapConfig.length; e++) {
-                    var r = this._mapConfig[e];
-                    i = t.convertToWorldSpaceAR(cc.v2(r[0], r[1]));
-                    this.tankAssemblyPathPoints.push(this.tankAssemblyPartLayer.convertToNodeSpaceAR(i));
+            if (n && this._mapConfig && this._mapConfig.length) {
+                for (o = 0; o < this._mapConfig.length; o++) {
+                    var a = this._mapConfig[o];
+                    r = n.convertToWorldSpaceAR(cc.v2(a[0], a[1]));
+                    this.tankAssemblyPathPoints.push(this.tankAssemblyPartLayer.convertToNodeSpaceAR(r));
                 }
             }
         }
     }
+    getTankAssemblyConveyorPointNodes(t) {
+        var e = [];
+        for (var o = 0; o < t.childrenCount; o++) {
+            var i = t.children[o];
+            if (this.isTankAssemblyConveyorPointNode(i)) {
+                e.push(i);
+            }
+        }
+        e.sort(function (t, e) {
+            var o = t.name.match(/\d+/);
+            var i = e.name.match(/\d+/);
+            return Number(o ? o[0] : 0) - Number(i ? i[0] : 0);
+        });
+        return e;
+    }
+    isTankAssemblyConveyorPointNode(t) {
+        return !!(t && t.name && /^c\d+$/.test(t.name));
+    }
+    getTankAssemblyPartSpawnPosition() {
+        if (!this.tankAssemblyPathPoints || !this.tankAssemblyPathPoints.length) {
+            return null;
+        }
+        return this.tankAssemblyPathPoints[0];
+    }
+    findTankAssemblyNode(t) {
+        if (this.dict[t]) {
+            return this.dict[t];
+        }
+        if ("assemblyTopRoot" != t && this.dict.assemblyTopRoot) {
+            var e = this.dict.assemblyTopRoot.getChildByName(t) || this.findChildDeep(this.dict.assemblyTopRoot, t);
+            if (e) {
+                return e;
+            }
+        }
+        if (this.node) {
+            return this.findChildDeep(this.node, t);
+        }
+        return null;
+    }
+    logTankAssemblyDebug(t, e, o?) {
+        if (!$level_29086_config.TankAssemblyDebugLog) {
+            return;
+        }
+        if (!this.tankAssemblyDebugLogged) {
+            this.tankAssemblyDebugLogged = {};
+        }
+        if (this.tankAssemblyDebugLogged[t]) {
+            return;
+        }
+        this.tankAssemblyDebugLogged[t] = true;
+        if (void 0 !== o) {
+            console.log("[TankAssembly]", e, o);
+        } else {
+            console.log("[TankAssembly]", e);
+        }
+    }
+    getTankAssemblyConveyorPathRoot() {
+        return this.findTankAssemblyNode("conveyorPathRoot");
+    }
+    findChildDeep(t, e) {
+        if (!t) {
+            return null;
+        }
+        if (t.name == e) {
+            return t;
+        }
+        for (var o = 0; o < t.childrenCount; o++) {
+            var i = this.findChildDeep(t.children[o], e);
+            if (i) {
+                return i;
+            }
+        }
+        return null;
+    }
     updateTankAssemblyConveyor(t) {
         if (!this.isTankAssemblyTopEnabled()) {
+            this.logTankAssemblyDebug("updateTopDisabled", "传送带 update 被跳过：顶部开关关闭", {
+                levelID: this.levelID
+            });
             return;
         }
         if (!this.tankAssemblySpawnStarted || this.tankAssemblyEnded || !this.tankAssemblyPartLayer) {
+            this.logTankAssemblyDebug("updateBlocked", "传送带 update 被跳过：状态未就绪", {
+                spawnStarted: this.tankAssemblySpawnStarted,
+                ended: this.tankAssemblyEnded,
+                hasPartLayer: !!this.tankAssemblyPartLayer
+            });
             return;
         }
         if (!this.tankAssemblyPathPoints.length) {
             this.buildTankAssemblyPathPoints();
         }
         if (this.tankAssemblyPathPoints.length < 2) {
+            this.logTankAssemblyDebug("updateNoPath", "传送带 update 被跳过：路径点不足", {
+                pathPointCount: this.tankAssemblyPathPoints.length
+            });
             return;
         }
         this.tankAssemblySpawnTimer += t;
@@ -1208,14 +1354,29 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
         var t = TANK_ASSEMBLY_TYPES[this.randomNum(0, TANK_ASSEMBLY_TYPES.length - 1)];
         var e = new cc.Node("tankAssemblyPart_" + t.colorId);
-        var i = this.tankAssemblyPathPoints[0];
+        var i = this.getTankAssemblyPartSpawnPosition();
+        if (!i) {
+            return;
+        }
         e.parent = this.tankAssemblyPartLayer;
         e.position = cc.v2(i.x, i.y);
         e.scale = TANK_ASSEMBLY_CONVEYOR_CONFIG.partScale || 0.55;
         var o = e.addComponent(cc.Sprite);
-        this.loadTankSpriteFrame(TANK_SKIN_SPRITE_DIR + t.partSprite, function (t) {
+        var r = TANK_SKIN_SPRITE_DIR + t.partSprite;
+        this.logTankAssemblyDebug("firstPartCreated", "创建传送带零件", {
+            nodeName: e.name,
+            parent: e.parent && e.parent.name,
+            position: { x: e.x, y: e.y },
+            spritePath: r
+        });
+        var n = this;
+        this.loadTankSpriteFrame(r, function (t) {
             if (t && cc.isValid(e)) {
                 o.spriteFrame = t;
+            } else {
+                n.logTankAssemblyDebug("partSpriteMissing_" + r, "零件图片加载失败", {
+                    spritePath: r
+                });
             }
         });
         this.tankAssemblyParts.push({
@@ -1281,10 +1442,20 @@ export default class Level29086Control extends $brainLevelBase.default {
         var r = i.convertToWorldSpaceAR(cc.v2(0, 0));
         var n = t.node.parent.convertToNodeSpaceAR(r);
         var a = this;
+        var c = TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbDuration || 0.25;
+        var l = TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbShrinkDelayRatio;
+        l = void 0 === l ? 0.75 : Math.max(0, Math.min(0.95, l));
+        var h = Math.max(0, c * l);
+        var p = Math.max(0.01, c - h);
         cc.tween(t.node)
-            .to(TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbDuration || 0.25, {
-                position: n,
-                scale: 0.2
+            .delay(h)
+            .to(p, {
+                scale: TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbEndScale || 0.2
+            })
+            .start();
+        cc.tween(t.node)
+            .to(c, {
+                position: n
             })
             .call(function () {
                 a.applyTankAssemblyPartToParking(e);
@@ -1489,6 +1660,10 @@ export default class Level29086Control extends $brainLevelBase.default {
                         W.dict.guide.active = false;
                     }, 6);
                 }
+                this.hideTankAssemblyBottomButtons();
+                this.scheduleOnce(function () {
+                    W.hideTankAssemblyBottomButtons();
+                }, 0);
                 if (this.levelDataJSON.transport) {
                     this.dict.transportLayer
                         .getComponent($level_29086_transport.default)

@@ -2715,8 +2715,8 @@ export const TankAssemblyArrowEnabled = true;
 export const TankAssemblyArrowSpritePrefix = "tank_arrow_";
 export const TankAssemblyArrowScale = 1;
 export const TankAssemblyArrowOffset = [0, 0];
-// 顶部传送带 + 坦克计数板开关。当前先关闭，只保留中间停车位和底部坦克移动。
-export const TankAssemblyTopEnabled = false;
+// 顶部传送带 + 坦克计数板开关。开启后零件优先沿 prefab 中 conveyorPathRoot/c001... 路径移动。
+export const TankAssemblyTopEnabled = true;
 // 顶部关闭时的演示流程：这些关卡里，全部底部坦克停入组装位后自动进入下一顺序关。
 export const TankAssemblyAutoNextWhenTopDisabledLevelIds = {
     "-29095": true
@@ -2733,12 +2733,23 @@ export const TankAssemblyTypes = [
     { colorId: 6, counterNode: "p3", counterSprite: "tank_purple_a_4", partSprite: "tank_purple_a" }
 ];
 export const TankAssemblyConveyorConfig = {
+    // 零件生成间隔，单位秒；数值越小，零件生成越快。
     spawnInterval: 0.9,
+    // 零件沿传送带路径移动速度，单位像素/秒；数值越小，移动越慢。
+    moveSpeed: 60,
+    // 进入关卡后第一颗零件的延迟时间，单位秒；只影响首颗零件。
     startDelay: 1.2,
-    moveSpeed: 160,
-    absorbDuration: 0.25,
+    // 零件匹配坦克后飞向停车位的时间，单位秒；数值越小，吸收越快。
+    absorbDuration: 0.6,
+    // 吸收飞行进行到多少比例后才开始缩小；0.75 表示最后 25% 路程才缩小。
+    absorbShrinkDelayRatio: 0.75,
+    // 零件飞到坦克附近时最终缩小到的比例。
+    absorbEndScale: 0.2,
+    // 传送带上零件的显示缩放。
     partScale: 1
 };
+// 临时诊断开关：打开后会输出传送带初始化、路径点和首个零件生成信息。
+export const TankAssemblyDebugLog = true;
 export const TankAssemblyRouteConfig = {
     // 旧版 750x1334 prefab 中，下排停车位中心到出车横向路面的 carRoot 本地坐标间距。
     parkingRoadGap: 50,
