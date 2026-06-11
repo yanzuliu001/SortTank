@@ -192,12 +192,10 @@ class App extends cc.Component {
         const language = LanguageManager.default.instance;
         language.init();
         language.setFont(this.fonts[FONT_INDEX_BY_LANG[language.lan]]);
-        SceneManager.default.init(this.loadingPrefab);
         if (DIRECT_TANK_ASSEMBLY_DEMO) {
-            SceneManager.default.hasAnim = false;
-            if (SceneManager.default.sceneRoot) {
-                SceneManager.default.sceneRoot.destroyAllChildren();
-            }
+            this.initSceneManagerWithoutLoading();
+        } else {
+            SceneManager.default.init(this.loadingPrefab);
         }
         AudioManager.Audio.init();
         ReportManager.Report.init();
@@ -217,6 +215,22 @@ class App extends cc.Component {
             todaySignInVideo: 0
         });
         this.initBMS();
+    }
+
+    initSceneManagerWithoutLoading() {
+        const canvas = cc.find("Canvas");
+        SceneManager.default.sceneRoot = canvas && canvas.getChildByName("sceneRoot");
+        SceneManager.default.transition = canvas && canvas.getChildByName("transition");
+        SceneManager.default.hasAnim = false;
+        SceneManager.default.isLoading = false;
+        SceneManager.default.currentScene = SceneConst.SceneConst.LOADING;
+        if (SceneManager.default.transition) {
+            SceneManager.default.transition.color = cc.Color.WHITE;
+            SceneManager.default.transition.opacity = 0;
+        }
+        if (SceneManager.default.sceneRoot) {
+            SceneManager.default.sceneRoot.destroyAllChildren();
+        }
     }
 
     initStopDebug() {

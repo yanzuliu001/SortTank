@@ -2262,6 +2262,10 @@ export default class Level29086Control extends $brainLevelBase.default {
         return false;
     }
     addTailGasSpine(t) {
+        //暂时关闭拖尾
+        if (true){
+            return;
+        }
         return __awaiter(this, void 0, void 0, function () {
             var e;
             return __generator(this, function () {
