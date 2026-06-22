@@ -365,3 +365,7 @@ cwd = "/Users/user/Documents/cocosCreator/SortTank/packages/cocos-mcp-2x/server/
 4. 收尾前把 `TankAssemblyDebugLog` 改为 `false`。
 5. 把 `addTailGasSpine()` 的临时 `if (true) return` 改成配置化开关。
 6. 如果要扩展第二关 `-29290`，需要确认它是否已经有 `assemblyTopRoot / conveyorPathRoot / parkingRoot` 等同构节点。
+
+
+## 方向
+0 - 7 分别对应 左上， 左， 上， 右上，左下，右， 右下， 下
