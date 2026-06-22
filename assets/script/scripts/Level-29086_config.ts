@@ -2672,6 +2672,14 @@ export const TankSkinByColor = {
     // 颜色ID 0 / 文档颜色8：火箭车 B 色，补资源后建议使用 tank_purple_b / tank_purple_b_0..7。
     0: { type: "rocket", variant: "b", planColor: 8 }
 };
+export const TankAssemblyColorConfigByLevel = {
+    "-29095": [
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        4, 4, 4, 4, 4, 4, 4, 4,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        6, 6, 6, 6, 6, 6, 6
+    ]
+};
 export function getTankPartAssetPrefixByColor(t) {
     var e = TankSkinByColor[t];
     if (!e) {

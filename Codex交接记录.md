@@ -369,3 +369,4 @@ cwd = "/Users/user/Documents/cocosCreator/SortTank/packages/cocos-mcp-2x/server/
 
 ## 方向
 0 - 7 分别对应 左上， 左， 上， 右上，左下，右， 右下， 下
+比如  蓝左上 对应的就是  tank_blue_a_0 

@@ -1746,8 +1746,11 @@ export default class Level29086Control extends $brainLevelBase.default {
                     this.setLocal("blackCar", i);
                 }
                 h = this.getLocal("colorConfig") || [];
-                if (-29095 == this.levelID) {
-                    h = [4, 1, 2, 6];
+                if (
+                    $level_29086_config.TankAssemblyColorConfigByLevel &&
+                    $level_29086_config.TankAssemblyColorConfigByLevel[this.levelID]
+                ) {
+                    h = $level_29086_config.TankAssemblyColorConfigByLevel[this.levelID].slice();
                 } else {
                     this.sortColor_new = this.shuffleArray(JSON.parse(JSON.stringify($level_29086_config.sortColor)));
                 }
@@ -4200,6 +4203,11 @@ export default class Level29086Control extends $brainLevelBase.default {
         if (t.path) {
             return t.path;
         }
+        this._pathResolving || (this._pathResolving = {});
+        if (this._pathResolving[t.uuid]) {
+            return 1;
+        }
+        this._pathResolving[t.uuid] = true;
         var e;
         var o;
         var i;
@@ -4291,8 +4299,10 @@ export default class Level29086Control extends $brainLevelBase.default {
             }
         }
         if (c) {
+            delete this._pathResolving[t.uuid];
             return (t.path = l), l;
         } else {
+            delete this._pathResolving[t.uuid];
             return (t.path = 1), 1;
         }
     }
