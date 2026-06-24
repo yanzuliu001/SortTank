@@ -403,7 +403,8 @@ export default class Level29086Control extends $brainLevelBase.default {
                     this._speedIndexList = $level_29086_config.MapParam[0].speedIndexList;
                 }
                 this.cannonAttackList = $level_29086_config.MapParam[this.mapType].cannonAttackList;
-                this.setCollisionManager(true, false);
+                //展示碰撞框
+                // this.setCollisionManager(true, this.isTankAssemblyLevel());
                 this.carRoot = this.dict.carRoot;
                 this.cannonRoot = this.dict.cannonRoot;
                 this.dragonRoot = this.dict.dragonRoot;
@@ -558,6 +559,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                 a.getComponent($level_29086_boxCarItem.default).carColor = t.getComponent(
                     $level_29086_boxCarItem.default
                 ).carColor;
+                this.copyTankAssemblyVisual(t, a);
                 if (4 == e || 5 == e) {
                     a.position = cc.v2(t.x, t.y);
                     l = a.convertToWorldSpaceAR(cc.v2(0, t.height / 2));
@@ -626,10 +628,13 @@ export default class Level29086Control extends $brainLevelBase.default {
                         m.dict.transportLayer.getComponent($level_29086_transport.default).reduceCarAmount(t);
                     }
                     t.destroy();
-                    a.getChildByName("car").getComponent(cc.Sprite).spriteFrame = m.box2SpriteAtlas.getSpriteFrame(p);
-                    if (a.getChildByName("body")) {
-                        a.getChildByName("body").getComponent(cc.Sprite).spriteFrame =
-                            m.box2SpriteAtlas.getSpriteFrame(g);
+                    if (!m.isTankAssemblyLevel()) {
+                        a.getChildByName("car").getComponent(cc.Sprite).spriteFrame =
+                            m.box2SpriteAtlas.getSpriteFrame(p);
+                        if (a.getChildByName("body")) {
+                            a.getChildByName("body").getComponent(cc.Sprite).spriteFrame =
+                                m.box2SpriteAtlas.getSpriteFrame(g);
+                        }
                     }
                     m.applyTankSkin(a, a.getComponent($level_29086_boxCarItem.default).carColor);
                     a.active = true;
@@ -699,11 +704,13 @@ export default class Level29086Control extends $brainLevelBase.default {
                             a.getComponent($level_29086_boxCarItem.default).carState =
                                 $level_29086_config.CarState.Parking;
                             a.stopAllActions();
-                            a.getChildByName("car").getComponent(cc.Sprite).spriteFrame =
-                                m.box2SpriteAtlas.getSpriteFrame(p);
-                            if (a.getChildByName("body")) {
-                                a.getChildByName("body").getComponent(cc.Sprite).spriteFrame =
-                                    m.box2SpriteAtlas.getSpriteFrame(g);
+                            if (!m.isTankAssemblyLevel()) {
+                                a.getChildByName("car").getComponent(cc.Sprite).spriteFrame =
+                                    m.box2SpriteAtlas.getSpriteFrame(p);
+                                if (a.getChildByName("body")) {
+                                    a.getChildByName("body").getComponent(cc.Sprite).spriteFrame =
+                                        m.box2SpriteAtlas.getSpriteFrame(g);
+                                }
                             }
                             m.applyTankSkin(a, a.getComponent($level_29086_boxCarItem.default).carColor);
                             l = h.sub(a.position).mag();
@@ -947,6 +954,9 @@ export default class Level29086Control extends $brainLevelBase.default {
             $level_29086_config.TankAssemblyAutoNextWhenTopDisabledLevelIds[this.levelID]
         );
     }
+    shouldFinishTankAssemblyOnPartEnd() {
+        return !(this.isTankAssemblyLevel() && -29095 == this.levelID);
+    }
     checkTankAssemblyAutoNextWhenTopDisabled() {
         if (!this.shouldAutoNextWhenTankAssemblyTopDisabled() || this.tankAssemblyAutoNextTriggered) {
             return;
@@ -984,28 +994,53 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
     }
     getRouteRoadWorldPosition() {
-        if (!this.isTankAssemblyLevel()) {
-            return this.dict.road.parent.convertToWorldSpaceAR(this.dict.road.position);
-        }
-        if (!this.dict.carRoot) {
-            return this.dict.road.parent.convertToWorldSpaceAR(this.dict.road.position);
-        }
-        return this.dict.carRoot.convertToWorldSpaceAR(cc.v2(0, this.getTankAssemblyRoadLocalY()));
+        return this.dict.road.parent.convertToWorldSpaceAR(this.dict.road.position);
     }
     getRouteRoadLocalPosition(t) {
         return t.convertToNodeSpaceAR(this.getRouteRoadWorldPosition());
     }
     getRouteSideLimitX(t, e) {
         var o = e < 0 ? -1 : 1;
-        if (!this.isTankAssemblyLevel()) {
-            return o * (this.boundary / 2 + t.width / 2);
+        return o * (this.boundary / 2 + t.width / 2);
+    }
+    getTankAssemblyRouteAngle(t) {
+        var e = t && t.angle ? t.angle : 0;
+        e = Math.round(e);
+        e = ((e % 360) + 360) % 360;
+        if (e > 180) {
+            e -= 360;
         }
-        var i = $level_29086_config.TankAssemblyRouteConfig || {};
-        var r = i.sideScreenMargin || 12;
-        var n = this.node.width || cc.winSize.width;
-        var a = this.node.convertToWorldSpaceAR(cc.v2(o * n / 2, 0));
-        var s = t.parent.convertToNodeSpaceAR(a).x;
-        return s - o * (t.width / 2 + r);
+        return e;
+    }
+    isTankAssemblyRouteDown(t) {
+        var e = Math.abs(this.getTankAssemblyRouteAngle(t));
+        return e >= 100;
+    }
+    isTankAssemblyRouteHorizontal(t) {
+        var e = Math.abs(this.getTankAssemblyRouteAngle(t));
+        return e >= 70 && e <= 110;
+    }
+    getTankAssemblyBottomSide(t) {
+        if (!this.isTankAssemblyLevel()) {
+            return t && t.x < 0 ? -1 : 1;
+        }
+        var e = null;
+        for (var o = 0; o < this.parkingNodes.length; o++) {
+            var i = this.parkingNodes[o];
+            if (i && i.active && i.isEmpty) {
+                e = i;
+                break;
+            }
+        }
+        if (e && this.dict && this.dict.carRoot) {
+            var r = this.getParkingEntryWorldPosition(e);
+            var n = this.dict.carRoot.convertToNodeSpaceAR(r);
+            return n.x >= (t ? t.x : 0) ? 1 : -1;
+        }
+        if (!t || 0 == t.x) {
+            return 1;
+        }
+        return t.x > 0 ? 1 : -1;
     }
     getRouteBottomTurnY(t) {
         if (!this.isTankAssemblyLevel()) {
@@ -1390,7 +1425,9 @@ export default class Level29086Control extends $brainLevelBase.default {
         var o = this.tankAssemblyPathPoints[t.pathIndex + 1];
         if (!o) {
             this.removeTankAssemblyPart(t);
-            this.finishTankAssemblyStage("partEnd");
+            if (this.shouldFinishTankAssemblyOnPartEnd()) {
+                this.finishTankAssemblyStage("partEnd");
+            }
             return;
         }
         var i = cc.v2(o.x - t.node.x, o.y - t.node.y);
@@ -1401,7 +1438,9 @@ export default class Level29086Control extends $brainLevelBase.default {
             t.pathIndex++;
             if (t.pathIndex >= this.tankAssemblyPathPoints.length - 1) {
                 this.removeTankAssemblyPart(t);
-                this.finishTankAssemblyStage("partEnd");
+                if (this.shouldFinishTankAssemblyOnPartEnd()) {
+                    this.finishTankAssemblyStage("partEnd");
+                }
             }
         } else {
             t.node.position = t.node.position.add(i.normalize().mul(n));
@@ -1501,6 +1540,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
     }
     resetTankAssemblyParking(t) {
+        var i = !!(t && t.assemblyCar && !t.isEmpty);
         var e = t.getChildByName("tankStop");
         var o = t.getChildByName("progressRoot");
         if (e) {
@@ -1518,6 +1558,9 @@ export default class Level29086Control extends $brainLevelBase.default {
         t.assemblyProgress = 0;
         t.assemblyComplete = false;
         t.isEmpty = true;
+        if (i) {
+            this.moveCarAmount = Math.max(0, this.moveCarAmount - 1);
+        }
     }
     removeTankAssemblyPart(t) {
         var e = this.tankAssemblyParts.indexOf(t);
@@ -2059,7 +2102,14 @@ export default class Level29086Control extends $brainLevelBase.default {
             var o = this.carRoot.children.concat(this.turntableCarArr);
             for (var i = 0; i < o.length; i++) {
                 var r = o[i];
-                var n = r.getChildByName("car").getComponent(cc.PolygonCollider);
+                var d = this.getTankCarNode(r);
+                if (!d) {
+                    continue;
+                }
+                var n = d.getComponent(cc.PolygonCollider);
+                if (!n) {
+                    continue;
+                }
                 if (r.active && cc.Intersection.pointInPolygon(e, this.getWPosByPolygon(n))) {
                     this._touchBegin = true;
                     if (
@@ -2074,7 +2124,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                     console.log("新增限制快速点击", this.moveCarAmount, this.parkingNodes.length);
                     if (this.moveCarAmount >= this.parkingNodes.length) {
                         console.log("限制快速点击");
-                        return this.show("需要解锁更多炮台位置");
+                        return this.show("位置已满");
                     }
                     var a = r.getComponent($level_29086_boxCarItem.default).nextCar;
                     var s = r.getComponent($level_29086_boxCarItem.default).prevCar;
@@ -2154,12 +2204,12 @@ export default class Level29086Control extends $brainLevelBase.default {
                     }
                     if (this.checkHasCarMoveAmount() >= this.parkingNodes.length) {
                         console.log("有相等于车位总量的车在运动，无法出车");
-                        return this.show("需要解锁更多炮台位置");
+                        return this.show("位置已满");
                     }
                     console.log("有" + this.checkHasCarMoveAmount() + "辆车在动！", this.parkingNodes.length);
                     if ((a || s) && this.parkingNodes.length - this.checkHasCarMoveAmount() <= 1) {
                         console.log("拉链车不能出车");
-                        return this.show("需要解锁更多炮台位置");
+                        return this.show("位置已满");
                     }
                     r.stopAllActions();
                     if (r.isTransportBox) {
@@ -2169,6 +2219,53 @@ export default class Level29086Control extends $brainLevelBase.default {
                     var f = r.parent.convertToNodeSpaceAR(m);
                     r.getComponent($level_29086_boxCarItem.default).otherCarNode = this.getOtherCarByDistance(r);
                     r.getComponent($level_29086_boxCarItem.default).oldPos = r.position;
+                    if (this.isTankAssemblyLevel && this.isTankAssemblyLevel()) {
+                        r._tankDebugMoveStartLogged = false;
+                        r._tankDebugMissingColliderLogged = false;
+                        r._tankPrevMoveWorldPolygon = r
+                            .getComponent($level_29086_boxCarItem.default)
+                            .getWorldPolygonByCarCollider(r);
+                        r._tankDebugClickTime = Date.now();
+                        console.log("[TankClick]", {
+                            indexID: r.indexID,
+                            name: r.name,
+                            x: r.x,
+                            y: r.y,
+                            angle: r.angle,
+                            path: r.getComponent($level_29086_boxCarItem.default).path,
+                            carChild: r.getChildByName("car")
+                                ? r.getChildByName("car").name
+                                : r.children
+                                      .filter(function (t) {
+                                          return t.name && t.name.indexOf("=car") >= 0;
+                                      })
+                                      .map(function (t) {
+                                          return t.name;
+                                      }),
+                            targetLocal: {
+                                x: f.x,
+                                y: f.y
+                            },
+                            candidates: r.getComponent($level_29086_boxCarItem.default).otherCarNode.map(function (t) {
+                                return {
+                                    indexID: t.indexID,
+                                    name: t.name,
+                                    x: t.x,
+                                    y: t.y,
+                                    angle: t.angle,
+                                    path: t.getComponent($level_29086_boxCarItem.default).path,
+                                    state: t.getComponent($level_29086_boxCarItem.default).carState
+                                };
+                            })
+                        });
+                    }
+                    if (this.isTankAssemblyLevel && this.isTankAssemblyLevel()) {
+                        var y = r.getComponent($level_29086_boxCarItem.default).getTankAssemblyPreMoveBlock(f);
+                        if (y) {
+                            r.getComponent($level_29086_boxCarItem.default).blockBeforeMove(y);
+                            break;
+                        }
+                    }
                     if (a) {
                         a.getComponent($level_29086_boxCarItem.default).otherCarNode = this.getOtherCarByDistance(
                             a,
@@ -2184,6 +2281,9 @@ export default class Level29086Control extends $brainLevelBase.default {
                         s.getComponent($level_29086_boxCarItem.default).oldPos = s.position;
                     }
                     if (r.getComponent($level_29086_boxCarItem.default).carState == $level_29086_config.CarState.Idle) {
+                        if (this.isTankAssemblyLevel && this.isTankAssemblyLevel()) {
+                            this.setTankAssemblyArrowVisible(r, false);
+                        }
                         r.getComponent($level_29086_boxCarItem.default).carState = $level_29086_config.CarState.Normal;
                         if (r.getComponent($level_29086_boxCarItem.default).isFireEngine) {
                             //
@@ -2338,6 +2438,46 @@ export default class Level29086Control extends $brainLevelBase.default {
             return TANK_SKIN_SPRITE_DIR + t + "_" + i;
         });
     }
+    refreshTankAssemblyVisualByAngle(t) {
+        if (!(this.isTankAssemblyLevel && this.isTankAssemblyLevel()) || !t || !cc.isValid(t)) {
+            return;
+        }
+        var e = t.getComponent($level_29086_boxCarItem.default);
+        if (!e) {
+            return;
+        }
+        var o = this.getTankSpritePaths(t, e.carColor);
+        var i = this.getTankCarNode(t);
+        var r = this.getOrCreateTankVisualNode(t);
+        if (i && i.getComponent(cc.Sprite)) {
+            i.getComponent(cc.Sprite).enabled = false;
+        }
+        if (!o.length || !r) {
+            return;
+        }
+        var n = this;
+        var a = r.getComponent(cc.Sprite);
+        var s = function (c) {
+            if (c >= o.length) {
+                return;
+            }
+            n.loadTankSpriteFrame(o[c], function (o) {
+                if (!o) {
+                    s(c + 1);
+                    return;
+                }
+                if (!cc.isValid(t) || !cc.isValid(r)) {
+                    return;
+                }
+                a.spriteFrame = o;
+                if (cc.Sprite.SizeMode && void 0 !== cc.Sprite.SizeMode.CUSTOM) {
+                    a.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+                }
+                n.syncTankSkinNodeSize(t, r, o);
+            });
+        };
+        s(0);
+    }
     getTankArrowSpritePath(t) {
         if (!$level_29086_config.TankAssemblyArrowEnabled) {
             return null;
@@ -2348,6 +2488,260 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
         var o = $level_29086_config.TankAssemblyArrowSpritePrefix || "tank_arrow_";
         return $level_29086_config.TankAssemblyProgressTextureDir + o + e;
+    }
+    getTankCarNode(t) {
+        if (!t) {
+            return null;
+        }
+        return (
+            t.getChildByName("car") ||
+            t.children.find(function (e) {
+                return e.name && e.name.indexOf("=car") >= 0;
+            }) ||
+            null
+        );
+    }
+    getTankArrowNode(t) {
+        if (!t) {
+            return null;
+        }
+        return t.getChildByName("dir") || t.getChildByName("tankArrow");
+    }
+    setTankAssemblyArrowVisible(t, e) {
+        if (!(this.isTankAssemblyLevel && this.isTankAssemblyLevel()) || !t) {
+            return;
+        }
+        var o = this.getTankArrowNode(t);
+        if (o) {
+            o.active = e;
+        }
+    }
+    getTankSpriteFrameSize(t) {
+        if (!t) {
+            return null;
+        }
+        var e = t.getRect && t.getRect();
+        if ((!e || !e.width || !e.height) && t.getOriginalSize) {
+            e = t.getOriginalSize();
+        }
+        if ((!e || !e.width || !e.height) && t._rect) {
+            e = t._rect;
+        }
+        if (!e || !e.width || !e.height) {
+            return null;
+        }
+        return {
+            width: e.width,
+            height: e.height
+        };
+    }
+    scaleTankColliderBySize(t, e, o, i, r) {
+        if (!t || !e || !o || !i || !r || (e == i && o == r)) {
+            return;
+        }
+        var n = t.getComponent(cc.PolygonCollider);
+        if (!n || !n.points || !n.points.length) {
+            return;
+        }
+        var a = i / e;
+        var s = r / o;
+        n.points = n.points.map(function (t) {
+            return cc.v2(t.x * a, t.y * s);
+        });
+        if (n.offset) {
+            n.offset = cc.v2(n.offset.x * a, n.offset.y * s);
+        }
+        n.apply && n.apply();
+    }
+    syncTankSkinNodeSize(t, e, o) {
+        var i = this.getTankCarNode(t);
+        if (!i) {
+            return;
+        }
+        var r = this.getTankSpriteFrameSize(o);
+        if (!r) {
+            return;
+        }
+        var n = i.width || t.width || r.width;
+        var a = i.height || t.height || r.height;
+        this.scaleTankColliderBySize(i, n, a, r.width, r.height);
+        t.width = r.width;
+        t.height = r.height;
+        i.position = cc.v2(0, 0);
+        i.width = r.width;
+        i.height = r.height;
+        i.anchorX = 0.5;
+        i.anchorY = 0.5;
+        if (e) {
+            e.width = r.width;
+            e.height = r.height;
+            e.anchorX = 0.5;
+            e.anchorY = 0.5;
+            var s = e.getComponent(cc.Sprite);
+            if (s && cc.Sprite.SizeMode && void 0 !== cc.Sprite.SizeMode.CUSTOM) {
+                s.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+            }
+            this.layoutTankVisualNode(t, e);
+        }
+    }
+    getOrCreateTankVisualNode(t) {
+        var e = this.getTankCarNode(t);
+        if (!e) {
+            return null;
+        }
+        var o = e.getChildByName("tankVisual");
+        if (!o) {
+            o = new cc.Node("tankVisual");
+            e.addChild(o);
+            o.addComponent(cc.Sprite);
+        } else if (!o.getComponent(cc.Sprite)) {
+            o.addComponent(cc.Sprite);
+        }
+        o.setSiblingIndex(e.childrenCount - 1);
+        return o;
+    }
+    layoutTankVisualNode(t, e) {
+        var o = this.getTankCarNode(t);
+        if (!o || !e) {
+            return;
+        }
+        e.position = cc.v2(0, 0);
+        e.width = o.width;
+        e.height = o.height;
+        e.anchorX = o.anchorX;
+        e.anchorY = o.anchorY;
+        e.scaleX = 1;
+        e.scaleY = 1;
+        e.angle = -((t.angle || 0) + (o.angle || 0));
+        e.active = true;
+    }
+    getTankVisualNode(t) {
+        var e = this.getTankCarNode(t);
+        if (!e) {
+            return null;
+        }
+        return e.getChildByName("tankVisual");
+    }
+    getOptionalTankChild(t, e) {
+        if (!t) {
+            return null;
+        }
+        return (
+            t.getChildByName(e) ||
+            t.children.find(function (t) {
+                return t.name && t.name.indexOf("=" + e) >= 0;
+            }) ||
+            null
+        );
+    }
+    copyTankCollider(t, e) {
+        var o = t && t.getComponent(cc.PolygonCollider);
+        var i = e && e.getComponent(cc.PolygonCollider);
+        if (!o || !i || !o.points || !o.points.length) {
+            return;
+        }
+        i.points = o.points.map(function (t) {
+            return cc.v2(t.x, t.y);
+        });
+        if (o.offset) {
+            i.offset = cc.v2(o.offset.x, o.offset.y);
+        }
+        i.apply && i.apply();
+    }
+    copyTankAssemblyArrow(t, e) {
+        var o = t && (t.getChildByName("dir") || t.getChildByName("tankArrow"));
+        if (!o) {
+            return;
+        }
+        var i = e.getChildByName(o.name) || e.getChildByName("dir") || e.getChildByName("tankArrow");
+        if (!i) {
+            i = new cc.Node(o.name || "dir");
+            e.addChild(i);
+            i.addComponent(cc.Sprite);
+        } else if (!i.getComponent(cc.Sprite)) {
+            i.addComponent(cc.Sprite);
+        }
+        var r = o.getComponent(cc.Sprite);
+        var n = i.getComponent(cc.Sprite);
+        if (r && n) {
+            n.spriteFrame = r.spriteFrame;
+            if (cc.Sprite.SizeMode && void 0 !== cc.Sprite.SizeMode.CUSTOM) {
+                n.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+            }
+        }
+        i.active = this.isTankAssemblyLevel && this.isTankAssemblyLevel() ? false : o.active;
+        i.position = cc.v2(o.x, o.y);
+        i.width = o.width;
+        i.height = o.height;
+        i.anchorX = o.anchorX;
+        i.anchorY = o.anchorY;
+        i.scaleX = o.scaleX;
+        i.scaleY = o.scaleY;
+        i.angle = (t.angle || 0) + (o.angle || 0) - (e.angle || 0);
+        i.setSiblingIndex(e.childrenCount - 1);
+    }
+    copyTankAssemblyVisual(t, e) {
+        if (!(this.isTankAssemblyLevel && this.isTankAssemblyLevel()) || !t || !e) {
+            return;
+        }
+        var o = this.getTankCarNode(t);
+        var i = this.getTankCarNode(e);
+        if (!o || !i) {
+            return;
+        }
+        var r = this.getTankVisualNode(t);
+        var n = this.getOrCreateTankVisualNode(e);
+        var a = r && r.getComponent(cc.Sprite);
+        if ((!a || !a.spriteFrame) && o.getComponent(cc.Sprite)) {
+            a = o.getComponent(cc.Sprite);
+        }
+        var s = n && n.getComponent(cc.Sprite);
+        var c = !!(a && a.spriteFrame && s);
+        if (c) {
+            s.spriteFrame = a.spriteFrame;
+            if (cc.Sprite.SizeMode && void 0 !== cc.Sprite.SizeMode.CUSTOM) {
+                s.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+            }
+        }
+        e.width = t.width;
+        e.height = t.height;
+        i.position = cc.v2(0, 0);
+        i.width = o.width;
+        i.height = o.height;
+        i.anchorX = o.anchorX;
+        i.anchorY = o.anchorY;
+        i.scaleX = o.scaleX;
+        i.scaleY = o.scaleY;
+        if (n) {
+            var l = r || o;
+            n.active = true;
+            n.position = cc.v2(0, 0);
+            n.width = l.width;
+            n.height = l.height;
+            n.anchorX = l.anchorX;
+            n.anchorY = l.anchorY;
+            n.scaleX = l.scaleX;
+            n.scaleY = l.scaleY;
+            n.angle = ((t.angle || 0) + (o.angle || 0) + (r ? r.angle || 0 : 0)) - ((e.angle || 0) + (i.angle || 0));
+            n.setSiblingIndex(i.childrenCount - 1);
+        }
+        if (c && i.getComponent(cc.Sprite)) {
+            i.getComponent(cc.Sprite).enabled = false;
+        }
+        this.copyTankCollider(o, i);
+        var h = this.getOptionalTankChild(e, "body");
+        var p = this.getOptionalTankChild(e, "sd");
+        var g = this.getOptionalTankChild(e, "shadow");
+        if (h) {
+            h.active = false;
+        }
+        if (p) {
+            p.active = false;
+        }
+        if (g) {
+            g.active = false;
+        }
+        this.copyTankAssemblyArrow(t, e);
     }
     getOrCreateTankArrowNode(t) {
         var e = t.getChildByName("dir") || t.getChildByName("tankArrow");
@@ -2362,18 +2756,16 @@ export default class Level29086Control extends $brainLevelBase.default {
         return e;
     }
     layoutTankArrowNode(t, e) {
-        var o = t.getChildByName("car");
+        var o = this.getTankCarNode(t);
         var i = cc.v2(0, -t.height / 2);
-        var n = 0;
         if (o) {
             var a = cc.v2((0.5 - o.anchorX) * o.width, (0.5 - o.anchorY) * o.height);
             i = t.convertToNodeSpaceAR(o.convertToWorldSpaceAR(a));
-            n = o.angle || 0;
         }
         var r = $level_29086_config.TankAssemblyArrowOffset || [0, 0];
         e.position = cc.v2(i.x + (r[0] || 0), i.y + (r[1] || 0));
         e.scale = $level_29086_config.TankAssemblyArrowScale || 1;
-        e.angle = n;
+        e.angle = -(t.angle || 0);
         e.active = true;
     }
     applyTankArrow(t) {
@@ -2506,14 +2898,27 @@ export default class Level29086Control extends $brainLevelBase.default {
         this.checkTankAssemblyAutoNextWhenTopDisabled();
     }
     applyTankSkin(t, e) {
+        if (this.isTankAssemblyLevel && this.isTankAssemblyLevel()) {
+            // Tank visuals are authored directly in the prefab for this gameplay.
+            // Keep prefab SpriteFrames/sizes intact instead of replacing them at runtime.
+            return;
+        }
         if (!TANK_SKIN_LEVEL_IDS[this.levelID] || t.isCarPark) {
             return;
         }
         var a = this;
         var o = this.getTankSpritePaths(t, e);
-        var i = t.getChildByName("car");
+        var i = this.getTankCarNode(t);
         if (!o.length || !i) {
             return;
+        }
+        var s = i.getComponent(cc.Sprite);
+        if (s) {
+            s.enabled = false;
+        }
+        var l = this.getOrCreateTankVisualNode(t);
+        if (l) {
+            this.layoutTankVisualNode(t, l);
         }
         var r = t.getChildByName("body");
         var n = t.getChildByName("sd");
@@ -2532,8 +2937,21 @@ export default class Level29086Control extends $brainLevelBase.default {
             if (!e || !cc.isValid(t) || !cc.isValid(i)) {
                 return;
             }
-            i.getComponent(cc.Sprite).spriteFrame = e;
+            var o = a.getOrCreateTankVisualNode(t);
+            if (!o || !cc.isValid(o)) {
+                return;
+            }
+            var l = o.getComponent(cc.Sprite);
+            l.spriteFrame = e;
+            if (cc.Sprite.SizeMode && void 0 !== cc.Sprite.SizeMode.CUSTOM) {
+                l.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+            }
+            a.syncTankSkinNodeSize(t, o, e);
             i.active = true;
+            var s = i.getComponent(cc.Sprite);
+            if (s) {
+                s.enabled = false;
+            }
             if (r && cc.isValid(r)) {
                 r.active = false;
             }
@@ -2559,11 +2977,16 @@ export default class Level29086Control extends $brainLevelBase.default {
         r.lenImgName = $level_29086_config.CarLenImg[r.seatTotalAmount];
         o = "f29086_" + $level_29086_config.getCarImgByColor(t, e);
         i = "f29086_" + $level_29086_config.getCarBodyImgByColor(t, e);
+        var n = this.getTankCarNode(t);
         t.parent.active = true;
         t.active = true;
-        t.getChildByName("car").getComponent(cc.Sprite).spriteFrame = this.box2SpriteAtlas.getSpriteFrame(o);
-        if (t.getChildByName("body")) {
-            t.getChildByName("body").getComponent(cc.Sprite).spriteFrame = this.box2SpriteAtlas.getSpriteFrame(i);
+        if (!this.isTankAssemblyLevel()) {
+            if (n && n.getComponent(cc.Sprite)) {
+                n.getComponent(cc.Sprite).spriteFrame = this.box2SpriteAtlas.getSpriteFrame(o);
+            }
+            if (t.getChildByName("body")) {
+                t.getChildByName("body").getComponent(cc.Sprite).spriteFrame = this.box2SpriteAtlas.getSpriteFrame(i);
+            }
         }
         this.applyTankSkin(t, e);
         if (this.levelDataJSON.carWeight[r.path]) {
