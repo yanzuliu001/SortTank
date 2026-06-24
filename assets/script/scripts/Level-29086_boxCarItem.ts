@@ -7,6 +7,8 @@ const Level29086Config = require("./Level-29086_config");
 
 const { ccclass, property } = cc._decorator;
 
+function level29086SilentLog() {}
+
 @ccclass
 export default class Level29086BoxCarItem extends cc.Component {
     @property
@@ -117,7 +119,7 @@ export default class Level29086BoxCarItem extends cc.Component {
             this.carState == Level29086Config.CarState.WaterSprayLeave &&
             this.node.x <= -(cc.winSize.width / 2 + this.node.height)
         ) {
-            console.log("销毁消防车");
+            level29086SilentLog("销毁消防车");
             this.node.destroy();
         }
     }
@@ -151,7 +153,7 @@ export default class Level29086BoxCarItem extends cc.Component {
 
     checkTouch(hitCar: cc.Node) {
         if (this.isTankCollisionDebug()) {
-            console.log("[TankCheckTouch]", {
+            level29086SilentLog("[TankCheckTouch]", {
                 self: this.getDebugNodeInfo(this.node, this.getWorldPolygonByCarCollider(this.node)),
                 hit: this.getDebugNodeInfo(hitCar, this.getWorldPolygonByCarCollider(hitCar)),
             });
@@ -213,7 +215,7 @@ export default class Level29086BoxCarItem extends cc.Component {
 
     blockBeforeMove(hitCar: cc.Node) {
         if (this.isTankCollisionDebug()) {
-            console.log("[TankBlockBeforeMove]", {
+            level29086SilentLog("[TankBlockBeforeMove]", {
                 self: this.getDebugNodeInfo(this.node, this.getWorldPolygonByCarCollider(this.node)),
                 hit: this.getDebugNodeInfo(hitCar, this.getWorldPolygonByCarCollider(hitCar)),
             });
@@ -254,7 +256,7 @@ export default class Level29086BoxCarItem extends cc.Component {
 
     carBack(hitCar: cc.Node) {
         if (this.isTankCollisionDebug()) {
-            console.log("[TankCarBack]", {
+            level29086SilentLog("[TankCarBack]", {
                 self: this.getDebugNodeInfo(this.node, this.getWorldPolygonByCarCollider(this.node)),
                 hit: this.getDebugNodeInfo(hitCar, this.getWorldPolygonByCarCollider(hitCar)),
             });
@@ -393,7 +395,7 @@ export default class Level29086BoxCarItem extends cc.Component {
             const hitResult = this.isSweptPolygonHit(selfPolygon, targetPolygon, otherPolygon);
             if (hitResult.hit) {
                 if (this.isTankCollisionDebug()) {
-                    console.log("[TankPreMoveBlock:" + hitResult.type + "]", {
+                    level29086SilentLog("[TankPreMoveBlock:" + hitResult.type + "]", {
                         self: this.getDebugNodeInfo(this.node, selfPolygon),
                         other: this.getDebugNodeInfo(otherCar, otherPolygon),
                         targetLocalPos: {
@@ -537,7 +539,7 @@ export default class Level29086BoxCarItem extends cc.Component {
               );
 
         if (this.node.y >= roadLocalPos.y - 2 * this.minLen) {
-            console.log("检测碰到公路");
+            level29086SilentLog("检测碰到公路");
             if (this.isUTransportCar) {
                 const uTransport = this.getUTransport();
                 const uTransportIndex = uTransport.carArr.indexOf(this.node);
@@ -615,7 +617,7 @@ export default class Level29086BoxCarItem extends cc.Component {
             : absAngle >= 100;
 
         if (!isDown && !isHorizontal && this.node.y >= roadLocalPos.y - 2 * this.minLen) {
-            console.log("检测碰到公路");
+            level29086SilentLog("检测碰到公路");
             if (!this.isCollision) {
                 this.isCollision = true;
                 this.mgr.collision(this.node);
@@ -680,7 +682,7 @@ export default class Level29086BoxCarItem extends cc.Component {
                     intersects: !!(selfPolygon && otherPolygon && cc.Intersection.polygonPolygon(selfPolygon, otherPolygon)),
                 };
             });
-            console.log("[TankMoveCollisionStart]", {
+            level29086SilentLog("[TankMoveCollisionStart]", {
                 self: this.getDebugNodeInfo(this.node, selfPolygon),
                 selfPolygon: selfPolygon,
                 prevSelfPolygon: prevSelfPolygon,
@@ -709,7 +711,7 @@ export default class Level29086BoxCarItem extends cc.Component {
                           };
                     if (tankHitResult.hit) {
                         if (isTankDebug) {
-                            console.log("[TankMoveCollisionHit:" + tankHitResult.type + "]", {
+                            level29086SilentLog("[TankMoveCollisionHit:" + tankHitResult.type + "]", {
                                 self: this.getDebugNodeInfo(this.node, selfPolygon),
                                 other: this.getDebugNodeInfo(otherCar, otherPolygon),
                                 prevHit: tankHitResult.prevHit,
@@ -728,7 +730,7 @@ export default class Level29086BoxCarItem extends cc.Component {
                 if (this.mgr && this.mgr.isTankAssemblyLevel && this.mgr.isTankAssemblyLevel()) {
                     if (isTankDebug && !this.node._tankDebugMissingColliderLogged) {
                         this.node._tankDebugMissingColliderLogged = true;
-                        console.log("[TankMoveCollisionSkip:missingCollider]", {
+                        level29086SilentLog("[TankMoveCollisionSkip:missingCollider]", {
                             self: this.getDebugNodeInfo(this.node, selfPolygon),
                             other: this.getDebugNodeInfo(otherCar, otherPolygon),
                             selfPolygon: selfPolygon,
@@ -769,7 +771,7 @@ export default class Level29086BoxCarItem extends cc.Component {
                             this.minLen
                     ) {
                         if (isTankDebug) {
-                            console.log("[TankMoveCollisionHit:fallback90]", {
+                            level29086SilentLog("[TankMoveCollisionHit:fallback90]", {
                                 self: this.getDebugNodeInfo(this.node, selfPolygon),
                                 other: this.getDebugNodeInfo(otherCar, null),
                             });
@@ -784,7 +786,7 @@ export default class Level29086BoxCarItem extends cc.Component {
                     cc.Intersection.pointLineDistance(selfWorldPos, bottomLine[0], bottomLine[1], true) < this.minLen
                 ) {
                     if (isTankDebug) {
-                        console.log("[TankMoveCollisionHit:fallback]", {
+                        level29086SilentLog("[TankMoveCollisionHit:fallback]", {
                             self: this.getDebugNodeInfo(this.node, selfPolygon),
                             other: this.getDebugNodeInfo(otherCar, null),
                         });
@@ -794,7 +796,7 @@ export default class Level29086BoxCarItem extends cc.Component {
                     break;
                 }
             } catch (error) {
-                console.log(error);
+                level29086SilentLog(error);
             }
         }
         if (isTankDebug && !hasHit) {

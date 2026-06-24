@@ -3,6 +3,7 @@
 const $brainLevelBase = require("./BrainLevelBase");
 const $poolMgr = require("./PoolMgr");
 const $level_29086_config = require("./Level-29086_config");
+const $level_29086_tankLayoutConfig = require("./Level-29086_tankLayoutConfig");
 const $level_29086_boxCarItem = require("./Level-29086_boxCarItem");
 const $motionTrail = require("./MotionTrail");
 const $level_29086_dragonItem = require("./Level-29086_dragonItem");
@@ -68,6 +69,8 @@ const TANK_SKIN_DIR = {
     315: 3
 };
 
+function level29086SilentLog() {}
+
 @ccclass
 export default class Level29086Control extends $brainLevelBase.default {
     @property(cc.SpriteAtlas)
@@ -88,6 +91,14 @@ export default class Level29086Control extends $brainLevelBase.default {
     dragonRoot: any = null;
     warnNode: any = null;
     roleNode: any = null;
+    tankLayoutDebugEnabled: any = false;
+    tankLayoutDebugTouchBound: any = false;
+    tankLayoutDebugTarget: any = null;
+    tankLayoutDebugOffset: any = null;
+    tankDebugLayerDragTarget: any = null;
+    tankDebugLayerDragOffset: any = null;
+    tankDebugLayerDragSource: any = null;
+    tankDebugLayerConfigApplied: any = false;
     _cannonNum: any = Symbol("_cannonNum");
     _cannonType: any = Symbol("_cannonType");
     _cannonState: any = Symbol("_cannonState");
@@ -559,7 +570,9 @@ export default class Level29086Control extends $brainLevelBase.default {
                 a.getComponent($level_29086_boxCarItem.default).carColor = t.getComponent(
                     $level_29086_boxCarItem.default
                 ).carColor;
+                this.applyTankAssemblyTankMoveSpeed(a);
                 this.copyTankAssemblyVisual(t, a);
+                this.updateTankAssemblyRoadTurnVisual(a);
                 if (4 == e || 5 == e) {
                     a.position = cc.v2(t.x, t.y);
                     l = a.convertToWorldSpaceAR(cc.v2(0, t.height / 2));
@@ -666,7 +679,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                             .call(function () {
                                 a.getComponent($level_29086_boxCarItem.default).carState =
                                     $level_29086_config.CarState.GoingParking;
-                                console.log("isRichCar", a.getComponent($level_29086_boxCarItem.default).isRichCar);
+                                level29086SilentLog("isRichCar", a.getComponent($level_29086_boxCarItem.default).isRichCar);
                                 if (a.getComponent($level_29086_boxCarItem.default).isRichCar) {
                                     m.changeCar(
                                         a,
@@ -929,7 +942,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             e.currentParkingWPos = this.getParkingEntryWorldPosition(e);
             e.currentParkingNPos = this.dict.carRoot.convertToNodeSpaceAR(e.currentParkingWPos);
         }
-        console.log("初始算好每个车位的停车点的世界坐标");
+        level29086SilentLog("初始算好每个车位的停车点的世界坐标");
     }
     isTankAssemblyLevel() {
         return (
@@ -939,6 +952,602 @@ export default class Level29086Control extends $brainLevelBase.default {
     }
     isTankAssemblyTopEnabled() {
         return this.isTankAssemblyLevel() && false !== $level_29086_config.TankAssemblyTopEnabled;
+    }
+    getTankAssemblyTankMoveSpeed() {
+        return $level_29086_config.TankAssemblyTankMoveSpeed || 750;
+    }
+    applyTankAssemblyTankMoveSpeed(t) {
+        if (!this.isTankAssemblyLevel() || !t) {
+            return;
+        }
+        var e = t.getComponent($level_29086_boxCarItem.default);
+        if (!e) {
+            return;
+        }
+        e.speed = this.getTankAssemblyTankMoveSpeed();
+    }
+    getTankLayoutConfig() {
+        var t = $level_29086_tankLayoutConfig.TankLayoutByLevel || {};
+        return t[this.levelID] || t["" + this.levelID] || null;
+    }
+    applyTankLayoutConfig() {
+        if (!this.isTankAssemblyLevel() || !this.carRoot) {
+            return;
+        }
+        var t = this.getTankLayoutConfig();
+        if (!t || !t.length) {
+            return;
+        }
+        for (var e = 0; e < this.carRoot.childrenCount && e < t.length; e++) {
+            var o = this.carRoot.children[e];
+            var i = t[e];
+            if (!o || !i) {
+                continue;
+            }
+            if ("number" == typeof i.x && "number" == typeof i.y) {
+                o.position = cc.v2(i.x, i.y);
+            }
+            if ("number" == typeof i.angle) {
+                o.angle = i.angle;
+            }
+        }
+    }
+    getTankLayoutPrintButton() {
+        return (
+            this.dict.dyBtn ||
+            this.dict.printPosBtn ||
+            this.dict.printPositionBtn ||
+            this.dict.printBtn ||
+            this.dict.logPosBtn ||
+            this.dict.logPositionBtn ||
+            null
+        );
+    }
+    getNodeLabelComponent(t) {
+        if (!t) {
+            return null;
+        }
+        if (t.getComponent && t.getComponent(cc.Label)) {
+            return t.getComponent(cc.Label);
+        }
+        for (var e = 0; e < t.childrenCount; e++) {
+            var o = this.getNodeLabelComponent(t.children[e]);
+            if (o) {
+                return o;
+            }
+        }
+        return null;
+    }
+    setButtonLabel(t, e) {
+        var o = this.getNodeLabelComponent(t);
+        if (o) {
+            o.string = e;
+        }
+    }
+    updateTankLayoutDebugButtonText() {
+        if (this.dict.debugBtn) {
+            this.setButtonLabel(this.dict.debugBtn, this.tankLayoutDebugEnabled ? "关闭调试" : "开启调试");
+        }
+    }
+    setTankDebugLayerVisible(t) {
+        var e = !!t;
+        if (this.dict.debugLayer) {
+            this.dict.debugLayer.active = e;
+        }
+        var o = this.getTankLayoutPrintButton();
+        if (o) {
+            o.active = e;
+        }
+        var i = this.getTankLayoutResetButton();
+        if (i) {
+            i.active = e;
+        }
+    }
+    getTankDebugLayerGroups() {
+        var t = this.dict.debugLayer;
+        if (!t) {
+            return [];
+        }
+        var e = ["node1", "node2", "node3", "node4"];
+        var o = [];
+        for (var i = 0; i < e.length; i++) {
+            var r = t.getChildByName(e[i]);
+            if (r) {
+                o.push(r);
+            }
+        }
+        return o;
+    }
+    getTankDebugLayerGroupKeys() {
+        return ["blue", "green", "purple", "yellow"];
+    }
+    getTankDebugLayerButtonNames() {
+        return ["tank_blue_a_2", "tank_green_a_2", "tank_purple_a_2", "tank_yellow_a_2"];
+    }
+    getTankDebugLayerLayoutConfig() {
+        var t = $level_29086_tankLayoutConfig.TankDebugLayerLayoutByLevel || {};
+        return t[this.levelID] || t["" + this.levelID] || t;
+    }
+    applyTankDebugLayerLayoutConfig() {
+        var t = this.getTankDebugLayerLayoutConfig();
+        if (!this.dict.debugLayer || !t) {
+            return;
+        }
+        if (Array.isArray(t)) {
+            t = { blue: t };
+        }
+        var e = this.getTankDebugLayerGroups();
+        var h = this.getTankDebugLayerGroupKeys();
+        for (var o = 0; o < e.length; o++) {
+            var i = e[o];
+            var r = t[h[o]] || t[i.name];
+            if (!r || !r.length) {
+                continue;
+            }
+            for (var n = 0; n < i.childrenCount && n < r.length; n++) {
+                var a = i.children[n];
+                var s = r[n];
+                if (!a || !s) {
+                    continue;
+                }
+                if ("number" == typeof s.x && "number" == typeof s.y) {
+                    a.position = cc.v2(s.x, s.y);
+                }
+                if ("number" == typeof s.angle) {
+                    a.angle = s.angle;
+                    var l = this.getTankVisualNode(a);
+                    if (l) {
+                        l.angle = -s.angle;
+                    }
+                }
+            }
+        }
+    }
+    showTankDebugLayerGroup(t) {
+        var e = this.getTankDebugLayerGroups();
+        for (var o = 0; o < e.length; o++) {
+            e[o].active = o == t;
+        }
+        this.updateTankDebugLayerButtonState(t);
+    }
+    getActiveTankDebugLayerGroupIndex() {
+        var t = this.getTankDebugLayerGroups();
+        for (var e = 0; e < t.length; e++) {
+            if (t[e].active) {
+                return e;
+            }
+        }
+        return 0;
+    }
+    updateTankDebugLayerButtonState(t) {
+        if (!this.dict.debugLayer) {
+            return;
+        }
+        var e = this.getTankDebugLayerButtonNames();
+        for (var i = 0; i < e.length; i++) {
+            var r = this.dict.debugLayer.getChildByName(e[i]);
+            if (!r) {
+                continue;
+            }
+            if (null == r.tankDebugBaseScaleX) {
+                r.tankDebugBaseScaleX = r.scaleX || 1;
+                r.tankDebugBaseScaleY = r.scaleY || 1;
+            }
+            var n = i == t;
+            r.opacity = n ? 150 : 255;
+            r.color = n ? cc.color(130, 130, 130) : cc.color(255, 255, 255);
+            r.scaleX = r.tankDebugBaseScaleX;
+            r.scaleY = r.tankDebugBaseScaleY;
+            var a = r.getChildByName("tankDebugSelectedFrame");
+            if (a) {
+                a.active = false;
+            }
+        }
+    }
+    getTankLayoutResetButton() {
+        return this.dict.resetBtn || this.findChildDeep(this.node, "resetBtn") || null;
+    }
+    clearTankLayoutEditorCars() {
+        if (!this.carRoot) {
+            return;
+        }
+        for (var t = this.carRoot.childrenCount - 1; t >= 0; t--) {
+            var e = this.carRoot.children[t];
+            e.removeFromParent(false);
+            e.destroy();
+        }
+        this.carNodeArr = [];
+        this.turntableCarArr = [];
+        this.moveCarAmount = 0;
+        this.tankAssemblyTotalCarAmount = 0;
+        this.tankAssemblyParkedAmount = 0;
+    }
+    onTankLayoutResetButton(t) {
+        t && t.stopPropagation && t.stopPropagation();
+        if (this.tankDebugLayerDragTarget && cc.isValid(this.tankDebugLayerDragTarget)) {
+            this.tankDebugLayerDragTarget.destroy();
+        }
+        this.tankDebugLayerDragTarget = null;
+        this.tankDebugLayerDragOffset = null;
+        this.tankDebugLayerDragSource = null;
+        this.clearTankLayoutEditorCars();
+    }
+    getTankLayoutRoadWorldY() {
+        var t = this.dict.road || this.findChildDeep(this.node, "road");
+        if (!t || !t.parent) {
+            return 0;
+        }
+        return t.parent.convertToWorldSpaceAR(t.position).y;
+    }
+    initTankLayoutEditorCar(t) {
+        if (!t) {
+            return;
+        }
+        t.off(cc.Node.EventType.TOUCH_START, this.onTankDebugLayerSampleTouchStart, this);
+        t.off(cc.Node.EventType.TOUCH_MOVE, this.onTankDebugLayerSampleTouchMove, this);
+        t.off(cc.Node.EventType.TOUCH_END, this.onTankDebugLayerSampleTouchEnd, this);
+        t.off(cc.Node.EventType.TOUCH_CANCEL, this.onTankDebugLayerSampleTouchEnd, this);
+        t.active = true;
+        t.opacity = 255;
+        t.color = cc.color(255, 255, 255);
+        t.isTankLayoutEditorClone = false;
+        var e = t.getComponent($level_29086_boxCarItem.default);
+        if (e) {
+            e.mgr = this;
+            e.oldPos = t.position;
+            e.floatPos = null;
+            e.carState = $level_29086_config.CarState.Idle;
+            e.isCanClick = true;
+            e.isCollision = false;
+            e.isReadyDestroy = false;
+            e.speed = this.getTankAssemblyTankMoveSpeed();
+            e.path = e.path || 1;
+        }
+        t.indexID = "" + (this.carRoot ? this.carRoot.children.indexOf(t) : 0);
+    }
+    syncTankLayoutEditorCars() {
+        if (!this.carRoot) {
+            return;
+        }
+        this.carNodeArr = [];
+        for (var t = 0; t < this.carRoot.childrenCount; t++) {
+            var e = this.carRoot.children[t];
+            this.carNodeArr.push(e);
+            this.initTankLayoutEditorCar(e);
+        }
+        this.tankAssemblyTotalCarAmount = this.carNodeArr.length;
+    }
+    bindTankDebugLayerButtons() {
+        if (!this.isTankAssemblyLevel() || !this.dict.debugLayer) {
+            return;
+        }
+        if (!this.tankDebugLayerConfigApplied) {
+            this.applyTankDebugLayerLayoutConfig();
+            this.tankDebugLayerConfigApplied = true;
+        }
+        var t = this.dict.debugLayer;
+        var e = this.getTankDebugLayerButtonNames();
+        for (var o = 0; o < e.length; o++) {
+            var i = t.getChildByName(e[o]);
+            if (!i) {
+                continue;
+            }
+            i.active = true;
+            i.tankDebugGroupIndex = o;
+            i.off(cc.Node.EventType.TOUCH_END, this.onTankDebugLayerButton, this);
+            i.on(cc.Node.EventType.TOUCH_END, this.onTankDebugLayerButton, this);
+        }
+        var r = this.getTankDebugLayerGroups();
+        var n = false;
+        for (var a = 0; a < r.length; a++) {
+            n = n || r[a].active;
+        }
+        if (!n && r.length) {
+            this.showTankDebugLayerGroup(0);
+        } else {
+            this.updateTankDebugLayerButtonState(this.getActiveTankDebugLayerGroupIndex());
+        }
+        this.bindTankDebugLayerSampleNodes();
+    }
+    onTankDebugLayerButton(t) {
+        t && t.stopPropagation && t.stopPropagation();
+        var e = t && t.target;
+        if (!e || "number" != typeof e.tankDebugGroupIndex) {
+            return;
+        }
+        this.showTankDebugLayerGroup(e.tankDebugGroupIndex);
+    }
+    bindTankDebugLayerSampleNodes() {
+        var t = this.getTankDebugLayerGroups();
+        for (var e = 0; e < t.length; e++) {
+            for (var o = 0; o < t[e].childrenCount; o++) {
+                var i = t[e].children[o];
+                i.off(cc.Node.EventType.TOUCH_START, this.onTankDebugLayerSampleTouchStart, this);
+                i.off(cc.Node.EventType.TOUCH_MOVE, this.onTankDebugLayerSampleTouchMove, this);
+                i.off(cc.Node.EventType.TOUCH_END, this.onTankDebugLayerSampleTouchEnd, this);
+                i.off(cc.Node.EventType.TOUCH_CANCEL, this.onTankDebugLayerSampleTouchEnd, this);
+                i.on(cc.Node.EventType.TOUCH_START, this.onTankDebugLayerSampleTouchStart, this);
+                i.on(cc.Node.EventType.TOUCH_MOVE, this.onTankDebugLayerSampleTouchMove, this);
+                i.on(cc.Node.EventType.TOUCH_END, this.onTankDebugLayerSampleTouchEnd, this);
+                i.on(cc.Node.EventType.TOUCH_CANCEL, this.onTankDebugLayerSampleTouchEnd, this);
+            }
+        }
+    }
+    onTankDebugLayerSampleTouchStart(t) {
+        t && t.stopPropagation && t.stopPropagation();
+        if (!this.tankLayoutDebugEnabled || !this.dict.debugLayer || !this.dict.debugLayer.active) {
+            return;
+        }
+        var e = t.currentTarget || t.target;
+        if (!e || !e.parent) {
+            return;
+        }
+        if (this.tankDebugLayerDragTarget && cc.isValid(this.tankDebugLayerDragTarget)) {
+            this.tankDebugLayerDragTarget.destroy();
+        }
+        var o = cc.instantiate(e);
+        o.name = e.name;
+        o.active = true;
+        o.opacity = 255;
+        o.color = cc.color(255, 255, 255);
+        o.isTankLayoutEditorClone = true;
+        e.parent.addChild(o);
+        o.position = e.position;
+        o.angle = e.angle;
+        o.scaleX = e.scaleX;
+        o.scaleY = e.scaleY;
+        o.setSiblingIndex(o.parent.childrenCount - 1);
+        var i = o.parent.convertToNodeSpaceAR(t.getLocation());
+        this.tankDebugLayerDragSource = e;
+        this.tankDebugLayerDragTarget = o;
+        this.tankDebugLayerDragOffset = cc.v2(o.x - i.x, o.y - i.y);
+    }
+    onTankDebugLayerSampleTouchMove(t) {
+        t && t.stopPropagation && t.stopPropagation();
+        var e = this.tankDebugLayerDragTarget;
+        if (!this.tankLayoutDebugEnabled || !e || !cc.isValid(e) || !e.parent) {
+            return;
+        }
+        var o = e.parent.convertToNodeSpaceAR(t.getLocation());
+        e.position = o.add(this.tankDebugLayerDragOffset || cc.v2());
+    }
+    onTankDebugLayerSampleTouchEnd(t) {
+        t && t.stopPropagation && t.stopPropagation();
+        var e = this.tankDebugLayerDragTarget;
+        if (e && cc.isValid(e) && e.parent) {
+            var o = e.parent.convertToWorldSpaceAR(e.position);
+            var i = this.getTankLayoutRoadWorldY();
+            if (this.carRoot && o.y < i) {
+                e.removeFromParent(false);
+                this.carRoot.addChild(e);
+                e.position = this.carRoot.convertToNodeSpaceAR(o);
+                this.initTankLayoutEditorCar(e);
+                this.syncTankLayoutEditorCars();
+            } else {
+                e.removeFromParent(false);
+                e.destroy();
+            }
+        }
+        this.tankDebugLayerDragTarget = null;
+        this.tankDebugLayerDragOffset = null;
+        this.tankDebugLayerDragSource = null;
+    }
+    bindTankLayoutDebugButtons() {
+        if (!this.isTankAssemblyLevel()) {
+            return;
+        }
+        this.bindTankDebugLayerButtons();
+        this.setTankDebugLayerVisible(this.tankLayoutDebugEnabled);
+        var t = this.dict.debugBtn;
+        if (t) {
+            t.active = true;
+            t.off(cc.Node.EventType.TOUCH_END, this.onTankLayoutDebugButton, this);
+            t.on(cc.Node.EventType.TOUCH_END, this.onTankLayoutDebugButton, this);
+            this.updateTankLayoutDebugButtonText();
+        }
+        var e = this.getTankLayoutPrintButton();
+        if (e) {
+            e.active = this.tankLayoutDebugEnabled;
+            e.off(cc.Node.EventType.TOUCH_END, this.onTankLayoutPrintButton, this);
+            e.on(cc.Node.EventType.TOUCH_END, this.onTankLayoutPrintButton, this);
+        }
+        var o = this.getTankLayoutResetButton();
+        if (o) {
+            o.active = this.tankLayoutDebugEnabled;
+            o.off(cc.Node.EventType.TOUCH_END, this.onTankLayoutResetButton, this);
+            o.on(cc.Node.EventType.TOUCH_END, this.onTankLayoutResetButton, this);
+        }
+    }
+    onTankLayoutDebugButton(t) {
+        t && t.stopPropagation && t.stopPropagation();
+        this.tankLayoutDebugEnabled = !this.tankLayoutDebugEnabled;
+        this.tankLayoutDebugTarget = null;
+        this.tankLayoutDebugOffset = null;
+        this.tankDebugLayerDragTarget = null;
+        this.tankDebugLayerDragOffset = null;
+        this.setTankDebugLayerVisible(this.tankLayoutDebugEnabled);
+        this.updateTankLayoutDebugButtonText();
+        level29086SilentLog("[TankLayoutDebug]", this.tankLayoutDebugEnabled ? "open" : "close");
+    }
+    onTankLayoutPrintButton(t) {
+        t && t.stopPropagation && t.stopPropagation();
+        this.printTankLayoutPositions();
+        if (this.dict.debugLayer && this.dict.debugLayer.active) {
+            this.printTankDebugLayerPositions();
+        }
+    }
+    isNodeOrChildOf(t, e) {
+        while (t) {
+            if (t == e) {
+                return true;
+            }
+            t = t.parent;
+        }
+        return false;
+    }
+    isTankLayoutDebugControlTarget(t) {
+        if (!this.isTankAssemblyLevel() || !t) {
+            return false;
+        }
+        return (
+            this.isNodeOrChildOf(t, this.dict.debugBtn) ||
+            this.isNodeOrChildOf(t, this.getTankLayoutPrintButton()) ||
+            this.isNodeOrChildOf(t, this.getTankLayoutResetButton()) ||
+            this.isNodeOrChildOf(t, this.dict.debugLayer)
+        );
+    }
+    getTankLayoutSnapshot() {
+        var t = [];
+        if (!this.carRoot) {
+            return t;
+        }
+        for (var e = 0; e < this.carRoot.childrenCount; e++) {
+            var o = this.carRoot.children[e];
+            t.push({
+                name: o.name,
+                x: Number(o.x.toFixed(3)),
+                y: Number(o.y.toFixed(3)),
+                angle: Number((o.angle || 0).toFixed(3))
+            });
+        }
+        return t;
+    }
+    printTankLayoutPositions() {
+        var t = this.getTankLayoutSnapshot();
+        var e = t
+            .map(function (t) {
+                return (
+                    '        { name: "' +
+                    t.name +
+                    '", x: ' +
+                    t.x +
+                    ", y: " +
+                    t.y +
+                    ", angle: " +
+                    t.angle +
+                    " },"
+                );
+            })
+            .join("\n");
+        // console.log("[TankLayoutPositions:" + this.levelID + "]", t);
+        console.log("[TankLayoutConfigPaste:" + this.levelID + "]\n    \"" + this.levelID + "\": [\n" + e + "\n    ]");
+    }
+    getTankDebugLayerSnapshot() {
+        var t = {};
+        var e = this.getTankDebugLayerGroups();
+        var h = this.getTankDebugLayerGroupKeys();
+        for (var o = 0; o < e.length; o++) {
+            var i = e[o];
+            var r = h[o] || i.name;
+            t[r] = [];
+            for (var n = 0; n < i.childrenCount; n++) {
+                var a = i.children[n];
+                if (a.isTankLayoutEditorClone) {
+                    continue;
+                }
+                t[r].push({
+                    name: a.name,
+                    x: Number(a.x.toFixed(3)),
+                    y: Number(a.y.toFixed(3)),
+                    angle: Number((a.angle || 0).toFixed(3))
+                });
+            }
+        }
+        return t;
+    }
+    printTankDebugLayerPositions() {
+        var t = this.getTankDebugLayerSnapshot();
+        var e = this.getTankDebugLayerGroupKeys();
+        var o = this.getActiveTankDebugLayerGroupIndex();
+        var i = e[o] || "blue";
+        var r = t[i] || [];
+        var n = r
+            .map(function (t) {
+                return (
+                    '        { name: "' +
+                    t.name +
+                    '", x: ' +
+                    t.x +
+                    ", y: " +
+                    t.y +
+                    ", angle: " +
+                    t.angle +
+                    " },"
+                );
+            })
+            .join("\n");
+        console.log("[TankDebugLayerConfigPaste:" + i + "]\n    " + i + ": [\n" + n + "\n    ],");
+    }
+    findTankByWorldPoint(t) {
+        if (!this.carRoot) {
+            return null;
+        }
+        for (var e = this.carRoot.childrenCount - 1; e >= 0; e--) {
+            var o = this.carRoot.children[e];
+            if (!o || !o.active) {
+                continue;
+            }
+            var i = this.getTankCarNode(o);
+            var r = i && i.getComponent(cc.PolygonCollider);
+            if (r && cc.Intersection.pointInPolygon(t, this.getWPosByPolygon(r))) {
+                return o;
+            }
+        }
+        return null;
+    }
+    handleTankLayoutDebugTouchStart(t) {
+        if (!this.isTankAssemblyLevel() || !this.tankLayoutDebugEnabled) {
+            return false;
+        }
+        var e = t.getLocation();
+        var o = this.findTankByWorldPoint(e);
+        this.tankLayoutDebugTarget = o;
+        this.tankLayoutDebugOffset = null;
+        if (o && o.parent) {
+            var i = o.parent.convertToNodeSpaceAR(e);
+            this.tankLayoutDebugOffset = cc.v2(o.x - i.x, o.y - i.y);
+            level29086SilentLog("[TankLayoutDebugSelect]", {
+                indexID: o.indexID,
+                name: o.name,
+                x: Number(o.x.toFixed(3)),
+                y: Number(o.y.toFixed(3)),
+                angle: Number((o.angle || 0).toFixed(3))
+            });
+        }
+        return true;
+    }
+    touchMoveTankLayoutDebug(t) {
+        if (!this.isTankAssemblyLevel() || !this.tankLayoutDebugEnabled || !this.tankLayoutDebugTarget) {
+            return;
+        }
+        var e = this.tankLayoutDebugTarget;
+        if (!cc.isValid(e) || !e.parent) {
+            this.tankLayoutDebugTarget = null;
+            return;
+        }
+        var o = e.parent.convertToNodeSpaceAR(t.getLocation());
+        e.position = o.add(this.tankLayoutDebugOffset || cc.v2());
+        var i = e.getComponent($level_29086_boxCarItem.default);
+        if (i) {
+            i.oldPos = e.position;
+        }
+    }
+    touchEndTankLayoutDebug() {
+        if (!this.tankLayoutDebugTarget) {
+            return;
+        }
+        var t = this.tankLayoutDebugTarget;
+        if (cc.isValid(t)) {
+            level29086SilentLog("[TankLayoutDebugMoveEnd]", {
+                indexID: t.indexID,
+                name: t.name,
+                x: Number(t.x.toFixed(3)),
+                y: Number(t.y.toFixed(3)),
+                angle: Number((t.angle || 0).toFixed(3))
+            });
+        }
+        this.tankLayoutDebugTarget = null;
+        this.tankLayoutDebugOffset = null;
     }
     setTankAssemblyTopVisible(t) {
         var e = this.findTankAssemblyNode("assemblyTopRoot");
@@ -977,7 +1586,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             return;
         }
         this.tankAssemblyAutoNextTriggered = true;
-        console.log("顶部关闭演示流程：全部坦克已停入，自动进入下一关", e, "/", t);
+        level29086SilentLog("顶部关闭演示流程：全部坦克已停入，自动进入下一关", e, "/", t);
         var r = this;
         this.scheduleOnce(function () {
             if (cc.isValid(r.node)) {
@@ -1319,9 +1928,9 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
         this.tankAssemblyDebugLogged[t] = true;
         if (void 0 !== o) {
-            console.log("[TankAssembly]", e, o);
+            level29086SilentLog("[TankAssembly]", e, o);
         } else {
-            console.log("[TankAssembly]", e);
+            level29086SilentLog("[TankAssembly]", e);
         }
     }
     getTankAssemblyConveyorPathRoot() {
@@ -1591,7 +2200,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             isFail: "partEnd" == t && 0 == this.tankAssemblyCompletedAmount,
             enterBattle: "allComplete" == t || this.tankAssemblyCompletedAmount > 0
         };
-        console.log("坦克组装阶段结束", e);
+        level29086SilentLog("坦克组装阶段结束", e);
         cc.game.emit("tankAssemblyStageEnd", e);
     }
     onLevelReady() {
@@ -1714,6 +2323,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                 }
                 if (this.isTankAssemblyLevel()) {
                     this.initTankAssemblyParkingSlots();
+                    this.applyTankLayoutConfig();
                 } else {
                     for (_ = 0; _ < this.dict.parkingRoot.childrenCount; _++) {
                         !(t = this.dict.parkingRoot.children[_]).active ||
@@ -1751,6 +2361,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                     this.carNodeArr.push(n);
                     n.getComponent($level_29086_boxCarItem.default).mgr = this;
                     n.indexID = "" + _;
+                    this.applyTankAssemblyTankMoveSpeed(n);
                     a = this.getPath(n);
                     this.levelDataJSON.blackAmount && !i.length && a >= 2 && a <= 4 && this.between2_4CarArr.push(n);
                     n.getComponent($level_29086_boxCarItem.default).path = a;
@@ -1762,7 +2373,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                         (c.position = cc.v2(-13.105, -26.21)));
                     this.allPersonAmount += n.getComponent($level_29086_boxCarItem.default).seatTotalAmount;
                 }
-                console.log("总上车人数", this.allPersonAmount);
+                level29086SilentLog("总上车人数", this.allPersonAmount);
                 this.allPersonAmount2 = this.allPersonAmount;
                 cc.game.emit("allPersonAmount", this.allPersonAmount, this.allPersonAmount2);
                 if (this.mapType < 100) {
@@ -1826,14 +2437,14 @@ export default class Level29086Control extends $brainLevelBase.default {
                         this.carWeight[k] += A * S.getComponent($level_29086_boxCarItem.default).emptySeatAmount;
                     }
                 }
-                console.log("车辆权重", this.carWeight);
-                console.log("颜色", $level_29086_config.colorDes);
-                console.log("人数", this.colorPersonArr);
+                level29086SilentLog("车辆权重", this.carWeight);
+                level29086SilentLog("颜色", $level_29086_config.colorDes);
+                level29086SilentLog("人数", this.colorPersonArr);
                 for (N = 0; N < $level_29086_config.colorDes.length; N++) {
                     this.getAmountByColor(N);
                 }
-                console.log("this.colorPersonAmountArr", this.colorPersonAmountArr);
-                console.log("this.colorPersonAmountArrIndex", this.colorPersonAmountArrIndex);
+                level29086SilentLog("this.colorPersonAmountArr", this.colorPersonAmountArr);
+                level29086SilentLog("this.colorPersonAmountArrIndex", this.colorPersonAmountArrIndex);
                 if (-29095 == this.levelID) {
                     this.colorPersonAmountArr = [[3, 3], [4, 6], [], [3, 1], [3, 3, 4], [], [], []];
                     this.firstSortIndexArr = [1, 4, 0, 3, 4, 3, 0, 1, 4];
@@ -2027,6 +2638,13 @@ export default class Level29086Control extends $brainLevelBase.default {
         return t;
     }
     onTouch() {
+        this.bindTankLayoutDebugButtons();
+        if (!this.tankLayoutDebugTouchBound) {
+            this.node.on(cc.Node.EventType.TOUCH_MOVE, this.touchMoveTankLayoutDebug, this);
+            this.node.on(cc.Node.EventType.TOUCH_END, this.touchEndTankLayoutDebug, this);
+            this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.touchEndTankLayoutDebug, this);
+            this.tankLayoutDebugTouchBound = true;
+        }
         this.node.on(cc.Node.EventType.TOUCH_START, this.touchStart, this);
         for (var t = 0; t < this.dict.parkingRoot.children.length; t++) {
             var e = this.dict.parkingRoot.children[t];
@@ -2095,9 +2713,15 @@ export default class Level29086Control extends $brainLevelBase.default {
     touchStart(t) {
         if (this.isCanStartClick) {
             t.target;
+            if (this.isTankLayoutDebugControlTarget(t.target)) {
+                return;
+            }
+            if (this.handleTankLayoutDebugTouchStart(t)) {
+                return;
+            }
             var e = t.getLocation();
             if (this.carparkIng) {
-                return console.log("限制车库车点击");
+                return level29086SilentLog("限制车库车点击");
             }
             var o = this.carRoot.children.concat(this.turntableCarArr);
             for (var i = 0; i < o.length; i++) {
@@ -2121,15 +2745,15 @@ export default class Level29086Control extends $brainLevelBase.default {
                     ) {
                         return void this.remove(r);
                     }
-                    console.log("新增限制快速点击", this.moveCarAmount, this.parkingNodes.length);
+                    level29086SilentLog("新增限制快速点击", this.moveCarAmount, this.parkingNodes.length);
                     if (this.moveCarAmount >= this.parkingNodes.length) {
-                        console.log("限制快速点击");
+                        level29086SilentLog("限制快速点击");
                         return this.show("位置已满");
                     }
                     var a = r.getComponent($level_29086_boxCarItem.default).nextCar;
                     var s = r.getComponent($level_29086_boxCarItem.default).prevCar;
                     if ((a || s) && this.moveCarAmount >= this.parkingNodes.length - 1) {
-                        console.log("限制快速点击2");
+                        level29086SilentLog("限制快速点击2");
                         return this.show("需要两个停车位", 0.8, 1);
                     }
                     if (255 != r.opacity) {
@@ -2145,7 +2769,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                         return;
                     }
                     if (r.isCarPark && !r.isWen) {
-                        return console.log("限制车库车,没停稳");
+                        return level29086SilentLog("限制车库车,没停稳");
                     }
                     if (!r.getComponent($level_29086_boxCarItem.default).isCanClick) {
                         return;
@@ -2187,7 +2811,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                         }
                     }
                     if (!p) {
-                        console.log("所有车位都被占用了");
+                        level29086SilentLog("所有车位都被占用了");
                         return this.show("目前车位已满", 0.8, 1);
                     }
                     if (a || s) {
@@ -2198,17 +2822,17 @@ export default class Level29086Control extends $brainLevelBase.default {
                             }
                         }
                         if (g <= 1) {
-                            console.log("拉链车-所有车位都被占用了");
+                            level29086SilentLog("拉链车-所有车位都被占用了");
                             return this.show("需要两个停车位", 0.8, 1);
                         }
                     }
                     if (this.checkHasCarMoveAmount() >= this.parkingNodes.length) {
-                        console.log("有相等于车位总量的车在运动，无法出车");
+                        level29086SilentLog("有相等于车位总量的车在运动，无法出车");
                         return this.show("位置已满");
                     }
-                    console.log("有" + this.checkHasCarMoveAmount() + "辆车在动！", this.parkingNodes.length);
+                    level29086SilentLog("有" + this.checkHasCarMoveAmount() + "辆车在动！", this.parkingNodes.length);
                     if ((a || s) && this.parkingNodes.length - this.checkHasCarMoveAmount() <= 1) {
-                        console.log("拉链车不能出车");
+                        level29086SilentLog("拉链车不能出车");
                         return this.show("位置已满");
                     }
                     r.stopAllActions();
@@ -2226,7 +2850,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                             .getComponent($level_29086_boxCarItem.default)
                             .getWorldPolygonByCarCollider(r);
                         r._tankDebugClickTime = Date.now();
-                        console.log("[TankClick]", {
+                        level29086SilentLog("[TankClick]", {
                             indexID: r.indexID,
                             name: r.name,
                             x: r.x,
@@ -2621,6 +3245,84 @@ export default class Level29086Control extends $brainLevelBase.default {
             return null;
         }
         return e.getChildByName("tankVisual");
+    }
+    getTankVisualSpriteFrame(t) {
+        var e = this.getTankVisualNode(t);
+        var o = e && e.getComponent(cc.Sprite);
+        if (o && o.spriteFrame) {
+            return o.spriteFrame;
+        }
+        var i = this.getTankCarNode(t);
+        var r = i && i.getComponent(cc.Sprite);
+        return r && r.spriteFrame ? r.spriteFrame : null;
+    }
+    getTankSpriteFrameAssetName(t) {
+        if (!t) {
+            return "";
+        }
+        return t.name || t._name || (t._texture && (t._texture.name || t._texture._name)) || "";
+    }
+    getTankVisualAssetPrefix(t) {
+        var e = this.getTankSpriteFrameAssetName(this.getTankVisualSpriteFrame(t));
+        var o = e && e.match(/^(.*)_\d+$/);
+        if (o && o[1]) {
+            return o[1];
+        }
+        var i = t && t.getComponent($level_29086_boxCarItem.default);
+        var r = i ? this.getTankSkinAssetPrefixes(i.carColor) : [];
+        return r.length ? r[0] : null;
+    }
+    setTankAssemblyVisualDirIndex(t, e) {
+        if (!(this.isTankAssemblyLevel && this.isTankAssemblyLevel()) || !t || void 0 === e) {
+            return;
+        }
+        var o = this.getTankVisualAssetPrefix(t);
+        var i = this.getTankCarNode(t);
+        var r = this.getOrCreateTankVisualNode(t);
+        if (!o || !i || !r) {
+            return;
+        }
+        var n = r.getComponent(cc.Sprite);
+        var a = TANK_SKIN_SPRITE_DIR + o + "_" + e;
+        var s = this;
+        this.loadTankSpriteFrame(a, function (e) {
+            if (!e || !cc.isValid(t) || !cc.isValid(r)) {
+                return;
+            }
+            n.spriteFrame = e;
+            if (cc.Sprite.SizeMode && void 0 !== cc.Sprite.SizeMode.CUSTOM) {
+                n.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+            }
+            var o = s.getTankSpriteFrameSize(e);
+            if (o) {
+                r.width = o.width;
+                r.height = o.height;
+            }
+            r.position = cc.v2(0, 0);
+            r.anchorX = 0.5;
+            r.anchorY = 0.5;
+            r.scaleX = 1;
+            r.scaleY = 1;
+            r.angle = -((t.angle || 0) + (i.angle || 0));
+            r.active = true;
+            if (i.getComponent(cc.Sprite)) {
+                i.getComponent(cc.Sprite).enabled = false;
+            }
+        });
+    }
+    updateTankAssemblyRoadTurnVisual(t) {
+        if (!(this.isTankAssemblyLevel && this.isTankAssemblyLevel()) || !t) {
+            return;
+        }
+        var e = t.getComponent($level_29086_boxCarItem.default);
+        if (!e) {
+            return;
+        }
+        if (e.carState == $level_29086_config.CarState.InRoadLeft) {
+            this.setTankAssemblyVisualDirIndex(t, TANK_SKIN_DIR[90]);
+        } else if (e.carState == $level_29086_config.CarState.InRoadRight) {
+            this.setTankAssemblyVisualDirIndex(t, TANK_SKIN_DIR[270]);
+        }
     }
     getOptionalTankChild(t, e) {
         if (!t) {
@@ -4480,7 +5182,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             r = $level_29086_config.colorDes[i] + ":" + r;
             o[i] = r;
         }
-        console.log(t, o);
+        level29086SilentLog(t, o);
     }
     getPersonColor() {
         if (this.reviveArr.length) {
@@ -4765,7 +5467,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             for (o = 0; o < this.levelDataJSON.hardPoints.length; o++) {
                 var n = this.levelDataJSON.hardPoints[o];
                 if (!this.hardPointsIndexs.includes(o) && n[0] <= r && n[1] >= r) {
-                    console.log("触发卡点", n);
+                    level29086SilentLog("触发卡点", n);
                     this.hardPointsIndexs.push(o);
                     return true;
                 }
@@ -4950,7 +5652,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                         r.isSortAnim = false;
                         r.isWin = false;
                         r.consoleWeight("总权重", r.allWeight);
-                        console.log("排队颜色顺序", r.fetchMaxIndex(r.allWeight, $level_29086_config.colorDes.length));
+                        level29086SilentLog("排队颜色顺序", r.fetchMaxIndex(r.allWeight, $level_29086_config.colorDes.length));
                         var t = r.fetchMaxIndex(r.allWeight, $level_29086_config.colorDes.length);
                         var e = new Array($level_29086_config.colorDes.length).fill(0);
                         for (var o = 0; o < r.sortPersonNodes.length; o++) {
@@ -5001,7 +5703,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                                 e[h] -= 1;
                                 l.getComponent($level_29086_dragonItem.default).dragonColor = h;
                                 r.setColorPersonImg(h, l);
-                                console.log($level_29086_config.colorDes[h]);
+                                level29086SilentLog($level_29086_config.colorDes[h]);
                             }
                         }
                         r.isSorting = false;

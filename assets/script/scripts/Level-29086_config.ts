@@ -2730,6 +2730,8 @@ export const TankAssemblyAutoNextWhenTopDisabledLevelIds = {
     "-29095": true
 };
 export const TankAssemblyAutoNextDelay = 0.35;
+// 坦克车体移动速度，单位像素/秒；数值越大，出车、转向、入库越快。
+export const TankAssemblyTankMoveSpeed = 500;
 export const TankAssemblyTypes = [
     // 当前已有 A 色资源：黄色坦克，对应颜色 ID 1。未来 tank_yellow_b 需要新增独立配置项，不复用本项。
     { colorId: 1, counterNode: "p0", counterSprite: "tank_yellow_a_4", partSprite: "tank_yellow_a" },
@@ -2757,7 +2759,7 @@ export const TankAssemblyConveyorConfig = {
     partScale: 1
 };
 // 临时诊断开关：打开后会输出传送带初始化、路径点和首个零件生成信息。
-export const TankAssemblyDebugLog = true;
+export const TankAssemblyDebugLog = false;
 export const TankAssemblyRouteConfig = {
     // 旧版 750x1334 prefab 中，下排停车位中心到出车横向路面的 carRoot 本地坐标间距。
     parkingRoadGap: 50,

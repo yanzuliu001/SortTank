@@ -876,7 +876,9 @@ class Game extends BaseUI.default {
     }
 
     startSuc() {
-        this.screenshot();
+        // 暂时屏蔽关卡启动后的自动截图缓存，避免运行时截图开销和无效日志。
+        // 需要恢复胜利页关卡截图时，重新打开 this.screenshot() 即可。
+        // this.screenshot();
     }
 
     screenshot() {
