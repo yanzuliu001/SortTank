@@ -410,7 +410,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                     this._itemConfig = this.levelDataJSON.item;
                 }
                 this._speedIndexList = $level_29086_config.MapParam[this.mapType].speedIndexList;
-                if (-29095 == this.levelID) {
+                if (-10001 == this.levelID) {
                     this._speedIndexList = $level_29086_config.MapParam[0].speedIndexList;
                 }
                 this.cannonAttackList = $level_29086_config.MapParam[this.mapType].cannonAttackList;
@@ -440,7 +440,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                     this.handPos();
                 }
                 this.roleNode._moveIndex = $level_29086_config.MapParam[this.mapType].rolePoint[0];
-                if (-29095 == this.levelID) {
+                if (-10001 == this.levelID) {
                     this.roleNode._moveIndex = $level_29086_config.MapParam[0].rolePoint[0];
                 }
                 return [2];
@@ -1565,7 +1565,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         );
     }
     shouldFinishTankAssemblyOnPartEnd() {
-        return !(this.isTankAssemblyLevel() && -29095 == this.levelID);
+        return !(this.isTankAssemblyLevel() && -10001 == this.levelID);
     }
     checkTankAssemblyAutoNextWhenTopDisabled() {
         if (!this.shouldAutoNextWhenTankAssemblyTopDisabled() || this.tankAssemblyAutoNextTriggered) {
@@ -1611,7 +1611,17 @@ export default class Level29086Control extends $brainLevelBase.default {
     }
     getRouteSideLimitX(t, e) {
         var o = e < 0 ? -1 : 1;
-        return o * (this.boundary / 2 + t.width / 2);
+        // 坦克横向行进时是旋转的，x 方向的真实半宽需按当前角度投影计算，
+        // 否则用静止 width 会导致贴边判断错误。
+        var n = ((Math.round((t && t.angle) || 0) % 360) + 360) % 360;
+        var i = (n * Math.PI) / 180;
+        var r = t ? Math.abs(t.width * Math.cos(i)) + Math.abs(t.height * Math.sin(i)) : 0;
+        // 转向点设在边界内侧（减去半个身位），保证坦克外缘不超出 boundary，避免出界。
+        var a = this.boundary / 2 - r / 2;
+        if (a < 0) {
+            a = 0;
+        }
+        return o * a;
     }
     getTankAssemblyRouteAngle(t) {
         var e = t && t.angle ? t.angle : 0;
@@ -2446,7 +2456,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                 }
                 level29086SilentLog("this.colorPersonAmountArr", this.colorPersonAmountArr);
                 level29086SilentLog("this.colorPersonAmountArrIndex", this.colorPersonAmountArrIndex);
-                if (-29095 == this.levelID) {
+                if (-10001 == this.levelID) {
                     this.colorPersonAmountArr = [[3, 3], [4, 6], [], [3, 1], [3, 3, 4], [], [], []];
                     this.firstSortIndexArr = [1, 4, 0, 3, 4, 3, 0, 1, 4];
                 }
@@ -2910,6 +2920,8 @@ export default class Level29086Control extends $brainLevelBase.default {
                             this.setTankAssemblyArrowVisible(r, false);
                         }
                         r.getComponent($level_29086_boxCarItem.default).carState = $level_29086_config.CarState.Normal;
+                        // 点击后坦克开始向上行进，切换为向上朝向的图片
+                        this.updateTankAssemblyRoadTurnVisual(r);
                         if (r.getComponent($level_29086_boxCarItem.default).isFireEngine) {
                             //
                         } else {
@@ -3320,9 +3332,25 @@ export default class Level29086Control extends $brainLevelBase.default {
             return;
         }
         if (e.carState == $level_29086_config.CarState.InRoadLeft) {
+            // 沿公路向左行进：使用向左朝向（后缀 1）
             this.setTankAssemblyVisualDirIndex(t, TANK_SKIN_DIR[90]);
         } else if (e.carState == $level_29086_config.CarState.InRoadRight) {
+            // 沿公路向右行进：使用向右朝向（后缀 5）
             this.setTankAssemblyVisualDirIndex(t, TANK_SKIN_DIR[270]);
+        } else if (
+            e.carState == $level_29086_config.CarState.OnBottomLeft ||
+            e.carState == $level_29086_config.CarState.OnBottomRight ||
+            this.isTankAssemblyRouteDown(t)
+        ) {
+            // 向下行进（到达底部转弯或向下路段）：使用向下朝向（后缀 7）
+            this.setTankAssemblyVisualDirIndex(t, TANK_SKIN_DIR[180]);
+        } else if (
+            e.carState == $level_29086_config.CarState.Normal ||
+            e.carState == $level_29086_config.CarState.NormalNoObstruct ||
+            e.carState == $level_29086_config.CarState.GoingRoad
+        ) {
+            // 向上行进（点击后驶向公路）：使用向上朝向（后缀 2）
+            this.setTankAssemblyVisualDirIndex(t, TANK_SKIN_DIR[0]);
         }
     }
     getOptionalTankChild(t, e) {
@@ -4039,7 +4067,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             var e = this.sortPersonNodes[0];
             var o = this.sortPersonNodes2[0];
             var i = $level_29086_config.MapParam[this.mapType].noTouchAndStop;
-            if (-29095 == this.levelID) {
+            if (-10001 == this.levelID) {
                 i = $level_29086_config.MapParam[0].noTouchAndStop;
             }
             if (!(!this._touchBegin && e && e._moveIndex >= i)) {
@@ -4896,7 +4924,7 @@ export default class Level29086Control extends $brainLevelBase.default {
     }
     checkRole(t) {
         var e = $level_29086_config.MapParam[this.mapType].roleWarn;
-        if (-29095 == this.levelID) {
+        if (-10001 == this.levelID) {
             e = $level_29086_config.MapParam[0].roleWarn;
         }
         var o = $level_29086_config.MapParam[this.mapType].rolePoint;

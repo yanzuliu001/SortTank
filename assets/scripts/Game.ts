@@ -1687,7 +1687,7 @@ class Game extends BaseUI.default {
         var e = TankAssemblyConfig.TankAssemblyBottomButtonsHiddenLevelIds || {};
         var n = Number(t);
         // 配置缺失或关卡 ID 类型变化时仍保证坦克组装演示关隐藏 Game 公共底栏。
-        return !!(e[t] || e[String(t)] || e[n] || -29095 == n || -29290 == n);
+        return !!(e[t] || e[String(t)] || e[n] || -10001 == n || -29290 == n);
     }
 
     findChildByNameDeep(t, e) {
@@ -1743,7 +1743,7 @@ class Game extends BaseUI.default {
                 r.push(this.dict[o[c]]);
             }
         }
-        // bottomBar0 是 Game 场景公共底栏，-29095/-29290 演示关卡不使用这套按钮。
+        // bottomBar0 是 Game 场景公共底栏，-10001/-29290 演示关卡不使用这套按钮。
         for (var u = 0; u < r.length; u++) {
             if (r[u]) {
                 r[u].active = false;

@@ -306,7 +306,7 @@ export const levelData = {
         ],
         addSpeed: [20, 80, 5, 3]
     },
-    "-29095": {
+    "-10001": {
         carColor: [[0, 100, [1, 4]]],
         carWeight: [30, 0, 0, 0, 0, 0],
         parkingWeight: 0,
@@ -2637,7 +2637,7 @@ export const colorDes = ["红0", "黄1", "浅蓝2", "蓝3", "绿4", "紫5", "粉
 // 现阶段每种车型只有 A 色资源；B 色未来补齐后作为独立颜色配置，不合并到 A 色资源。
 // 后续补齐 B 色后，只需要把对应 TankSkinByColor 项的 tankAssetPrefix / partAssetPrefix 指向 B 色资源前缀。
 export const TankSkinLevelIds = {
-    "-29095": true,
+    "-10001": true,
     "-29290": true
 };
 export const TankSkinTextureDir = "zqddn_zhb/texture/tank/";
@@ -2673,7 +2673,7 @@ export const TankSkinByColor = {
     0: { type: "rocket", variant: "b", planColor: 8 }
 };
 export const TankAssemblyColorConfigByLevel = {
-    "-29095": [
+    "-10001": [
         2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
         4, 4, 4, 4, 4, 4, 4, 4,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -2698,17 +2698,17 @@ export function getTankPartSpritePathByColor(t) {
     return e ? TankPartTextureDir + e : null;
 }
 export const TankAssemblyLevelIds = {
-    "-29095": true,
+    "-10001": true,
     "-29290": true,
 };
 // 坦克组装演示关卡不展示原玩法手势引导。
 export const TankAssemblyGuideDisabledLevelIds = {
-    "-29095": true,
+    "-10001": true,
     "-29290": true,
 };
 // 坦克组装演示关卡不展示公共底部道具栏。
 export const TankAssemblyBottomButtonsHiddenLevelIds = {
-    "-29095": true,
+    "-10001": true,
     "-29290": true,
 };
 export const TankAssemblyProgressTextureDir = "zqddn_zhb/texture/sorttank/";
@@ -2727,7 +2727,7 @@ export const TankAssemblyArrowOffset = [0, 0];
 export const TankAssemblyTopEnabled = true;
 // 顶部关闭时的演示流程：这些关卡里，全部底部坦克停入组装位后自动进入下一顺序关。
 export const TankAssemblyAutoNextWhenTopDisabledLevelIds = {
-    "-29095": true
+    "-10001": true
 };
 export const TankAssemblyAutoNextDelay = 0.35;
 // 坦克车体移动速度，单位像素/秒；数值越大，出车、转向、入库越快。
