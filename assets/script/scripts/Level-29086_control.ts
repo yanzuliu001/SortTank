@@ -1322,6 +1322,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                 this.carRoot.addChild(e);
                 e.position = this.carRoot.convertToNodeSpaceAR(o);
                 this.initTankLayoutEditorCar(e);
+                this.applyTankArrow(e);
                 this.syncTankLayoutEditorCars();
             } else {
                 e.removeFromParent(false);
