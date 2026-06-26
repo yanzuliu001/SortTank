@@ -5,6 +5,37 @@ temp/quick-scripts/src/assets/script/scripts/Level-29086_control.js
 /temp/
 /library/
 /local/
-assets/PSD
-assets/PSD.meta
+/assets/PSD
+/assets/PSD.meta
 skills-lock.json
+
+# AI 辅助工具配置与技能（本地用，不入库）
+/.claude/
+/.cursor/
+/funplay-cocos-mcp.config.json
+
+# MCP 服务相关
+/settings/mcp-bridge.json
+/settings/mcp-bridge.log
+/packages/mcp-bridge/
+/packages/funplay-cocos-mcp/
+/packages/cocos-mcp-2.x/
+
+# 临时调试/布局脚本与数据（工作产物，不入库）
+/add_tank_nodes.js
+/analyze_tanks.js
+/copy_nodes.js
+/extract_nodes.js
+/fix_parent_sizes.js
+/gen_tank_colliders.js
+/replace_tank_nodes.js
+/solve_angled.js
+/verify_tank_layout.js
+/apply_writeback.js
+/agent.md
+/my_layout.txt
+/new_layout.json
+/_*.js
+/_*.json
+/_*.txt
+/_*.png

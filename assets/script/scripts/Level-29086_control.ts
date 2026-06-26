@@ -415,7 +415,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                 }
                 this.cannonAttackList = $level_29086_config.MapParam[this.mapType].cannonAttackList;
                 //展示碰撞框
-                // this.setCollisionManager(true, this.isTankAssemblyLevel());
+                this.setCollisionManager(true, this.isTankAssemblyLevel());
                 this.carRoot = this.dict.carRoot;
                 this.cannonRoot = this.dict.cannonRoot;
                 this.dragonRoot = this.dict.dragonRoot;
@@ -989,6 +989,14 @@ export default class Level29086Control extends $brainLevelBase.default {
             }
             if ("number" == typeof i.angle) {
                 o.angle = i.angle;
+                var r = this.getTankVisualNode(o);
+                if (r) {
+                    this.layoutTankVisualNode(o, r);
+                }
+                var n = this.getTankArrowNode(o);
+                if (n) {
+                    this.layoutTankArrowNode(o, n);
+                }
             }
         }
     }
@@ -1478,6 +1486,44 @@ export default class Level29086Control extends $brainLevelBase.default {
             })
             .join("\n");
         console.log("[TankDebugLayerConfigPaste:" + i + "]\n    " + i + ": [\n" + n + "\n    ],");
+        // 额外打印一份「全色合并 + 车型名 + carColor」的写回用配置：
+        // 顺序为 groupKeys（blue/green/purple/yellow）每组内按子节点顺序，
+        // 车型名从 TankTypeNameByColor[carColor] 按组内序号轮换。
+        this.printTankDebugLayerWritebackConfig(t, e);
+    }
+    printTankDebugLayerWritebackConfig(t, e) {
+        var keys = e && e.length ? e : this.getTankDebugLayerGroupKeys();
+        var colorMap = $level_29086_config.TankDebugLayerColorId || {};
+        var namePool = $level_29086_config.TankTypeNameByColor || {};
+        var all = [];
+        for (var ki = 0; ki < keys.length; ki++) {
+            var key = keys[ki];
+            var carColor = colorMap[key];
+            var pool = (carColor != null && namePool[carColor]) || [];
+            var arr = t[key] || [];
+            for (var idx = 0; idx < arr.length; idx++) {
+                var item = arr[idx];
+                var tankName = (pool[idx % pool.length]) || item.name;
+                all.push({
+                    name: tankName,
+                    carColor: carColor,
+                    debugName: item.name,
+                    x: item.x,
+                    y: item.y,
+                    angle: item.angle
+                });
+            }
+        }
+        var lines = all.map(function (it) {
+            return (
+                '        { name: "' + it.name + '", carColor: ' + it.carColor +
+                ", x: " + it.x + ", y: " + it.y + ", angle: " + it.angle + ' },'
+            );
+        }).join("\n");
+        console.log("[TankLayoutWriteback:" + this.levelID + "]\n    \"" + this.levelID + "\": [\n" + lines + "\n    ]");
+        // 同时打印颜色配置（写回 carRoot 时需要同步 TankAssemblyColorConfigByLevel）
+        var colors = all.map(function (it) { return it.carColor; });
+        console.log("[TankColorConfigWriteback:" + this.levelID + "]\n    \"" + this.levelID + "\": [" + colors.join(", ") + "],");
     }
     findTankByWorldPoint(t) {
         if (!this.carRoot) {
@@ -3139,6 +3185,14 @@ export default class Level29086Control extends $brainLevelBase.default {
                     a.sizeMode = cc.Sprite.SizeMode.CUSTOM;
                 }
                 n.syncTankSkinNodeSize(t, r, o);
+                // 贴图加载并同步尺寸后，重新把箭头定位到车体几何中心，
+                // 避免 applyTankArrow 在贴图未就绪时算到错误中心。
+                if (n.isTankAssemblyLevel && n.isTankAssemblyLevel()) {
+                    var arrowNode = n.getTankArrowNode(t) || n.getOrCreateTankArrowNode(t);
+                    if (arrowNode) {
+                        n.layoutTankArrowNode(t, arrowNode);
+                    }
+                }
             });
         };
         s(0);
@@ -3270,11 +3324,14 @@ export default class Level29086Control extends $brainLevelBase.default {
         if (!o || !e) {
             return;
         }
-        e.position = cc.v2(0, 0);
+        // 用几何中心 [0.5,0.5] 作为 tankVisual 锚点，位置放在 =car 几何中心 (0, -H/2)。
+        // 这样无论坦克节点怎么旋转，贴图都绕几何中心反旋转，不会因顶部锚点甩出到相邻车位。
+        var H = o.height || e.height || 0;
+        e.anchorX = 0.5;
+        e.anchorY = 0.5;
+        e.position = cc.v2(0, -H / 2);
         e.width = o.width;
         e.height = o.height;
-        e.anchorX = o.anchorX;
-        e.anchorY = o.anchorY;
         e.scaleX = 1;
         e.scaleY = 1;
         e.angle = -((t.angle || 0) + (o.angle || 0));
@@ -3515,11 +3572,21 @@ export default class Level29086Control extends $brainLevelBase.default {
         return e;
     }
     layoutTankArrowNode(t, e) {
+        // 箭头放在车体几何中心。=car 锚点为 [0.5,1]（顶部中心），其几何中心在
+        // 本地 (0, -height/2)。优先用 =car（尺寸在 prefab 中已确定，不依赖异步贴图），
+        // tankVisual 在贴图未加载时 width/height 可能为 0，会导致中心算到 (0,0) 即坦克顶部。
+        var i = cc.v2(0, 0);
         var o = this.getTankCarNode(t);
-        var i = cc.v2(0, -t.height / 2);
-        if (o) {
-            var a = cc.v2((0.5 - o.anchorX) * o.width, (0.5 - o.anchorY) * o.height);
-            i = t.convertToNodeSpaceAR(o.convertToWorldSpaceAR(a));
+        if (o && o.height > 0) {
+            i = cc.v2((0.5 - o.anchorX) * o.width, (0.5 - o.anchorY) * o.height);
+            i = t.convertToNodeSpaceAR(o.convertToWorldSpaceAR(i));
+        } else {
+            var vis = o && o.getChildByName("tankVisual");
+            if (vis && vis.height > 0) {
+                var cx = (0.5 - vis.anchorX) * vis.width;
+                var cy = (0.5 - vis.anchorY) * vis.height;
+                i = t.convertToNodeSpaceAR(vis.convertToWorldSpaceAR(cc.v2(cx, cy)));
+            }
         }
         var r = $level_29086_config.TankAssemblyArrowOffset || [0, 0];
         e.position = cc.v2(i.x + (r[0] || 0), i.y + (r[1] || 0));
@@ -3531,12 +3598,13 @@ export default class Level29086Control extends $brainLevelBase.default {
         if (!this.isTankAssemblyLevel() || t.isCarPark) {
             return;
         }
+        var o = this.getOrCreateTankArrowNode(t);
+        // 先把箭头定位到车体中心，避免贴图异步加载期间停留在 prefab 旧位置。
+        this.layoutTankArrowNode(t, o);
         var e = this.getTankArrowSpritePath(t);
         if (!e) {
             return;
         }
-        var o = this.getOrCreateTankArrowNode(t);
-        this.layoutTankArrowNode(t, o);
         var i = o.getComponent(cc.Sprite);
         this.loadTankSpriteFrame(e, function (e) {
             if (e && cc.isValid(t) && cc.isValid(o)) {
@@ -3658,8 +3726,10 @@ export default class Level29086Control extends $brainLevelBase.default {
     }
     applyTankSkin(t, e) {
         if (this.isTankAssemblyLevel && this.isTankAssemblyLevel()) {
-            // Tank visuals are authored directly in the prefab for this gameplay.
-            // Keep prefab SpriteFrames/sizes intact instead of replacing them at runtime.
+            // Layout config may override node.angle after prefab authoring; refresh directional
+            // sprite + arrow so tankVisual/dir stay counter-rotated to the movement angle.
+            this.refreshTankAssemblyVisualByAngle(t);
+            this.applyTankArrow(t);
             return;
         }
         if (!TANK_SKIN_LEVEL_IDS[this.levelID] || t.isCarPark) {

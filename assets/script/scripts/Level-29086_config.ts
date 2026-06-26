@@ -2673,12 +2673,7 @@ export const TankSkinByColor = {
     0: { type: "rocket", variant: "b", planColor: 8 }
 };
 export const TankAssemblyColorConfigByLevel = {
-    "-10001": [
-        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-        4, 4, 4, 4, 4, 4, 4, 4,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        6, 6, 6, 6, 6, 6, 6
-    ]
+    "-10001": [2, 2, 2, 2, 2, 2, 2, 2]
 };
 export function getTankPartAssetPrefixByColor(t) {
     var e = TankSkinByColor[t];
@@ -2742,6 +2737,28 @@ export const TankAssemblyTypes = [
     // 当前已有 A 色资源：紫色坦克，对应颜色 ID 6。
     { colorId: 6, counterNode: "p3", counterSprite: "tank_purple_a_4", partSprite: "tank_purple_a" }
 ];
+
+// 调试布局层颜色 -> carColor -> 可用车型名池（carRoot 子节点命名）。
+// 用于把调试层摆好的坦克写回 carRoot：按颜色从对应车型池里轮换取名，
+// 保证 getCarImgByColor(name, carColor) 能取到正确贴图，且 8 个方向都有资源。
+// 车型名编码见 getCarImgByColor：name[1]=2/6 为短车身，其余为长车身；name[2] 为长度档位。
+export const TankTypeNameByColor = {
+    // 蓝 = destroyer = carColor 2：歼击车，标准车型 022，长车身 032
+    2: ["022", "032", "022", "032", "022", "032", "022", "032"],
+    // 绿 = howitzer = carColor 4：自行火炮，车型 033 / 023
+    4: ["033", "023", "033", "023", "033", "023", "033", "023"],
+    // 紫 = rocket = carColor 6：火箭车，车型 031 / 012-0
+    6: ["031", "012-0", "031", "012-0", "031", "012-0", "031", "012-0"],
+    // 橙 = tank = carColor 1：坦克，车型 021 / 011-1
+    1: ["021", "011-1", "021", "011-1", "021", "011-1", "021", "011-1"]
+};
+// 调试层颜色组 key -> carColor
+export const TankDebugLayerColorId = {
+    blue: 2,
+    green: 4,
+    purple: 6,
+    yellow: 1
+};
 export const TankAssemblyConveyorConfig = {
     // 零件生成间隔，单位秒；数值越小，零件生成越快。
     spawnInterval: 0.9,
