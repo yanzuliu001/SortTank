@@ -1644,23 +1644,51 @@ export default class Level29086Control extends $brainLevelBase.default {
         if (!this.isTankAssemblyLevel()) {
             return t && t.x < 0 ? -1 : 1;
         }
-        var e = null;
-        for (var o = 0; o < this.parkingNodes.length; o++) {
-            var i = this.parkingNodes[o];
-            if (i && i.active && i.isEmpty) {
-                e = i;
-                break;
+        // 情况①：车位先到先停，可自由就近出车。
+        // 因此底部转弯时优先“就近往本侧开出”：坦克在左半区往左、右半区往右，
+        // 这样坦克不必横穿整排去够远处车位，从根本上避免与同排坦克碰撞。
+        // 仅当就近侧横向通道被其它静止坦克挡住、而另一侧畅通时，才改走另一侧。
+        var selfX = t ? t.x : 0;
+        var preferred = selfX < 0 ? -1 : 1;
+        var other = -preferred;
+        if (this.isTankAssemblyBottomSideBlocked(t, preferred) && !this.isTankAssemblyBottomSideBlocked(t, other)) {
+            return other;
+        }
+        return preferred;
+    }
+    // 判断坦克 t 在底部沿 side(-1 左 / 1 右) 横向开出时，
+    // 通道上是否存在仍处于 Idle 状态、且位于行进前方、纵向区间与转弯车道重叠的坦克。
+    isTankAssemblyBottomSideBlocked(t, side) {
+        if (!t || !this.dict || !this.dict.carRoot) {
+            return false;
+        }
+        var dir = side < 0 ? -1 : 1;
+        var cars = this.dict.carRoot.children || [];
+        // 转弯车道纵向区间（carRoot 本地）：以转弯线为中心，上下各留约半个横向车身。
+        var turnY = this.getRouteBottomTurnY(this.dict.carRoot);
+        var bandHalf = 30;
+        for (var k = 0; k < cars.length; k++) {
+            var c = cars[k];
+            if (!c || c === t || !c.active) {
+                continue;
             }
+            var item = c.getComponent($level_29086_boxCarItem.default);
+            if (!item || item.isReadyDestroy || item.carState != $level_29086_config.CarState.Idle) {
+                continue;
+            }
+            // 只关心位于行进方向前方的坦克。
+            if (dir > 0 ? c.x <= t.x : c.x >= t.x) {
+                continue;
+            }
+            // 纵向需与转弯车道重叠才会真正挡路：碰撞体顶锚下挂，身位约 60。
+            var cTop = c.y;
+            var cBottom = c.y - 60;
+            if (cBottom > turnY + bandHalf || cTop < turnY - bandHalf) {
+                continue;
+            }
+            return true;
         }
-        if (e && this.dict && this.dict.carRoot) {
-            var r = this.getParkingEntryWorldPosition(e);
-            var n = this.dict.carRoot.convertToNodeSpaceAR(r);
-            return n.x >= (t ? t.x : 0) ? 1 : -1;
-        }
-        if (!t || 0 == t.x) {
-            return 1;
-        }
-        return t.x > 0 ? 1 : -1;
+        return false;
     }
     getRouteBottomTurnY(t) {
         if (!this.isTankAssemblyLevel()) {

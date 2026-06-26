@@ -642,13 +642,20 @@ export default class Level29086BoxCarItem extends cc.Component {
             return true;
         }
 
-        if (!isDown && this.node.x <= this.mgr.getRouteSideLimitX(this.node, -1)) {
+        // 计算坦克当前朝向在 x 轴上的分量：forward = (0,1) 绕 angle 逆时针旋转 = (-sin, cos)
+        // 据此判断坦克实际驶向左还是右，只在“正在前往的那一侧”触发转向，
+        // 避免横向坦克（±90°）因为另一侧的 side limit 而在错误方向上瞬间转向。
+        var headingX = -Math.sin((angle * Math.PI) / 180);
+        var headingLeft = headingX < -0.01;
+        var headingRight = headingX > 0.01;
+
+        if (!isDown && headingLeft && this.node.x <= this.mgr.getRouteSideLimitX(this.node, -1)) {
             this.carState = Level29086Config.CarState.GoingRoad;
             this.mgr.changeCar(this.node, 2);
             return true;
         }
 
-        if (!isDown && this.node.x >= this.mgr.getRouteSideLimitX(this.node, 1)) {
+        if (!isDown && headingRight && this.node.x >= this.mgr.getRouteSideLimitX(this.node, 1)) {
             this.carState = Level29086Config.CarState.GoingRoad;
             this.mgr.changeCar(this.node, 2);
             return true;
