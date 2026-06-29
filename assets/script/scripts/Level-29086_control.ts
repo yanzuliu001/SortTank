@@ -680,6 +680,10 @@ export default class Level29086Control extends $brainLevelBase.default {
                                 x: r.x
                             })
                             .call(function () {
+                                if (m.isTankAssemblyLevel()) {
+                                    m.finishTankAssemblyParking(a, a.parking);
+                                    return;
+                                }
                                 a.getComponent($level_29086_boxCarItem.default).carState =
                                     $level_29086_config.CarState.GoingParking;
                                 level29086SilentLog("isRichCar", a.getComponent($level_29086_boxCarItem.default).isRichCar);
@@ -3763,6 +3767,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         this.putTailGas(t);
         t.stopAllActions();
         t.active = false;
+        this.updateCarWeight();
         this.checkTankAssemblyAutoNextWhenTopDisabled();
     }
     applyTankSkin(t, e) {
