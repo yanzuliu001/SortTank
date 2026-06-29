@@ -6,6 +6,7 @@ const $level_29086_config = require("./Level-29086_config");
 const $level_29086_tankLayoutConfig = require("./Level-29086_tankLayoutConfig");
 const $level_29086_tankBoardConfig = require("./Level-29086_tankBoardConfig");
 const $level_29086_tankBoard = require("./Level-29086_tankBoard");
+const $level_29086_tankItem = require("./Level-29086_tankItem");
 const $level_29086_boxCarItem = require("./Level-29086_boxCarItem");
 const $motionTrail = require("./MotionTrail");
 const $level_29086_dragonItem = require("./Level-29086_dragonItem");
@@ -73,6 +74,9 @@ const TANK_SKIN_DIR = {
 
 function level29086SilentLog() {}
 
+//调试区坦克大小
+const TANK_DEBUG_LAYER_SAMPLE_SCALE = 0.8;
+
 @ccclass
 export default class Level29086Control extends $brainLevelBase.default {
     @property(cc.SpriteAtlas)
@@ -101,6 +105,7 @@ export default class Level29086Control extends $brainLevelBase.default {
     tankDebugLayerDragOffset: any = null;
     tankDebugLayerDragSource: any = null;
     tankDebugLayerConfigApplied: any = false;
+    tankDebugLayerSamplesBuilt: any = false;
     _cannonNum: any = Symbol("_cannonNum");
     _cannonType: any = Symbol("_cannonType");
     _cannonState: any = Symbol("_cannonState");
@@ -980,11 +985,56 @@ export default class Level29086Control extends $brainLevelBase.default {
     getTankWaitingBoardConfig() {
         return $level_29086_tankBoardConfig.getTankWaitingBoardConfig(this.levelID);
     }
+    getTankWaitingBoardRectNode() {
+        return this.dict.rectNode || this.findChildDeep(this.node, "rectNode") || null;
+    }
+    getNodeBoundsInTarget(t, e) {
+        if (!t || !e || !cc.isValid(t) || !cc.isValid(e) || t.width <= 0 || t.height <= 0) {
+            return null;
+        }
+        var o = [
+            cc.v2(-t.anchorX * t.width, -t.anchorY * t.height),
+            cc.v2((1 - t.anchorX) * t.width, -t.anchorY * t.height),
+            cc.v2((1 - t.anchorX) * t.width, (1 - t.anchorY) * t.height),
+            cc.v2(-t.anchorX * t.width, (1 - t.anchorY) * t.height)
+        ];
+        var i = [];
+        for (var r = 0; r < o.length; r++) {
+            i.push(e.convertToNodeSpaceAR(t.convertToWorldSpaceAR(o[r])));
+        }
+        var n = i[0].x;
+        var a = i[0].x;
+        var s = i[0].y;
+        var c = i[0].y;
+        for (r = 1; r < i.length; r++) {
+            n = Math.min(n, i[r].x);
+            a = Math.max(a, i[r].x);
+            s = Math.min(s, i[r].y);
+            c = Math.max(c, i[r].y);
+        }
+        return {
+            left: Number(n.toFixed(3)),
+            right: Number(a.toFixed(3)),
+            bottom: Number(s.toFixed(3)),
+            top: Number(c.toFixed(3))
+        };
+    }
+    buildTankWaitingBoardRuntimeConfig(t) {
+        var e = JSON.parse(JSON.stringify(t));
+        e.visualScale = 0.8;
+        var o = this.getTankWaitingBoardRectNode();
+        var i = o && this.carRoot ? this.getNodeBoundsInTarget(o, this.carRoot) : null;
+        if (i) {
+            e.board = i;
+        }
+        return e;
+    }
     initTankWaitingBoard() {
         var t = this.getTankWaitingBoardConfig();
         if (!this.isTankAssemblyLevel() || !t || !this.carRoot) {
             return false;
         }
+        t = this.buildTankWaitingBoardRuntimeConfig(t);
         this.tankWaitingBoard = new $level_29086_tankBoard.default();
         return this.tankWaitingBoard.init(this, this.carRoot, t);
     }
@@ -1068,6 +1118,32 @@ export default class Level29086Control extends $brainLevelBase.default {
         if (i) {
             i.active = e;
         }
+        if (this.tankWaitingBoard && this.tankWaitingBoard.setDebugAreaVisible) {
+            this.tankWaitingBoard.setDebugAreaVisible(e);
+        }
+    }
+    isWorldPointInsideNode(t, e) {
+        if (!t || !e || !cc.isValid(e) || !e.active) {
+            return false;
+        }
+        var o = e.convertToNodeSpaceAR(t);
+        var i = e.width || 0;
+        var r = e.height || 0;
+        return (
+            o.x >= -e.anchorX * i &&
+            o.x <= (1 - e.anchorX) * i &&
+            o.y >= -e.anchorY * r &&
+            o.y <= (1 - e.anchorY) * r
+        );
+    }
+    isWorldPointInsideTankWaitingBoard(t) {
+        if (!this.tankWaitingBoard || !t) {
+            return false;
+        }
+        if (this.tankWaitingBoard.isInsideWorldPosition) {
+            return this.tankWaitingBoard.isInsideWorldPosition(t);
+        }
+        return false;
     }
     getTankDebugLayerGroups() {
         var t = this.dict.debugLayer;
@@ -1089,6 +1165,149 @@ export default class Level29086Control extends $brainLevelBase.default {
     }
     getTankDebugLayerButtonNames() {
         return ["tank_blue_a_2", "tank_green_a_2", "tank_purple_a_2", "tank_yellow_a_2"];
+    }
+    getTankDebugLayerItemManager() {
+        var t = this;
+        return {
+            config: this.getTankWaitingBoardConfig ? this.getTankWaitingBoardConfig() || {} : {},
+            loadSpriteFrame: function (e, o) {
+                t.loadTankSpriteFrame(e, o);
+            }
+        };
+    }
+    createTankDebugLayerItemNode(t, e, o, i, r) {
+        if (!t || !cc.isValid(t)) {
+            return null;
+        }
+        var n = $level_29086_tankBoardConfig.TankTypeConfig[e];
+        if (!n) {
+            cc.error("Unknown tank debug type:", e);
+            return null;
+        }
+        var a = new cc.Node("debug_" + e + "_" + o);
+        t.addChild(a);
+        var s = a.addComponent($level_29086_tankItem.default);
+        s.init(
+            this.getTankDebugLayerItemManager(),
+            {
+                id: e + "_" + o + (r ? "_drag" : ""),
+                type: e,
+                direction: o,
+                x: i.x,
+                y: i.y
+            },
+            n
+        );
+        a.tankDebugType = e;
+        a.tankDebugDirection = o;
+        a.isTankDebugLayerSample = !r;
+        a.isTankLayoutEditorClone = !!r;
+        a.angle = 0;
+        a.scaleX = TANK_DEBUG_LAYER_SAMPLE_SCALE;
+        a.scaleY = TANK_DEBUG_LAYER_SAMPLE_SCALE;
+        return a;
+    }
+    getTankDebugLayerSampleLayout(t, e, o) {
+        var i = this.getTankDebugLayerLayoutConfig();
+        var r = i && i[t] && i[t][e];
+        if (r && "number" == typeof r.x && "number" == typeof r.y) {
+            return cc.v2(r.x, r.y);
+        }
+        if (o && o.children && o.children[e]) {
+            return cc.v2(o.children[e].x, o.children[e].y);
+        }
+        var n = [-210, -95, 30, 155, -210, -95, 30, 155];
+        var a = [25, 25, 25, 25, -95, -95, -95, -95];
+        return cc.v2(n[e] || 0, a[e] || 0);
+    }
+    rebuildTankDebugLayerSampleNodes() {
+        if (!this.dict.debugLayer || this.tankDebugLayerSamplesBuilt) {
+            return;
+        }
+        var t = this.getTankDebugLayerGroups();
+        var e = this.getTankDebugLayerGroupKeys();
+        for (var i = 0; i < t.length; i++) {
+            var r = t[i];
+            var n = e[i];
+            var a = $level_29086_tankBoardConfig.TankTypeConfig[n];
+            if (!r || !a) {
+                continue;
+            }
+            var s = r.children.slice();
+            for (var l = 0; l < s.length; l++) {
+                s[l].removeFromParent(false);
+                s[l].destroy();
+            }
+            for (var h = 0; h < 8; h++) {
+                var p = this.getTankDebugLayerSampleLayout(n, h, r);
+                this.createTankDebugLayerItemNode(r, n, h, p, false);
+            }
+        }
+        this.tankDebugLayerSamplesBuilt = true;
+    }
+    getTankDebugLayerSampleMeta(t) {
+        if (!t) {
+            return null;
+        }
+        if (t.tankDebugType && "number" == typeof t.tankDebugDirection) {
+            return {
+                type: t.tankDebugType,
+                direction: t.tankDebugDirection
+            };
+        }
+        var e = this.getTankDebugLayerGroups();
+        var o = this.getTankDebugLayerGroupKeys();
+        var i = -1;
+        for (var r = 0; r < e.length; r++) {
+            if (t.parent == e[r]) {
+                i = r;
+                break;
+            }
+        }
+        if (i < 0 || !o[i]) {
+            return null;
+        }
+        var n = 0;
+        for (var a = 0; a < t.parent.childrenCount; a++) {
+            var s = t.parent.children[a];
+            if (s.isTankLayoutEditorClone) {
+                continue;
+            }
+            if (s == t) {
+                return {
+                    type: o[i],
+                    direction: n
+                };
+            }
+            n++;
+        }
+        return null;
+    }
+    applyTankDebugLayerSamplePose(t) {
+        var e = this.getTankDebugLayerSampleMeta(t);
+        if (!e) {
+            return;
+        }
+        t.tankDebugType = e.type;
+        t.tankDebugDirection = e.direction;
+        t.angle = 0;
+        if (t.isTankDebugLayerSample || t.isTankLayoutEditorClone) {
+            t.scaleX = TANK_DEBUG_LAYER_SAMPLE_SCALE;
+            t.scaleY = TANK_DEBUG_LAYER_SAMPLE_SCALE;
+        }
+        var i = t.getComponent && t.getComponent($level_29086_tankItem.default);
+        if (i) {
+            if (i.manager && i.manager.loadSpriteFrame) {
+                i.setDirection(e.direction);
+            }
+            i.setArrowVisible && i.setArrowVisible(true);
+            return;
+        }
+        var o = this.getTankVisualNode(t);
+        if (o) {
+            o.angle = 0;
+        }
+        this.setTankAssemblyVisualDirIndex(t, e.direction);
     }
     getTankDebugLayerLayoutConfig() {
         var t = $level_29086_tankLayoutConfig.TankDebugLayerLayoutByLevel || {};
@@ -1119,13 +1338,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                 if ("number" == typeof s.x && "number" == typeof s.y) {
                     a.position = cc.v2(s.x, s.y);
                 }
-                if ("number" == typeof s.angle) {
-                    a.angle = s.angle;
-                    var l = this.getTankVisualNode(a);
-                    if (l) {
-                        l.angle = -s.angle;
-                    }
-                }
+                this.applyTankDebugLayerSamplePose(a);
             }
         }
     }
@@ -1196,6 +1409,10 @@ export default class Level29086Control extends $brainLevelBase.default {
         this.tankDebugLayerDragTarget = null;
         this.tankDebugLayerDragOffset = null;
         this.tankDebugLayerDragSource = null;
+        if (this.tankWaitingBoard && this.tankWaitingBoard.clearDebugItems) {
+            this.tankWaitingBoard.clearDebugItems();
+            return;
+        }
         this.clearTankLayoutEditorCars();
     }
     getTankLayoutRoadWorldY() {
@@ -1247,6 +1464,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         if (!this.isTankAssemblyLevel() || !this.dict.debugLayer) {
             return;
         }
+        this.rebuildTankDebugLayerSampleNodes();
         if (!this.tankDebugLayerConfigApplied) {
             this.applyTankDebugLayerLayoutConfig();
             this.tankDebugLayerConfigApplied = true;
@@ -1296,6 +1514,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                 i.on(cc.Node.EventType.TOUCH_MOVE, this.onTankDebugLayerSampleTouchMove, this);
                 i.on(cc.Node.EventType.TOUCH_END, this.onTankDebugLayerSampleTouchEnd, this);
                 i.on(cc.Node.EventType.TOUCH_CANCEL, this.onTankDebugLayerSampleTouchEnd, this);
+                this.applyTankDebugLayerSamplePose(i);
             }
         }
     }
@@ -1311,19 +1530,21 @@ export default class Level29086Control extends $brainLevelBase.default {
         if (this.tankDebugLayerDragTarget && cc.isValid(this.tankDebugLayerDragTarget)) {
             this.tankDebugLayerDragTarget.destroy();
         }
-        var o = cc.instantiate(e);
+        var r = this.getTankDebugLayerSampleMeta(e);
+        if (!r) {
+            return;
+        }
+        var i = e.parent.convertToNodeSpaceAR(t.getLocation());
+        var o = this.createTankDebugLayerItemNode(e.parent, r.type, r.direction, e.position, true);
+        if (!o) {
+            return;
+        }
         o.name = e.name;
         o.active = true;
         o.opacity = 255;
         o.color = cc.color(255, 255, 255);
-        o.isTankLayoutEditorClone = true;
-        e.parent.addChild(o);
-        o.position = e.position;
-        o.angle = e.angle;
-        o.scaleX = e.scaleX;
-        o.scaleY = e.scaleY;
+        this.applyTankDebugLayerSamplePose(o);
         o.setSiblingIndex(o.parent.childrenCount - 1);
-        var i = o.parent.convertToNodeSpaceAR(t.getLocation());
         this.tankDebugLayerDragSource = e;
         this.tankDebugLayerDragTarget = o;
         this.tankDebugLayerDragOffset = cc.v2(o.x - i.x, o.y - i.y);
@@ -1342,6 +1563,34 @@ export default class Level29086Control extends $brainLevelBase.default {
         var e = this.tankDebugLayerDragTarget;
         if (e && cc.isValid(e) && e.parent) {
             var o = e.parent.convertToWorldSpaceAR(e.position);
+            if (this.isWorldPointInsideTankWaitingBoard(o)) {
+                var r = this.getTankDebugLayerSampleMeta(this.tankDebugLayerDragSource || e);
+                e.removeFromParent(false);
+                e.destroy();
+                if (r && this.tankWaitingBoard.addDebugItem) {
+                    this.tankWaitingBoard.addDebugItem(r.type, r.direction, o);
+                }
+                this.tankDebugLayerDragTarget = null;
+                this.tankDebugLayerDragOffset = null;
+                this.tankDebugLayerDragSource = null;
+                return;
+            }
+            if (this.isWorldPointInsideNode(o, this.dict.debugLayer)) {
+                e.removeFromParent(false);
+                e.destroy();
+                this.tankDebugLayerDragTarget = null;
+                this.tankDebugLayerDragOffset = null;
+                this.tankDebugLayerDragSource = null;
+                return;
+            }
+            if (this.tankWaitingBoard) {
+                e.removeFromParent(false);
+                e.destroy();
+                this.tankDebugLayerDragTarget = null;
+                this.tankDebugLayerDragOffset = null;
+                this.tankDebugLayerDragSource = null;
+                return;
+            }
             var i = this.getTankLayoutRoadWorldY();
             if (this.carRoot && o.y < i) {
                 e.removeFromParent(false);
@@ -1398,6 +1647,13 @@ export default class Level29086Control extends $brainLevelBase.default {
     }
     onTankLayoutPrintButton(t) {
         t && t.stopPropagation && t.stopPropagation();
+        if (this.tankWaitingBoard) {
+            this.printTankWaitingBoardConfig();
+            if (this.dict.debugLayer && this.dict.debugLayer.active) {
+                this.printTankDebugLayerPositions();
+            }
+            return;
+        }
         this.printTankLayoutPositions();
         if (this.dict.debugLayer && this.dict.debugLayer.active) {
             this.printTankDebugLayerPositions();
@@ -1458,6 +1714,30 @@ export default class Level29086Control extends $brainLevelBase.default {
             .join("\n");
         // console.log("[TankLayoutPositions:" + this.levelID + "]", t);
         console.log("[TankLayoutConfigPaste:" + this.levelID + "]\n    \"" + this.levelID + "\": [\n" + e + "\n    ]");
+    }
+    printTankWaitingBoardConfig() {
+        if (!this.tankWaitingBoard || !this.tankWaitingBoard.getConfigSnapshot) {
+            return;
+        }
+        var t = this.tankWaitingBoard.getConfigSnapshot();
+        var e = t
+            .map(function (t) {
+                return (
+                    '            { id: "' +
+                    t.id +
+                    '", type: "' +
+                    t.type +
+                    '", direction: ' +
+                    t.direction +
+                    ", x: " +
+                    t.x +
+                    ", y: " +
+                    t.y +
+                    " },"
+                );
+            })
+            .join("\n");
+        console.log("[TankWaitingBoardTanksPaste:" + this.levelID + "]\n        tanks: [\n" + e + "\n        ]");
     }
     getTankDebugLayerSnapshot() {
         var t = {};
@@ -1544,6 +1824,12 @@ export default class Level29086Control extends $brainLevelBase.default {
         console.log("[TankColorConfigWriteback:" + this.levelID + "]\n    \"" + this.levelID + "\": [" + colors.join(", ") + "],");
     }
     findTankByWorldPoint(t) {
+        if (this.tankWaitingBoard && this.tankWaitingBoard.findItemAt) {
+            var item = this.tankWaitingBoard.findItemAt(t);
+            if (item && item.node) {
+                return item.node;
+            }
+        }
         if (!this.carRoot) {
             return null;
         }
@@ -2825,15 +3111,15 @@ export default class Level29086Control extends $brainLevelBase.default {
     }
     touchStart(t) {
         if (this.isCanStartClick) {
-            if (this.tankWaitingBoard) {
-                this.tankWaitingBoard.handleTouchStart(t);
-                return;
-            }
             t.target;
             if (this.isTankLayoutDebugControlTarget(t.target)) {
                 return;
             }
             if (this.handleTankLayoutDebugTouchStart(t)) {
+                return;
+            }
+            if (this.tankWaitingBoard) {
+                this.tankWaitingBoard.handleTouchStart(t);
                 return;
             }
             var e = t.getLocation();
