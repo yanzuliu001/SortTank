@@ -1021,7 +1021,6 @@ export default class Level29086Control extends $brainLevelBase.default {
     }
     buildTankWaitingBoardRuntimeConfig(t) {
         var e = JSON.parse(JSON.stringify(t));
-        e.visualScale = 0.8;
         var o = this.getTankWaitingBoardRectNode();
         var i = o && this.carRoot ? this.getNodeBoundsInTarget(o, this.carRoot) : null;
         if (i) {
@@ -1100,6 +1099,44 @@ export default class Level29086Control extends $brainLevelBase.default {
             o.string = e;
         }
     }
+    getTankLayoutCurrentLevelDisplayId() {
+        var t = "" + this.levelID;
+        return "-" == t.charAt(0) ? t.substring(1) : t;
+    }
+    getTankLayoutCurrentLevelNode() {
+        return (
+            this.dict.curLevel ||
+            (this.dict.debugLayer && this.findChildDeep(this.dict.debugLayer, "curLevel")) ||
+            null
+        );
+    }
+    getTankLayoutLevelEditNode() {
+        return (
+            this.dict.levelEdit ||
+            (this.dict.debugLayer && this.findChildDeep(this.dict.debugLayer, "levelEdit")) ||
+            null
+        );
+    }
+    updateTankLayoutCurrentLevelText() {
+        var t = this.getTankLayoutCurrentLevelNode();
+        var e = t && t.getComponent(cc.Label);
+        if (e) {
+            e.string = "当前关卡：" + this.getTankLayoutCurrentLevelDisplayId();
+        }
+    }
+    getTankLayoutPrintLevelId() {
+        var t = this.getTankLayoutLevelEditNode();
+        var e = t && t.getComponent(cc.EditBox);
+        var o = e && null != e.string ? ("" + e.string).replace(/^\s+|\s+$/g, "") : "";
+        return o || this.getTankLayoutCurrentLevelDisplayId();
+    }
+    getTankLayoutPrintConfigLevelId() {
+        var t = this.getTankLayoutPrintLevelId();
+        if ("-" == t.charAt(0)) {
+            return t;
+        }
+        return "-" == ("" + this.levelID).charAt(0) ? "-" + t : t;
+    }
     updateTankLayoutDebugButtonText() {
         if (this.dict.debugBtn) {
             this.setButtonLabel(this.dict.debugBtn, this.tankLayoutDebugEnabled ? "关闭调试" : "开启调试");
@@ -1168,10 +1205,13 @@ export default class Level29086Control extends $brainLevelBase.default {
     }
     getTankDebugLayerItemManager() {
         var t = this;
+        var e = this.getTankWaitingBoardConfig ? this.getTankWaitingBoardConfig() || {} : {};
+        e = JSON.parse(JSON.stringify(e));
+        e.visualScale = 1;
         return {
-            config: this.getTankWaitingBoardConfig ? this.getTankWaitingBoardConfig() || {} : {},
-            loadSpriteFrame: function (e, o) {
-                t.loadTankSpriteFrame(e, o);
+            config: e,
+            loadSpriteFrame: function (o, i) {
+                t.loadTankSpriteFrame(o, i);
             }
         };
     }
@@ -1568,7 +1608,11 @@ export default class Level29086Control extends $brainLevelBase.default {
                 e.removeFromParent(false);
                 e.destroy();
                 if (r && this.tankWaitingBoard.addDebugItem) {
-                    this.tankWaitingBoard.addDebugItem(r.type, r.direction, o);
+                    this.tankWaitingBoard.addDebugItem(
+                        $level_29086_tankBoardConfig.getTankTypeValue(r.type),
+                        r.direction,
+                        o
+                    );
                 }
                 this.tankDebugLayerDragTarget = null;
                 this.tankDebugLayerDragOffset = null;
@@ -1612,6 +1656,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         if (!this.isTankAssemblyLevel()) {
             return;
         }
+        this.updateTankLayoutCurrentLevelText();
         this.bindTankDebugLayerButtons();
         this.setTankDebugLayerVisible(this.tankLayoutDebugEnabled);
         var t = this.dict.debugBtn;
@@ -1642,6 +1687,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         this.tankDebugLayerDragTarget = null;
         this.tankDebugLayerDragOffset = null;
         this.setTankDebugLayerVisible(this.tankLayoutDebugEnabled);
+        this.updateTankLayoutCurrentLevelText();
         this.updateTankLayoutDebugButtonText();
         level29086SilentLog("[TankLayoutDebug]", this.tankLayoutDebugEnabled ? "open" : "close");
     }
@@ -1649,9 +1695,6 @@ export default class Level29086Control extends $brainLevelBase.default {
         t && t.stopPropagation && t.stopPropagation();
         if (this.tankWaitingBoard) {
             this.printTankWaitingBoardConfig();
-            if (this.dict.debugLayer && this.dict.debugLayer.active) {
-                this.printTankDebugLayerPositions();
-            }
             return;
         }
         this.printTankLayoutPositions();
@@ -1697,6 +1740,7 @@ export default class Level29086Control extends $brainLevelBase.default {
     }
     printTankLayoutPositions() {
         var t = this.getTankLayoutSnapshot();
+        var levelId = this.getTankLayoutPrintLevelId();
         var e = t
             .map(function (t) {
                 return (
@@ -1713,21 +1757,22 @@ export default class Level29086Control extends $brainLevelBase.default {
             })
             .join("\n");
         // console.log("[TankLayoutPositions:" + this.levelID + "]", t);
-        console.log("[TankLayoutConfigPaste:" + this.levelID + "]\n    \"" + this.levelID + "\": [\n" + e + "\n    ]");
+        console.log("[TankLayoutConfigPaste:" + levelId + "]\n    \"" + levelId + "\": [\n" + e + "\n    ]");
     }
     printTankWaitingBoardConfig() {
         if (!this.tankWaitingBoard || !this.tankWaitingBoard.getConfigSnapshot) {
             return;
         }
         var t = this.tankWaitingBoard.getConfigSnapshot();
+        var configLevelId = this.getTankLayoutPrintConfigLevelId();
         var e = t
             .map(function (t) {
                 return (
                     '            { id: "' +
                     t.id +
-                    '", type: "' +
+                    '", type: ' +
                     t.type +
-                    '", direction: ' +
+                    ", direction: " +
                     t.direction +
                     ", x: " +
                     t.x +
@@ -1737,7 +1782,13 @@ export default class Level29086Control extends $brainLevelBase.default {
                 );
             })
             .join("\n");
-        console.log("[TankWaitingBoardTanksPaste:" + this.levelID + "]\n        tanks: [\n" + e + "\n        ]");
+        console.log(
+            '    "' + configLevelId + '": {\n' +
+            "        tanks: [\n" +
+            e +
+            "\n        ]\n" +
+            "    },"
+        );
     }
     getTankDebugLayerSnapshot() {
         var t = {};
@@ -1783,7 +1834,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                 );
             })
             .join("\n");
-        console.log("[TankDebugLayerConfigPaste:" + i + "]\n    " + i + ": [\n" + n + "\n    ],");
+        // console.log("[TankDebugLayerConfigPaste:" + i + "]\n    " + i + ": [\n" + n + "\n    ],");
         // 额外打印一份「全色合并 + 车型名 + carColor」的写回用配置：
         // 顺序为 groupKeys（blue/green/purple/yellow）每组内按子节点顺序，
         // 车型名从 TankTypeNameByColor[carColor] 按组内序号轮换。
@@ -1818,10 +1869,10 @@ export default class Level29086Control extends $brainLevelBase.default {
                 ", x: " + it.x + ", y: " + it.y + ", angle: " + it.angle + ' },'
             );
         }).join("\n");
-        console.log("[TankLayoutWriteback:" + this.levelID + "]\n    \"" + this.levelID + "\": [\n" + lines + "\n    ]");
+        // console.log("[TankLayoutWriteback:" + this.levelID + "]\n    \"" + this.levelID + "\": [\n" + lines + "\n    ]");
         // 同时打印颜色配置（写回 carRoot 时需要同步 TankAssemblyColorConfigByLevel）
         var colors = all.map(function (it) { return it.carColor; });
-        console.log("[TankColorConfigWriteback:" + this.levelID + "]\n    \"" + this.levelID + "\": [" + colors.join(", ") + "],");
+        // console.log("[TankColorConfigWriteback:" + this.levelID + "]\n    \"" + this.levelID + "\": [" + colors.join(", ") + "],");
     }
     findTankByWorldPoint(t) {
         if (this.tankWaitingBoard && this.tankWaitingBoard.findItemAt) {
