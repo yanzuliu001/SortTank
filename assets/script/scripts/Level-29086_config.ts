@@ -2672,9 +2672,9 @@ export const TankSkinByColor = {
     // 颜色ID 0 / 文档颜色8：火箭车 B 色，补资源后建议使用 tank_purple_b / tank_purple_b_0..7。
     0: { type: "rocket", variant: "b", planColor: 8 }
 };
-export const TankAssemblyColorConfigByLevel = {
-    "-10001": [2, 2, 2, 2, 2, 2, 2, 2]
-};
+// Legacy waiting-board levels may still provide an index-based color list here.
+// New tank-board levels keep type/color in Level-29086_tankBoardConfig.ts.
+export const TankAssemblyColorConfigByLevel = {};
 export function getTankPartAssetPrefixByColor(t) {
     var e = TankSkinByColor[t];
     if (!e) {

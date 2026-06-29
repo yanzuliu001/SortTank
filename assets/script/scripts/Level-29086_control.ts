@@ -4,6 +4,8 @@ const $brainLevelBase = require("./BrainLevelBase");
 const $poolMgr = require("./PoolMgr");
 const $level_29086_config = require("./Level-29086_config");
 const $level_29086_tankLayoutConfig = require("./Level-29086_tankLayoutConfig");
+const $level_29086_tankBoardConfig = require("./Level-29086_tankBoardConfig");
+const $level_29086_tankBoard = require("./Level-29086_tankBoard");
 const $level_29086_boxCarItem = require("./Level-29086_boxCarItem");
 const $motionTrail = require("./MotionTrail");
 const $level_29086_dragonItem = require("./Level-29086_dragonItem");
@@ -261,6 +263,7 @@ export default class Level29086Control extends $brainLevelBase.default {
     tankAssemblyCompletedAmount: any = 0;
     tankAssemblyTotalCarAmount: any = 0;
     tankAssemblyDebugLogged: any = {};
+    tankWaitingBoard: any = null;
 
     onLoad() {
         return __awaiter(this, void 0, void 0, function () {
@@ -969,6 +972,17 @@ export default class Level29086Control extends $brainLevelBase.default {
     getTankLayoutConfig() {
         var t = $level_29086_tankLayoutConfig.TankLayoutByLevel || {};
         return t[this.levelID] || t["" + this.levelID] || null;
+    }
+    getTankWaitingBoardConfig() {
+        return $level_29086_tankBoardConfig.getTankWaitingBoardConfig(this.levelID);
+    }
+    initTankWaitingBoard() {
+        var t = this.getTankWaitingBoardConfig();
+        if (!this.isTankAssemblyLevel() || !t || !this.carRoot) {
+            return false;
+        }
+        this.tankWaitingBoard = new $level_29086_tankBoard.default();
+        return this.tankWaitingBoard.init(this, this.carRoot, t);
     }
     applyTankLayoutConfig() {
         if (!this.isTankAssemblyLevel() || !this.carRoot) {
@@ -2235,6 +2249,8 @@ export default class Level29086Control extends $brainLevelBase.default {
     }
     resetTankAssemblyParking(t) {
         var i = !!(t && t.assemblyCar && !t.isEmpty);
+        var n = t && t.assemblyCar;
+        var a = !!(this.tankWaitingBoard && n && this.tankWaitingBoard.onAssemblyComplete(n));
         var e = t.getChildByName("tankStop");
         var o = t.getChildByName("progressRoot");
         if (e) {
@@ -2252,7 +2268,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         t.assemblyProgress = 0;
         t.assemblyComplete = false;
         t.isEmpty = true;
-        if (i) {
+        if (i && !a) {
             this.moveCarAmount = Math.max(0, this.moveCarAmount - 1);
         }
     }
@@ -2408,6 +2424,14 @@ export default class Level29086Control extends $brainLevelBase.default {
                 }
                 if (this.isTankAssemblyLevel()) {
                     this.initTankAssemblyParkingSlots();
+                    if (this.initTankWaitingBoard()) {
+                        this.initTankAssemblyConveyor();
+                        this.updateHp();
+                        this.onTouch();
+                        this.isCanStartClick = true;
+                        this.createFinish = true;
+                        return [2];
+                    }
                     this.applyTankLayoutConfig();
                 } else {
                     for (_ = 0; _ < this.dict.parkingRoot.childrenCount; _++) {
@@ -2797,6 +2821,10 @@ export default class Level29086Control extends $brainLevelBase.default {
     }
     touchStart(t) {
         if (this.isCanStartClick) {
+            if (this.tankWaitingBoard) {
+                this.tankWaitingBoard.handleTouchStart(t);
+                return;
+            }
             t.target;
             if (this.isTankLayoutDebugControlTarget(t.target)) {
                 return;
@@ -3698,11 +3726,24 @@ export default class Level29086Control extends $brainLevelBase.default {
             }
         }
     }
+    getTankAssemblyCarData(t) {
+        if (this.tankWaitingBoard) {
+            var e = this.tankWaitingBoard.getItemData(t);
+            if (e) {
+                return e;
+            }
+        }
+        return t && t.getComponent($level_29086_boxCarItem.default);
+    }
     finishTankAssemblyParking(t, e) {
         if (!e || !cc.isValid(t)) {
             return;
         }
-        var o = t.getComponent($level_29086_boxCarItem.default);
+        var o = this.getTankAssemblyCarData(t);
+        if (!o) {
+            e.isEmpty = true;
+            return;
+        }
         e.car = t;
         e.assemblyCar = t;
         e.isEmpty = false;

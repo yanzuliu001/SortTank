@@ -1,18 +1,7 @@
 // @ts-nocheck
 
-// Tank layout configs are array-based because prefab node names can repeat.
-export const TankLayoutByLevel = {
-    "-10001": [
-        { name: "022", x: -209.72, y: 18.122, angle: 52 },
-        { name: "032", x: -109.429, y: -1.107, angle: 90 },
-        { name: "022", x: 47.071, y: 26.997, angle: 0 },
-        { name: "032", x: 184.384, y: 22.559, angle: -52 },
-        { name: "022", x: -216.399, y: -106.066, angle: 128 },
-        { name: "032", x: -48.42, y: -88.316, angle: -90 },
-        { name: "022", x: 67.622, y: -113.462, angle: -128 },
-        { name: "032", x: 164.434, y: -119.378, angle: 180 },
-    ]
-};
+// Legacy tank layouts only. New waiting-board levels use Level-29086_tankBoardConfig.ts.
+export const TankLayoutByLevel = {};
 
 export const TankDebugLayerLayoutByLevel = {
     blue: [
