@@ -2774,12 +2774,34 @@ export const TankAssemblyConveyorConfig = {
     moveSpeedMax: 1000,
     // 进入关卡后第一颗零件的延迟时间，单位秒；只影响首颗零件。
     startDelay: 1.2,
-    // 零件匹配坦克后飞向停车位的时间，单位秒；数值越小，吸收越快。
-    absorbDuration: 0.6,
+    // 零件匹配坦克后飞向停车位的时间，单位秒；当前放慢到 2.5 秒便于观察碎裂过程。
+    absorbDuration: 2.5,
     // 吸收飞行进行到多少比例后才开始缩小；0.75 表示最后 25% 路程才缩小。
     absorbShrinkDelayRatio: 0.75,
     // 零件飞到坦克附近时最终缩小到的比例。
     absorbEndScale: 0.2,
+    // 是否开启零件匹配成功后的 Shader 碎裂吸入效果；关闭时使用整图飞行动画。
+    shatterEnabled: true,
+    // 临时观察开关；开启后在碎裂动画开始和完成时输出控制台日志。
+    shatterDebugLog: true,
+    // 碎裂网格横向切分数；2x2 网格每格两个三角形，共 8 个碎片。
+    shatterColumns: 2,
+    // 碎裂网格纵向切分数。
+    shatterRows: 2,
+    // 每个碎片飞行曲线相对直线路径的最大横向偏移，单位像素。
+    shatterCurveSpread: 44,
+    // 每个碎片飞向坦克期间允许的最大旋转角度，单位度。
+    shatterRotation: 540,
+    // 自动识别传送带下排路径时允许的 Y 坐标误差，单位像素。
+    bottomRowYTolerance: 4,
+    // 零件与组装位世界 X 坐标对齐的容差，单位像素；同时会检测相邻帧是否跨过目标 X。
+    absorbXAlignmentTolerance: 4,
+    // 装配完成后，坦克先离开当前排的纵向移动时长，单位秒。
+    assemblyExitVerticalDuration: 0.35,
+    // 上排坦克离开车位后进入右向路线时，相对 toproad 中心线的上移偏移，单位像素。
+    assemblyExitTopRoadOffset: 8,
+    // 装配完成后，坦克向右开出屏幕的移动时长，单位秒。
+    assemblyExitHorizontalDuration: 0.7,
     // 传送带上零件的显示缩放。
     partScale: 1
 };

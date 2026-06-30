@@ -7,6 +7,7 @@ const $level_29086_tankLayoutConfig = require("./Level-29086_tankLayoutConfig");
 const $level_29086_tankBoardConfig = require("./Level-29086_tankBoardConfig");
 const $level_29086_tankBoard = require("./Level-29086_tankBoard");
 const $level_29086_tankItem = require("./Level-29086_tankItem");
+const $level_29086_tankPartShatter = require("./Level-29086_tankPartShatter");
 const $level_29086_boxCarItem = require("./Level-29086_boxCarItem");
 const $motionTrail = require("./MotionTrail");
 const $level_29086_dragonItem = require("./Level-29086_dragonItem");
@@ -62,6 +63,7 @@ const TANK_SKIN_BY_COLOR = $level_29086_config.TankSkinByColor;
 const TANK_ASSEMBLY_TYPES = $level_29086_config.TankAssemblyTypes || [];
 const TANK_ASSEMBLY_CONVEYOR_CONFIG = $level_29086_config.TankAssemblyConveyorConfig || {};
 const TANK_ASSEMBLY_SPEED_ICON_DIR = "zqddn_zhb/texture/sorttank/tank_speed";
+const TANK_PART_SHATTER_EFFECT_PATH = "zqddn_zhb/effect/tank-part-shatter";
 const TANK_SKIN_DIR = {
     0: 2,
     45: 0,
@@ -260,7 +262,10 @@ export default class Level29086Control extends $brainLevelBase.default {
     tankAssemblyAbsorbLayer: any = null;
     tankAssemblyCountBoardRoot: any = null;
     tankAssemblyPathPoints: any = [];
+    tankAssemblyBottomPathStartIndex: any = -1;
     tankAssemblyParts: any = [];
+    tankAssemblyShatterMaterial: any = null;
+    tankAssemblyShatterLoading: any = false;
     tankAssemblyPartSpawnRate: any =
         "number" == typeof TANK_ASSEMBLY_CONVEYOR_CONFIG.spawnRate
             ? TANK_ASSEMBLY_CONVEYOR_CONFIG.spawnRate
@@ -277,6 +282,7 @@ export default class Level29086Control extends $brainLevelBase.default {
     tankAssemblyEnded: any = false;
     tankAssemblyCompletedAmount: any = 0;
     tankAssemblyTotalCarAmount: any = 0;
+    tankAssemblyCompletionPendingAmount: any = 0;
     tankAssemblyDebugLogged: any = {};
     tankWaitingBoard: any = null;
 
@@ -2378,6 +2384,32 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
         return this.tankAssemblyTypeByColor[t] || null;
     }
+    preloadTankAssemblyShatterEffect() {
+        if (
+            false === TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterEnabled ||
+            this.tankAssemblyShatterMaterial ||
+            this.tankAssemblyShatterLoading
+        ) {
+            return;
+        }
+        this.tankAssemblyShatterLoading = true;
+        var t = this;
+        cc.resources.load(TANK_PART_SHATTER_EFFECT_PATH, cc.EffectAsset, function (e, o) {
+            t.tankAssemblyShatterLoading = false;
+            if (e || !o || !t.node || !cc.isValid(t.node)) {
+                cc.warn && cc.warn("load tank part shatter effect failed:", e || TANK_PART_SHATTER_EFFECT_PATH);
+                return;
+            }
+            try {
+                var i = cc.Material.create(o, 0);
+                i.define("USE_TEXTURE", true);
+                i.define("CC_USE_MODEL", true);
+                t.tankAssemblyShatterMaterial = i;
+            } catch (r) {
+                cc.warn && cc.warn("create tank part shatter material failed:", r);
+            }
+        });
+    }
     initTankAssemblyConveyor() {
         this.setTankAssemblyTopVisible(this.isTankAssemblyTopEnabled());
         this.tankAssemblyPartLayer = this.findTankAssemblyNode("partLayer") || this.dict.dragonRoot;
@@ -2396,6 +2428,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         this.tankAssemblySpawnStarted = this.isTankAssemblyTopEnabled();
         this.tankAssemblyEnded = false;
         this.tankAssemblyCompletedAmount = 0;
+        this.tankAssemblyCompletionPendingAmount = 0;
         this.tankAssemblyTotalCarAmount = this.carNodeArr.length;
         this.sortPersonNodes = [];
         this.sortPersonNodes2 = [];
@@ -2417,6 +2450,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             this.clearTankAssemblyParts();
             return;
         }
+        this.preloadTankAssemblyShatterEffect();
         this.buildTankAssemblyPathPoints();
         var t = this.getTankAssemblyConveyorPathRoot();
         this.logTankAssemblyDebug("initConveyor", "传送带初始化", {
@@ -2462,6 +2496,7 @@ export default class Level29086Control extends $brainLevelBase.default {
     }
     buildTankAssemblyPathPoints() {
         this.tankAssemblyPathPoints = [];
+        this.tankAssemblyBottomPathStartIndex = -1;
         if (!this.tankAssemblyPartLayer) {
             return;
         }
@@ -2481,6 +2516,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                 this.tankAssemblyPathPoints.push(this.tankAssemblyPartLayer.convertToNodeSpaceAR(r));
             }
             if (this.tankAssemblyPathPoints.length >= 2) {
+                this.updateTankAssemblyBottomPathStartIndex();
                 return;
             }
             this.tankAssemblyPathPoints = [];
@@ -2505,6 +2541,27 @@ export default class Level29086Control extends $brainLevelBase.default {
                 }
             }
         }
+        this.updateTankAssemblyBottomPathStartIndex();
+    }
+    updateTankAssemblyBottomPathStartIndex() {
+        var t = this.tankAssemblyPathPoints;
+        this.tankAssemblyBottomPathStartIndex = -1;
+        if (!t || t.length < 2) {
+            return;
+        }
+        var e = t[0].y;
+        for (var o = 1; o < t.length; o++) {
+            e = Math.min(e, t[o].y);
+        }
+        var i = TANK_ASSEMBLY_CONVEYOR_CONFIG.bottomRowYTolerance;
+        i = "number" == typeof i ? Math.max(0, i) : 4;
+        for (o = 0; o < t.length - 1; o++) {
+            if (Math.abs(t[o].y - e) <= i && Math.abs(t[o + 1].y - e) <= i) {
+                this.tankAssemblyBottomPathStartIndex = o;
+                return;
+            }
+        }
+        this.tankAssemblyBottomPathStartIndex = Math.max(0, t.length - 2);
     }
     getTankAssemblyConveyorPointNodes(t) {
         var e = [];
@@ -2618,8 +2675,11 @@ export default class Level29086Control extends $brainLevelBase.default {
                 this.tankAssemblyParts.splice(e, 1);
             } else {
                 if (!o.absorbing) {
+                    o.previousWorldPosition = o.node.convertToWorldSpaceAR(cc.v2(0, 0));
                     this.moveTankAssemblyPart(o, t);
-                    this.tryAbsorbTankAssemblyPart(o);
+                    if (this.tankAssemblyParts.indexOf(o) >= 0 && o.node && cc.isValid(o.node)) {
+                        this.tryAbsorbTankAssemblyPart(o);
+                    }
                 }
             }
         }
@@ -2688,27 +2748,66 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
     }
     tryAbsorbTankAssemblyPart(t) {
-        var e = this.getMatchingTankAssemblyParking(t.config.colorId);
+        if (!this.isTankAssemblyPartOnBottomRow(t)) {
+            return;
+        }
+        var e = this.getMatchingTankAssemblyParking(t.config.colorId, t);
         if (!e) {
             return;
         }
         this.absorbTankAssemblyPart(t, e);
     }
-    getMatchingTankAssemblyParking(t) {
-        for (var e = 0; e < this.parkingNodes.length; e++) {
-            var o = this.parkingNodes[e];
+    isTankAssemblyPartOnBottomRow(t) {
+        return !!(
+            t &&
+            "number" == typeof t.pathIndex &&
+            this.tankAssemblyBottomPathStartIndex >= 0 &&
+            t.pathIndex >= this.tankAssemblyBottomPathStartIndex
+        );
+    }
+    isTankAssemblyPartAlignedWithParking(t, e) {
+        if (!t || !t.node || !cc.isValid(t.node) || !e) {
+            return false;
+        }
+        var o = e.getChildByName("tankStop") || e;
+        var i = t.node.convertToWorldSpaceAR(cc.v2(0, 0)).x;
+        var r = o.convertToWorldSpaceAR(cc.v2(0, 0)).x;
+        var n = t.previousWorldPosition && "number" == typeof t.previousWorldPosition.x
+            ? t.previousWorldPosition.x
+            : i;
+        var a = TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbXAlignmentTolerance;
+        a = "number" == typeof a ? Math.max(0, a) : 4;
+        return Math.abs(i - r) <= a || (n - r) * (i - r) <= 0;
+    }
+    getMatchingTankAssemblyParking(t, e?) {
+        var o = null;
+        var i = Infinity;
+        for (var r = 0; r < this.parkingNodes.length; r++) {
+            var n = this.parkingNodes[r];
             if (
-                o &&
-                o.active &&
-                !o.isEmpty &&
-                o.assemblyConfig &&
-                o.assemblyConfig.colorId == t &&
-                !o.assemblyComplete
+                n &&
+                n.active &&
+                !n.isEmpty &&
+                n.assemblyConfig &&
+                n.assemblyConfig.colorId == t &&
+                !n.assemblyComplete &&
+                !n.assemblyCompleting &&
+                (!e || this.isTankAssemblyPartAlignedWithParking(e, n))
             ) {
-                return o;
+                if (!e) {
+                    return n;
+                }
+                var a = n.getChildByName("tankStop") || n;
+                var c = e.node.convertToWorldSpaceAR(cc.v2(0, 0)).x;
+                var l = a.convertToWorldSpaceAR(cc.v2(0, 0)).x;
+                var h = Math.abs(c - l);
+                if (h < i) {
+                    i = h;
+                    o = n;
+                }
             }
         }
-        return null;
+        return o;
     }
     absorbTankAssemblyPart(t, e) {
         if (!t || !t.node || !cc.isValid(t.node)) {
@@ -2720,6 +2819,9 @@ export default class Level29086Control extends $brainLevelBase.default {
         t.node.position = t.node.parent.convertToNodeSpaceAR(o);
         var i = e.getChildByName("tankStop") || e;
         var r = i.convertToWorldSpaceAR(cc.v2(0, 0));
+        if (this.playTankAssemblyPartShatter(t, e, r)) {
+            return;
+        }
         var n = t.node.parent.convertToNodeSpaceAR(r);
         var a = this;
         var c = TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbDuration || 0.25;
@@ -2743,13 +2845,101 @@ export default class Level29086Control extends $brainLevelBase.default {
             })
             .start();
     }
+    playTankAssemblyPartShatter(t, e, o) {
+        if (
+            false === TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterEnabled ||
+            !this.tankAssemblyShatterMaterial ||
+            !$level_29086_tankPartShatter.default
+        ) {
+            return false;
+        }
+        var i = t.node.getComponent(cc.Sprite);
+        var r = i && i.spriteFrame;
+        if (!i || !r) {
+            return false;
+        }
+        var n = null;
+        try {
+            n = new cc.Node("tankPartShatter");
+            n.parent = t.node;
+            n.position = cc.v2(0, 0);
+            n.angle = 0;
+            n.scale = 1;
+            var a = n.addComponent($level_29086_tankPartShatter.default);
+            var c = n.convertToNodeSpaceAR(o);
+            var l = this;
+            var h = a.init(
+                r,
+                this.tankAssemblyShatterMaterial,
+                c,
+                {
+                    columns: null == TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterColumns
+                        ? 2
+                        : TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterColumns,
+                    rows: null == TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterRows
+                        ? 2
+                        : TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterRows,
+                    curveSpread: null == TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterCurveSpread
+                        ? 36
+                        : TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterCurveSpread,
+                    rotation: null == TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterRotation
+                        ? 270
+                        : TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterRotation,
+                    duration: TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbDuration || 0.25,
+                    shrinkStart: TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbShrinkDelayRatio,
+                    endScale: TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbEndScale,
+                    fadeStart: 0.9
+                },
+                function () {
+                    if (t.absorbCompleted) {
+                        return;
+                    }
+                    t.absorbCompleted = true;
+                    if (TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterDebugLog) {
+                        cc.log("[TankPartShatter] complete", {
+                            colorId: t.config && t.config.colorId,
+                            duration: TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbDuration
+                        });
+                    }
+                    if (!l.tankAssemblyEnded) {
+                        l.applyTankAssemblyPartToParking(e);
+                    }
+                    l.removeTankAssemblyPart(t);
+                }
+            );
+            if (!h) {
+                n.destroy();
+                return false;
+            }
+        } catch (p) {
+            if (n && cc.isValid(n)) {
+                n.destroy();
+            }
+            i.enabled = true;
+            cc.warn && cc.warn("play tank part shatter failed, use tween fallback:", p);
+            return false;
+        }
+        i.enabled = false;
+        t.shatterNode = n;
+        if (TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterDebugLog) {
+            cc.log("[TankPartShatter] start", {
+                colorId: t.config && t.config.colorId,
+                duration: TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbDuration,
+                pieces: 2 *
+                    (TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterColumns || 2) *
+                    (TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterRows || 2)
+            });
+        }
+        return true;
+    }
     applyTankAssemblyPartToParking(t) {
         if (this.tankAssemblyEnded || !t || t.isEmpty || t.assemblyComplete) {
             return;
         }
         t.assemblyCollected += 1;
         var e = Math.max(1, t.assemblyCapacity || 1);
-        var o = Math.min(100, Math.ceil((t.assemblyCollected / e) * 100));
+        var i = Math.max(0, Math.min(100, $level_29086_config.TankAssemblyInitialProgress || 0));
+        var o = Math.min(100, Math.ceil(i + (t.assemblyCollected / e) * (100 - i)));
         this.setTankAssemblyParkingProgress(t, o);
         if (t.assemblyCollected >= e) {
             this.completeTankAssemblyParking(t);
@@ -2760,15 +2950,81 @@ export default class Level29086Control extends $brainLevelBase.default {
             return;
         }
         t.assemblyComplete = true;
+        t.assemblyCompleting = true;
+        this.tankAssemblyCompletionPendingAmount += 1;
+        this.playTankAssemblyParkingExit(t);
+    }
+    finishTankAssemblyParkingExit(t) {
+        if (!t || !t.assemblyCompleting) {
+            return;
+        }
+        t.assemblyCompleting = false;
+        this.tankAssemblyCompletionPendingAmount = Math.max(0, this.tankAssemblyCompletionPendingAmount - 1);
         this.tankAssemblyCompletedAmount += 1;
         this.refreshTankAssemblyCounter(t.assemblyColor);
         this.resetTankAssemblyParking(t);
-        if (
-            this.tankAssemblyTotalCarAmount > 0 &&
-            this.tankAssemblyCompletedAmount >= this.tankAssemblyTotalCarAmount
-        ) {
+        if (this.tankAssemblyTotalCarAmount > 0 && this.tankAssemblyCompletedAmount >= this.tankAssemblyTotalCarAmount) {
             this.finishTankAssemblyStage("allComplete");
         }
+    }
+    playTankAssemblyParkingExit(t) {
+        var e = t && t.getChildByName("tankStop");
+        if (!t || !e || !cc.isValid(e)) {
+            this.finishTankAssemblyParkingExit(t);
+            return;
+        }
+        var o = this.getTankAssemblyParkingRowIndex(t);
+        var i = e.parent.convertToWorldSpaceAR(e.position);
+        var r = i.y;
+        var n = this.getTankAssemblyRoadNode(0 == o ? "toproad" : "road");
+        if (n && n.parent) {
+            var a = n.parent.convertToWorldSpaceAR(n.position).y;
+            var s = (e.height || 0) * Math.abs(e.scaleY || 1) / 2;
+            var c = TANK_ASSEMBLY_CONVEYOR_CONFIG.assemblyExitTopRoadOffset;
+            c = "number" == typeof c ? c : 8;
+            r = 0 == o ? Math.max(r, a + c) : Math.min(r, a - s);
+        }
+        var c = e.parent.convertToNodeSpaceAR(cc.v2(i.x, r));
+        var l = this.node.convertToWorldSpaceAR(cc.v2((this.node.width || cc.winSize.width) / 2 + 180, 0)).x;
+        var h = e.parent.convertToNodeSpaceAR(cc.v2(l, r));
+        var p = this;
+        e.stopAllActions();
+        cc.tween(e)
+            .to(TANK_ASSEMBLY_CONVEYOR_CONFIG.assemblyExitVerticalDuration || 0.35, { position: c })
+            .call(function () {
+                p.setTankAssemblyParkingExitRightVisual(t);
+            })
+            .to(TANK_ASSEMBLY_CONVEYOR_CONFIG.assemblyExitHorizontalDuration || 0.7, { position: h })
+            .call(function () {
+                p.finishTankAssemblyParkingExit(t);
+            })
+            .start();
+    }
+    setTankAssemblyParkingExitRightVisual(t) {
+        var e = t && t.getChildByName("tankStop");
+        var o = e && e.getComponent(cc.Sprite);
+        var i = this.getTankAssemblyVisualAssetPrefixByData(t.assemblyCar, {
+            carColor: t.assemblyColor,
+            item: t.assemblyCar && t.assemblyCar._tankWaitingItem
+        });
+        if (!e || !o || !i) {
+            return;
+        }
+        var r = TANK_SKIN_SPRITE_DIR + i + "_5";
+        this.loadTankSpriteFrame(r, function (t) {
+            if (!t || !cc.isValid(e)) {
+                return;
+            }
+            o.spriteFrame = t;
+            if (cc.Sprite.SizeMode && void 0 !== cc.Sprite.SizeMode.CUSTOM) {
+                o.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+            }
+            var i = t.getOriginalSize ? t.getOriginalSize() : t.getRect && t.getRect();
+            if (i && i.width && i.height) {
+                e.width = i.width;
+                e.height = i.height;
+            }
+        });
     }
     refreshTankAssemblyCounter(t) {
         var e = this.tankAssemblyCounters[t];
@@ -2788,6 +3044,8 @@ export default class Level29086Control extends $brainLevelBase.default {
         var o = t.getChildByName("progressRoot");
         if (e) {
             e.active = false;
+            e.stopAllActions();
+            e.position = cc.v2(0, 0);
         }
         if (o) {
             o.active = false;
@@ -2800,6 +3058,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         t.assemblyCollected = 0;
         t.assemblyProgress = 0;
         t.assemblyComplete = false;
+        t.assemblyCompleting = false;
         t.isEmpty = true;
         if (i && !a) {
             this.moveCarAmount = Math.max(0, this.moveCarAmount - 1);
@@ -4232,12 +4491,69 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
         return o;
     }
-    setTankAssemblyParkingProgress(t, e) {
+    getTankAssemblyRoadNode(t) {
+        if (t) {
+            return this.dict[t] || this.findChildDeep(this.node, t) || null;
+        }
+        return this.dict.road || this.findChildDeep(this.node, "road") || null;
+    }
+    getTankAssemblyParkingRowIndex(t) {
+        if (!t || !t.parent) {
+            return 0;
+        }
+        var e = t.parent.children || [];
+        var o = e.indexOf(t);
+        if (o < 0) {
+            return 0;
+        }
+        return o >= Math.ceil(e.length / 2) ? 1 : 0;
+    }
+    getTankAssemblyParkingDirection(t) {
+        return this.getTankAssemblyParkingRowIndex(t) == 0 ? 2 : 7;
+    }
+    getTankAssemblyVisualAssetPrefixByData(t, e) {
+        if (e && e.item && e.item.typeConfig && e.item.typeConfig.assetPrefix) {
+            return e.item.typeConfig.assetPrefix;
+        }
+        var o = e && this.getTankSkinAssetPrefixes(e.carColor);
+        if (o && o.length) {
+            return o[0];
+        }
+        if (t) {
+            return this.getTankVisualAssetPrefix(t);
+        }
+        return null;
+    }
+    setTankAssemblyParkingTankVisual(t, e, o) {
+        var i = t && t.getChildByName("tankStop");
+        var r = i && i.getComponent(cc.Sprite);
+        var n = this.getTankAssemblyVisualAssetPrefixByData(e, o);
+        if (!i || !r || !n) {
+            return;
+        }
+        i.active = true;
+        var a = this.getTankAssemblyParkingDirection(t);
+        var s = TANK_SKIN_SPRITE_DIR + n + "_" + a;
+        this.loadTankSpriteFrame(s, function (t) {
+            if (!t || !cc.isValid(i)) {
+                return;
+            }
+            r.spriteFrame = t;
+            if (cc.Sprite.SizeMode && void 0 !== cc.Sprite.SizeMode.CUSTOM) {
+                r.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+            }
+            var e = t.getOriginalSize ? t.getOriginalSize() : t.getRect && t.getRect();
+            if (e && e.width && e.height) {
+                i.width = e.width;
+                i.height = e.height;
+            }
+        });
+    }
+    setTankAssemblyParkingProgressVisual(t, e) {
         var o = this.getTankAssemblyProgressStage(e);
         if (!o) {
             return;
         }
-        t.assemblyProgress = o.progress;
         var i = t.getChildByName("tankStop");
         if (i) {
             i.active = true;
@@ -4250,12 +4566,24 @@ export default class Level29086Control extends $brainLevelBase.default {
                     }
                 });
         }
-        var a = t.getChildByName("progressRoot");
-        if (a) {
-            a.active = true;
-            var s = a.getComponent(cc.Label);
-            if (s) {
-                s.string = o.progress + "%";
+    }
+    setTankAssemblyParkingProgress(t, e) {
+        var o = this.getTankAssemblyProgressStage(e);
+        if (!o) {
+            return;
+        }
+        var i = Math.max(0, Math.min(100, Math.round(e || 0)));
+        t.assemblyProgress = i;
+        var r = t.getChildByName("tankStop");
+        if (r) {
+            r.active = true;
+        }
+        var n = t.getChildByName("progressRoot");
+        if (n) {
+            n.active = true;
+            var a = n.getComponent(cc.Label);
+            if (a) {
+                a.string = i + "%";
             }
         }
     }
@@ -4289,6 +4617,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         if (!e.assemblyConfig) {
             console.warn("未配置坦克组装颜色", o.carColor);
         }
+        this.setTankAssemblyParkingTankVisual(e, t, o);
         this.setTankAssemblyParkingProgress(e, e.assemblyProgress);
         if (t.getChildByName("boxSpine")) {
             t.getChildByName("boxSpine").active = false;
