@@ -61,6 +61,7 @@ const TANK_SKIN_TYPE_ASSET = $level_29086_config.TankSkinTypeDefaultAsset;
 const TANK_SKIN_BY_COLOR = $level_29086_config.TankSkinByColor;
 const TANK_ASSEMBLY_TYPES = $level_29086_config.TankAssemblyTypes || [];
 const TANK_ASSEMBLY_CONVEYOR_CONFIG = $level_29086_config.TankAssemblyConveyorConfig || {};
+const TANK_ASSEMBLY_SPEED_ICON_DIR = "zqddn_zhb/texture/sorttank/tank_speed";
 const TANK_SKIN_DIR = {
     0: 2,
     45: 0,
@@ -268,6 +269,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         "number" == typeof TANK_ASSEMBLY_CONVEYOR_CONFIG.moveSpeed
             ? TANK_ASSEMBLY_CONVEYOR_CONFIG.moveSpeed
             : 160;
+    tankAssemblySpeedMultiplier: any = 1;
     tankAssemblyTypeByColor: any = {};
     tankAssemblyCounters: any = {};
     tankAssemblySpawnTimer: any = 0;
@@ -1131,6 +1133,9 @@ export default class Level29086Control extends $brainLevelBase.default {
     getTankAssemblySpeedSliderNode() {
         return this.dict.speedSlider || this.findChildDeep(this.node, "speedSlider") || null;
     }
+    getTankAssemblySpeedToggleNode() {
+        return this.dict.tank_speed || this.findChildDeep(this.node, "tank_speed") || null;
+    }
     getTankAssemblyPartSpeedRange() {
         var t = TANK_ASSEMBLY_CONVEYOR_CONFIG.moveSpeedMin;
         var e = TANK_ASSEMBLY_CONVEYOR_CONFIG.moveSpeedMax;
@@ -1153,6 +1158,16 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
         this.tankAssemblyPartMoveSpeed = Math.round(Math.max(e.min, Math.min(e.max, o)));
         this.updateTankAssemblySpeedLabel();
+    }
+    updateTankAssemblySpeedSliderProgress() {
+        var t = this.getTankAssemblySpeedSliderNode();
+        var e = t && t.getComponent(cc.Slider);
+        if (!e) {
+            return;
+        }
+        var o = this.getTankAssemblyPartSpeedRange();
+        var i = this.getTankAssemblyPartMoveSpeed();
+        e.progress = Math.max(0, Math.min(1, (i - o.min) / (o.max - o.min)));
     }
     updateTankAssemblySpeedLabel() {
         var t = this.getTankAssemblySpeedLabelNode();
@@ -1180,13 +1195,49 @@ export default class Level29086Control extends $brainLevelBase.default {
             return;
         }
         this.setTankAssemblySpeedControlVisible(true);
-        var o = this.getTankAssemblyPartSpeedRange();
-        var i = this.getTankAssemblyPartMoveSpeed();
-        e.progress = Math.max(0, Math.min(1, (i - o.min) / (o.max - o.min)));
+        this.updateTankAssemblySpeedSliderProgress();
         var r = cc.Slider.EventType && cc.Slider.EventType.SLIDE ? cc.Slider.EventType.SLIDE : "slide";
         t.off(r, this.onTankAssemblySpeedSlider, this);
         t.on(r, this.onTankAssemblySpeedSlider, this);
         this.updateTankAssemblySpeedLabel();
+    }
+    updateTankAssemblySpeedToggleSprite() {
+        var t = this.getTankAssemblySpeedToggleNode();
+        var e = t && t.getComponent(cc.Sprite);
+        if (!e) {
+            return;
+        }
+        var o = this.tankAssemblySpeedMultiplier;
+        var i = TANK_ASSEMBLY_SPEED_ICON_DIR + (2 == o ? "2" : "1");
+        var r = this;
+        this.loadTankSpriteFrame(i, function (t) {
+            if (t && cc.isValid(e.node) && o == r.tankAssemblySpeedMultiplier) {
+                e.spriteFrame = t;
+            }
+        });
+    }
+    setTankAssemblySpeedMultiplier(t) {
+        this.tankAssemblySpeedMultiplier = 2 == t ? 2 : 1;
+        var e = "number" == typeof TANK_ASSEMBLY_CONVEYOR_CONFIG.moveSpeed
+            ? TANK_ASSEMBLY_CONVEYOR_CONFIG.moveSpeed
+            : 160;
+        this.setTankAssemblyPartMoveSpeed(e * this.tankAssemblySpeedMultiplier);
+        this.updateTankAssemblySpeedSliderProgress();
+        this.updateTankAssemblySpeedToggleSprite();
+    }
+    onTankAssemblySpeedToggle(t) {
+        t && t.stopPropagation && t.stopPropagation();
+        this.setTankAssemblySpeedMultiplier(1 == this.tankAssemblySpeedMultiplier ? 2 : 1);
+    }
+    bindTankAssemblySpeedToggle() {
+        var t = this.getTankAssemblySpeedToggleNode();
+        if (!t) {
+            return;
+        }
+        t.active = true;
+        t.off(cc.Node.EventType.TOUCH_END, this.onTankAssemblySpeedToggle, this);
+        t.on(cc.Node.EventType.TOUCH_END, this.onTankAssemblySpeedToggle, this);
+        this.setTankAssemblySpeedMultiplier(1);
     }
     setTankAssemblySpeedControlVisible(t) {
         var e = this.getTankAssemblySpeedLabelNode();
@@ -1790,6 +1841,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
         this.updateTankLayoutCurrentLevelText();
         this.bindTankAssemblySpeedControl();
+        this.bindTankAssemblySpeedToggle();
         this.bindTankAssemblySpawnRateControl();
         this.bindTankDebugLayerButtons();
         this.setTankDebugLayerVisible(this.tankLayoutDebugEnabled);
@@ -1854,6 +1906,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             this.isNodeOrChildOf(t, this.getTankLayoutPrintButton()) ||
             this.isNodeOrChildOf(t, this.getTankLayoutResetButton()) ||
             this.isNodeOrChildOf(t, this.getTankAssemblySpeedSliderNode()) ||
+            this.isNodeOrChildOf(t, this.getTankAssemblySpeedToggleNode()) ||
             this.isNodeOrChildOf(t, this.dict.scSlider) ||
             this.isNodeOrChildOf(t, this.dict.debugLayer)
         );
