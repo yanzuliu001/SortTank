@@ -2760,10 +2760,18 @@ export const TankDebugLayerColorId = {
     yellow: 1
 };
 export const TankAssemblyConveyorConfig = {
-    // 零件生成间隔，单位秒；数值越小，零件生成越快。
-    spawnInterval: 0.9,
+    // 零件默认生产速度，单位个/秒；1.11 约等于每 0.9 秒生产 1 个。
+    spawnRate: 1.11,
+    // 生产速度滑条最小值，单位个/秒；0 表示暂停生产新零件。
+    spawnRateMin: 0,
+    // 生产速度滑条最大值，单位个/秒；2.22 约为默认生产速度的两倍。
+    spawnRateMax: 2.22,
     // 零件沿传送带路径移动速度，单位像素/秒；数值越小，移动越慢。
     moveSpeed: 60,
+    // 调试速度滑条最小值；设为 0 时可以暂停零件移动。
+    moveSpeedMin: 0,
+    // 调试速度滑条最大值。
+    moveSpeedMax: 1000,
     // 进入关卡后第一颗零件的延迟时间，单位秒；只影响首颗零件。
     startDelay: 1.2,
     // 零件匹配坦克后飞向停车位的时间，单位秒；数值越小，吸收越快。

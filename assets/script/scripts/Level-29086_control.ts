@@ -260,6 +260,14 @@ export default class Level29086Control extends $brainLevelBase.default {
     tankAssemblyCountBoardRoot: any = null;
     tankAssemblyPathPoints: any = [];
     tankAssemblyParts: any = [];
+    tankAssemblyPartSpawnRate: any =
+        "number" == typeof TANK_ASSEMBLY_CONVEYOR_CONFIG.spawnRate
+            ? TANK_ASSEMBLY_CONVEYOR_CONFIG.spawnRate
+            : 1;
+    tankAssemblyPartMoveSpeed: any =
+        "number" == typeof TANK_ASSEMBLY_CONVEYOR_CONFIG.moveSpeed
+            ? TANK_ASSEMBLY_CONVEYOR_CONFIG.moveSpeed
+            : 160;
     tankAssemblyTypeByColor: any = {};
     tankAssemblyCounters: any = {};
     tankAssemblySpawnTimer: any = 0;
@@ -1117,6 +1125,130 @@ export default class Level29086Control extends $brainLevelBase.default {
             null
         );
     }
+    getTankAssemblySpeedLabelNode() {
+        return this.dict.speedLabel || this.findChildDeep(this.node, "speedLabel") || null;
+    }
+    getTankAssemblySpeedSliderNode() {
+        return this.dict.speedSlider || this.findChildDeep(this.node, "speedSlider") || null;
+    }
+    getTankAssemblyPartSpeedRange() {
+        var t = TANK_ASSEMBLY_CONVEYOR_CONFIG.moveSpeedMin;
+        var e = TANK_ASSEMBLY_CONVEYOR_CONFIG.moveSpeedMax;
+        t = "number" == typeof t ? t : 0;
+        e = "number" == typeof e && e > t ? e : t + 1000;
+        return { min: t, max: e };
+    }
+    getTankAssemblyPartMoveSpeed() {
+        return "number" == typeof this.tankAssemblyPartMoveSpeed
+            ? this.tankAssemblyPartMoveSpeed
+            : "number" == typeof TANK_ASSEMBLY_CONVEYOR_CONFIG.moveSpeed
+            ? TANK_ASSEMBLY_CONVEYOR_CONFIG.moveSpeed
+            : 160;
+    }
+    setTankAssemblyPartMoveSpeed(t) {
+        var e = this.getTankAssemblyPartSpeedRange();
+        var o = Number(t);
+        if (!isFinite(o)) {
+            return;
+        }
+        this.tankAssemblyPartMoveSpeed = Math.round(Math.max(e.min, Math.min(e.max, o)));
+        this.updateTankAssemblySpeedLabel();
+    }
+    updateTankAssemblySpeedLabel() {
+        var t = this.getTankAssemblySpeedLabelNode();
+        var e = t && t.getComponent(cc.Label);
+        if (e) {
+            e.string = "移动速度：" + Math.round(this.getTankAssemblyPartMoveSpeed()) //+ " 像素/秒";
+        }
+    }
+    onTankAssemblySpeedSlider(t) {
+        var e = t && "number" == typeof t.progress ? t : null;
+        if (!e) {
+            var o = this.getTankAssemblySpeedSliderNode();
+            e = o && o.getComponent(cc.Slider);
+        }
+        if (!e) {
+            return;
+        }
+        var i = this.getTankAssemblyPartSpeedRange();
+        this.setTankAssemblyPartMoveSpeed(i.min + (i.max - i.min) * e.progress);
+    }
+    bindTankAssemblySpeedControl() {
+        var t = this.getTankAssemblySpeedSliderNode();
+        var e = t && t.getComponent(cc.Slider);
+        if (!t || !e) {
+            return;
+        }
+        this.setTankAssemblySpeedControlVisible(true);
+        var o = this.getTankAssemblyPartSpeedRange();
+        var i = this.getTankAssemblyPartMoveSpeed();
+        e.progress = Math.max(0, Math.min(1, (i - o.min) / (o.max - o.min)));
+        var r = cc.Slider.EventType && cc.Slider.EventType.SLIDE ? cc.Slider.EventType.SLIDE : "slide";
+        t.off(r, this.onTankAssemblySpeedSlider, this);
+        t.on(r, this.onTankAssemblySpeedSlider, this);
+        this.updateTankAssemblySpeedLabel();
+    }
+    setTankAssemblySpeedControlVisible(t) {
+        var e = this.getTankAssemblySpeedLabelNode();
+        var o = this.getTankAssemblySpeedSliderNode();
+        if (e) {
+            e.active = !!t;
+        }
+        if (o) {
+            o.active = !!t;
+        }
+    }
+    getTankAssemblyPartSpawnRateRange() {
+        var t = TANK_ASSEMBLY_CONVEYOR_CONFIG.spawnRateMin;
+        var e = TANK_ASSEMBLY_CONVEYOR_CONFIG.spawnRateMax;
+        t = "number" == typeof t ? t : 0;
+        e = "number" == typeof e && e > t ? e : t + 2;
+        return { min: t, max: e };
+    }
+    getTankAssemblyPartSpawnRate() {
+        return "number" == typeof this.tankAssemblyPartSpawnRate
+            ? this.tankAssemblyPartSpawnRate
+            : 1;
+    }
+    getTankAssemblyPartSpawnInterval() {
+        var t = this.getTankAssemblyPartSpawnRate();
+        if (t <= 0) {
+            return Infinity;
+        }
+        return 1 / t;
+    }
+    setTankAssemblyPartSpawnRate(t) {
+        var e = this.getTankAssemblyPartSpawnRateRange();
+        var o = Number(t);
+        if (!isFinite(o)) {
+            return;
+        }
+        this.tankAssemblyPartSpawnRate = Math.max(e.min, Math.min(e.max, o));
+        this.updateTankAssemblySpawnRateLabel();
+    }
+    updateTankAssemblySpawnRateLabel() {
+        var t = Number(this.getTankAssemblyPartSpawnRate().toFixed(2));
+        this.dict.scLabel.getComponent(cc.Label).string =
+            "生产速度：" + t //+ " 个/秒";
+    }
+    onTankAssemblySpawnRateSlider(t) {
+        var e = t && "number" == typeof t.progress ? t : this.dict.scSlider.getComponent(cc.Slider);
+        var o = this.getTankAssemblyPartSpawnRateRange();
+        this.setTankAssemblyPartSpawnRate(o.min + (o.max - o.min) * e.progress);
+    }
+    bindTankAssemblySpawnRateControl() {
+        var t = this.dict.scSlider;
+        var e = t.getComponent(cc.Slider);
+        var o = this.getTankAssemblyPartSpawnRateRange();
+        var i = this.getTankAssemblyPartSpawnRate();
+        t.active = true;
+        this.dict.scLabel.active = true;
+        e.progress = Math.max(0, Math.min(1, (i - o.min) / (o.max - o.min)));
+        var r = cc.Slider.EventType && cc.Slider.EventType.SLIDE ? cc.Slider.EventType.SLIDE : "slide";
+        t.off(r, this.onTankAssemblySpawnRateSlider, this);
+        t.on(r, this.onTankAssemblySpawnRateSlider, this);
+        this.updateTankAssemblySpawnRateLabel();
+    }
     updateTankLayoutCurrentLevelText() {
         var t = this.getTankLayoutCurrentLevelNode();
         var e = t && t.getComponent(cc.Label);
@@ -1657,6 +1789,8 @@ export default class Level29086Control extends $brainLevelBase.default {
             return;
         }
         this.updateTankLayoutCurrentLevelText();
+        this.bindTankAssemblySpeedControl();
+        this.bindTankAssemblySpawnRateControl();
         this.bindTankDebugLayerButtons();
         this.setTankDebugLayerVisible(this.tankLayoutDebugEnabled);
         var t = this.dict.debugBtn;
@@ -1719,6 +1853,8 @@ export default class Level29086Control extends $brainLevelBase.default {
             this.isNodeOrChildOf(t, this.dict.debugBtn) ||
             this.isNodeOrChildOf(t, this.getTankLayoutPrintButton()) ||
             this.isNodeOrChildOf(t, this.getTankLayoutResetButton()) ||
+            this.isNodeOrChildOf(t, this.getTankAssemblySpeedSliderNode()) ||
+            this.isNodeOrChildOf(t, this.dict.scSlider) ||
             this.isNodeOrChildOf(t, this.dict.debugLayer)
         );
     }
@@ -2415,10 +2551,13 @@ export default class Level29086Control extends $brainLevelBase.default {
             });
             return;
         }
-        this.tankAssemblySpawnTimer += t;
-        if (this.tankAssemblySpawnTimer >= (TANK_ASSEMBLY_CONVEYOR_CONFIG.spawnInterval || 1)) {
-            this.tankAssemblySpawnTimer = 0;
-            this.createTankAssemblyPart();
+        var spawnInterval = this.getTankAssemblyPartSpawnInterval();
+        if (isFinite(spawnInterval)) {
+            this.tankAssemblySpawnTimer += t;
+            if (this.tankAssemblySpawnTimer >= spawnInterval) {
+                this.tankAssemblySpawnTimer = 0;
+                this.createTankAssemblyPart();
+            }
         }
         for (var e = this.tankAssemblyParts.length - 1; e >= 0; e--) {
             var o = this.tankAssemblyParts[e];
@@ -2481,7 +2620,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
         var i = cc.v2(o.x - t.node.x, o.y - t.node.y);
         var r = i.mag();
-        var n = (TANK_ASSEMBLY_CONVEYOR_CONFIG.moveSpeed || 160) * (e || 0.016);
+        var n = this.getTankAssemblyPartMoveSpeed() * (e || 0.016);
         if (r <= n) {
             t.node.position = cc.v2(o.x, o.y);
             t.pathIndex++;
