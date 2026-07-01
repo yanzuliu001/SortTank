@@ -311,6 +311,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                         (this.dict["map" + e].removeFromParent(), this.dict["mapBg" + e].removeFromParent());
                 }
                 $brainLevelBase.default.prototype.onLoad.call(this);
+                this.setTankAssemblyOkVisible(false);
                 this.dict.carRoot.active = false;
                 this._itemTipsNode = new cc.Node();
                 this._itemTipsNode.parent = this.dict.game;
@@ -2152,6 +2153,12 @@ export default class Level29086Control extends $brainLevelBase.default {
             e.active = t;
         }
     }
+    setTankAssemblyOkVisible(t) {
+        var e = this.dict.okPrefab || this.findChildDeep(this.node, "okPrefab");
+        if (e) {
+            e.active = !!t;
+        }
+    }
     shouldAutoNextWhenTankAssemblyTopDisabled() {
         return (
             this.isTankAssemblyLevel() &&
@@ -2350,6 +2357,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             e.assemblyConfig = null;
             e.assemblyCapacity = 0;
             e.assemblyCollected = 0;
+            e.assemblyIncoming = 0;
             e.assemblyProgress = 0;
             e.assemblyComplete = false;
             if (e.active && !e.getChildByName("videoLock") && !e.getChildByName("fireSpine")) {
@@ -2411,6 +2419,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         });
     }
     initTankAssemblyConveyor() {
+        this.setTankAssemblyOkVisible(false);
         this.setTankAssemblyTopVisible(this.isTankAssemblyTopEnabled());
         this.tankAssemblyPartLayer = this.findTankAssemblyNode("partLayer") || this.dict.dragonRoot;
         this.tankAssemblyAbsorbLayer = this.findTankAssemblyNode("absorbEffectLayer") || this.tankAssemblyPartLayer;
@@ -2796,6 +2805,8 @@ export default class Level29086Control extends $brainLevelBase.default {
                 n.assemblyConfig.colorId == t &&
                 !n.assemblyComplete &&
                 !n.assemblyCompleting &&
+                (Number(n.assemblyCollected) || 0) + (Number(n.assemblyIncoming) || 0) <
+                    Math.max(1, Number(n.assemblyCapacity) || 1) &&
                 (!e || this.isTankAssemblyPartAlignedWithParking(e, n))
             ) {
                 if (!e) {
@@ -2815,6 +2826,9 @@ export default class Level29086Control extends $brainLevelBase.default {
     }
     absorbTankAssemblyPart(t, e) {
         if (!t || !t.node || !cc.isValid(t.node)) {
+            return;
+        }
+        if (!this.reserveTankAssemblyPartCapacity(t, e)) {
             return;
         }
         t.absorbing = true;
@@ -2844,6 +2858,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                 position: n
             })
             .call(function () {
+                a.releaseTankAssemblyPartCapacity(t);
                 a.applyTankAssemblyPartToParking(e);
                 a.removeTankAssemblyPart(t);
             })
@@ -2905,6 +2920,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                             duration: TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbDuration
                         });
                     }
+                    l.releaseTankAssemblyPartCapacity(t);
                     if (!l.tankAssemblyEnded) {
                         l.applyTankAssemblyPartToParking(e);
                     }
@@ -2935,6 +2951,32 @@ export default class Level29086Control extends $brainLevelBase.default {
             });
         }
         return true;
+    }
+    reserveTankAssemblyPartCapacity(t, e) {
+        if (!t || !e || t.assemblyReservationActive || e.isEmpty || e.assemblyComplete || e.assemblyCompleting) {
+            return false;
+        }
+        var o = Math.max(1, Number(e.assemblyCapacity) || 1);
+        var i = Math.max(0, Number(e.assemblyCollected) || 0);
+        var r = Math.max(0, Number(e.assemblyIncoming) || 0);
+        if (i + r >= o) {
+            return false;
+        }
+        e.assemblyIncoming = r + 1;
+        t.assemblyParking = e;
+        t.assemblyReservationActive = true;
+        return true;
+    }
+    releaseTankAssemblyPartCapacity(t) {
+        if (!t || !t.assemblyReservationActive) {
+            return;
+        }
+        var e = t.assemblyParking;
+        if (e) {
+            e.assemblyIncoming = Math.max(0, (Number(e.assemblyIncoming) || 0) - 1);
+        }
+        t.assemblyReservationActive = false;
+        t.assemblyParking = null;
     }
     applyTankAssemblyPartToParking(t) {
         if (this.tankAssemblyEnded || !t || t.isEmpty || t.assemblyComplete) {
@@ -3068,6 +3110,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         t.assemblyConfig = null;
         t.assemblyCapacity = 0;
         t.assemblyCollected = 0;
+        t.assemblyIncoming = 0;
         t.assemblyProgress = 0;
         t.assemblyComplete = false;
         t.assemblyCompleting = false;
@@ -3077,6 +3120,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
     }
     removeTankAssemblyPart(t) {
+        this.releaseTankAssemblyPartCapacity(t);
         var e = this.tankAssemblyParts.indexOf(t);
         if (e >= 0) {
             this.tankAssemblyParts.splice(e, 1);
@@ -3097,6 +3141,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         this.tankAssemblyEnded = true;
         this.tankAssemblySpawnStarted = false;
         this.clearTankAssemblyParts();
+        this.setTankAssemblyOkVisible("allComplete" == t);
         var e = {
             reason: t,
             completedAmount: this.tankAssemblyCompletedAmount,
@@ -4624,6 +4669,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         e.assemblyConfig = this.getTankAssemblyTypeByColor(o.carColor);
         e.assemblyCapacity = o.seatTotalAmount;
         e.assemblyCollected = 0;
+        e.assemblyIncoming = 0;
         e.assemblyProgress = this.calculateTankAssemblyParkingProgress(
             e.assemblyCollected,
             e.assemblyCapacity

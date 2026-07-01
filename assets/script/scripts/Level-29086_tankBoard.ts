@@ -280,10 +280,20 @@ export default class Level29086TankBoard {
     }
 
     findFirstEmptyParking() {
+        var owner = this.owner;
         var parkingNodes = (this.owner.parkingNodes || []).filter(function (node) {
             return node && node.active && node.isEmpty;
         });
         parkingNodes.sort(function (a, b) {
+            var rowA = owner.getTankAssemblyParkingRowIndex
+                ? owner.getTankAssemblyParkingRowIndex(a)
+                : 0;
+            var rowB = owner.getTankAssemblyParkingRowIndex
+                ? owner.getTankAssemblyParkingRowIndex(b)
+                : 0;
+            if (rowA != rowB) {
+                return rowA - rowB;
+            }
             var ax = a.parent.convertToWorldSpaceAR(a.position).x;
             var bx = b.parent.convertToWorldSpaceAR(b.position).x;
             return ax - bx;

@@ -141,7 +141,7 @@ export default class Level29086TankPartShatter extends cc.RenderComponent {
                     var points = triangles[triangle];
                     var centerU = (points[0].u + points[1].u + points[2].u) / 3;
                     var centerV = (points[0].v + points[1].v + points[2].v) / 3;
-                    var metadata = this.packMetadata(centerU, centerV, pieceIndex, pieceIndex % 2);
+                    var metadata = this.packMetadata(centerU, centerV, pieceIndex);
                     for (var point = 0; point < 3; point++) {
                         var item = points[point];
                         var offset = vertexIndex * this.vertexStride;
@@ -160,11 +160,12 @@ export default class Level29086TankPartShatter extends cc.RenderComponent {
         }
     }
 
-    packMetadata(centerU, centerV, pieceIndex, curveSide) {
+    packMetadata(centerU, centerV, pieceIndex) {
         var r = Math.round(this.clamp01(centerU) * 255);
         var g = Math.round(this.clamp01(centerV) * 255);
         var b = Math.round((((pieceIndex + 1) * 37) % 251) / 250 * 255);
-        var a = curveSide ? 255 : 0;
+        // Alpha 通道存储连续曲线偏移，使碎片分散在多条轨迹上，而不是重叠成左右两束。
+        var a = Math.round((((pieceIndex + 1) * 73) % 251) / 250 * 255);
         return ((a << 24) | (b << 16) | (g << 8) | r) >>> 0;
     }
 

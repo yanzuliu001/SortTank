@@ -2775,8 +2775,8 @@ export const TankAssemblyConveyorConfig = {
     moveSpeedMax: 1000,
     // 进入关卡后第一颗零件的延迟时间，单位秒；只影响首颗零件。
     startDelay: 1.2,
-    // 零件匹配坦克后飞向停车位的时间，单位秒；当前放慢到 2.5 秒便于观察碎裂过程。
-    absorbDuration: 2.5,
+    // 零件匹配坦克后飞向停车位的时间，单位秒。
+    absorbDuration: 2,
     // 吸收飞行进行到多少比例后才开始缩小；0.75 表示最后 25% 路程才缩小。
     absorbShrinkDelayRatio: 0.75,
     // 零件飞到坦克附近时最终缩小到的比例。
@@ -2785,10 +2785,10 @@ export const TankAssemblyConveyorConfig = {
     shatterEnabled: true,
     // 临时观察开关；开启后在碎裂动画开始和完成时输出控制台日志。
     shatterDebugLog: true,
-    // 碎裂网格横向切分数；2x2 网格每格两个三角形，共 8 个碎片。
-    shatterColumns: 2,
-    // 碎裂网格纵向切分数。
-    shatterRows: 2,
+    // 碎裂网格横向切分数；4x4 网格每格两个三角形，共 32 个碎片、96 个顶点。
+    shatterColumns: 4,
+    // 碎裂网格纵向切分数；仍保持单渲染节点和单 Draw Call。
+    shatterRows: 4,
     // 每个碎片飞行曲线相对直线路径的最大横向偏移，单位像素。
     shatterCurveSpread: 44,
     // 每个碎片飞向坦克期间允许的最大旋转角度，单位度。
