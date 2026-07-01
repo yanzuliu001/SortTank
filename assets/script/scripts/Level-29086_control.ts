@@ -2644,6 +2644,10 @@ export default class Level29086Control extends $brainLevelBase.default {
             });
             return;
         }
+        // 调试布局期间冻结传送带状态；关闭面板后从原位置和原计时继续。
+        if (this.tankLayoutDebugEnabled) {
+            return;
+        }
         if (!this.tankAssemblySpawnStarted || this.tankAssemblyEnded || !this.tankAssemblyPartLayer) {
             this.logTankAssemblyDebug("updateBlocked", "传送带 update 被跳过：状态未就绪", {
                 spawnStarted: this.tankAssemblySpawnStarted,
@@ -2938,12 +2942,16 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
         t.assemblyCollected += 1;
         var e = Math.max(1, t.assemblyCapacity || 1);
-        var i = Math.max(0, Math.min(100, $level_29086_config.TankAssemblyInitialProgress || 0));
-        var o = Math.min(100, Math.ceil(i + (t.assemblyCollected / e) * (100 - i)));
+        var o = this.calculateTankAssemblyParkingProgress(t.assemblyCollected, e);
         this.setTankAssemblyParkingProgress(t, o);
         if (t.assemblyCollected >= e) {
             this.completeTankAssemblyParking(t);
         }
+    }
+    calculateTankAssemblyParkingProgress(t, e) {
+        var o = Math.max(0, Number(t) || 0);
+        var i = Math.max(1, Number(e) || 1);
+        return Math.max(0, Math.min(100, Math.round((o / i) * 100)));
     }
     completeTankAssemblyParking(t) {
         if (!t || t.assemblyComplete) {
@@ -2952,6 +2960,10 @@ export default class Level29086Control extends $brainLevelBase.default {
         t.assemblyComplete = true;
         t.assemblyCompleting = true;
         this.tankAssemblyCompletionPendingAmount += 1;
+        var e = t.getChildByName("progressRoot");
+        if (e) {
+            e.active = false;
+        }
         this.playTankAssemblyParkingExit(t);
     }
     finishTankAssemblyParkingExit(t) {
@@ -4612,7 +4624,10 @@ export default class Level29086Control extends $brainLevelBase.default {
         e.assemblyConfig = this.getTankAssemblyTypeByColor(o.carColor);
         e.assemblyCapacity = o.seatTotalAmount;
         e.assemblyCollected = 0;
-        e.assemblyProgress = $level_29086_config.TankAssemblyInitialProgress;
+        e.assemblyProgress = this.calculateTankAssemblyParkingProgress(
+            e.assemblyCollected,
+            e.assemblyCapacity
+        );
         e.assemblyComplete = false;
         if (!e.assemblyConfig) {
             console.warn("未配置坦克组装颜色", o.carColor);

@@ -2712,7 +2712,8 @@ export const TankAssemblyProgressStages = [
     { progress: 70, sprite: "sort_tank_icon2" },
     { progress: 100, sprite: "sort_tank_icon3" }
 ];
-export const TankAssemblyInitialProgress = 30;
+// 装配位初始进度；未收集零件时固定为 0%，实际进度由已收集数量/坦克容量计算。
+export const TankAssemblyInitialProgress = 0;
 // 底部坦克方向箭头，资源放在 TankAssemblyProgressTextureDir 下，命名为 tank_arrow_0..7。
 export const TankAssemblyArrowEnabled = true;
 export const TankAssemblyArrowSpritePrefix = "tank_arrow_";
