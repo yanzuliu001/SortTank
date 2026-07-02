@@ -3,11 +3,28 @@
 const AudioManager = require("../../scripts/AudioManager");
 const Level249667Chain = require("./Level-249667_chain");
 const Level249667UTransport = require("./Level-249667_uTransport");
-const Level29086Config = require("./Level-29086_config");
 
 const { ccclass, property } = cc._decorator;
 
 function level29086SilentLog() {}
+
+// Legacy carPrefab compatibility only. The tank assembly board does not use this state machine.
+export enum CarState {
+    Idle = -1,
+    Normal = 0,
+    NormalNoObstruct = 1,
+    GoingRoad = 2,
+    InRoadRight = 3,
+    InRoadLeft = 4,
+    GoingParking = 5,
+    Parking = 6,
+    GoingOutParking = 7,
+    OutParking = 8,
+    OnBottomLeft = 9,
+    OnBottomRight = 10,
+    WaterSpray = 11,
+    WaterSprayLeave = 12
+}
 
 @ccclass
 export default class Level29086BoxCarItem extends cc.Component {
@@ -47,7 +64,7 @@ export default class Level29086BoxCarItem extends cc.Component {
     minLen: number = 10;
     oldPos: cc.Vec2 | cc.Vec3 | null = null;
     floatPos: cc.Vec2 | cc.Vec3 | null = null;
-    carState: number = Level29086Config.CarState.Idle;
+    carState: number = CarState.Idle;
     speed: number = 750;
     isCanClick: boolean = true;
     isCollision: boolean = false;
@@ -76,7 +93,7 @@ export default class Level29086BoxCarItem extends cc.Component {
             return;
         }
 
-        if (this.carState == Level29086Config.CarState.Normal) {
+        if (this.carState == CarState.Normal) {
             if (this.updateNormalMovingCar()) {
                 return;
             }
@@ -84,31 +101,31 @@ export default class Level29086BoxCarItem extends cc.Component {
 
         if (this.shouldCheckTankAssemblyBottomMovingCollision()) {
             this.checkMovingCollisionWithIdleCars();
-            if (this.carState == Level29086Config.CarState.Idle) {
+            if (this.carState == CarState.Idle) {
                 return;
             }
         }
 
         if (
-            this.carState == Level29086Config.CarState.OnBottomLeft &&
+            this.carState == CarState.OnBottomLeft &&
             this.node.x <= this.mgr.getRouteSideLimitX(this.node, -1)
         ) {
-            this.carState = Level29086Config.CarState.GoingRoad;
+            this.carState = CarState.GoingRoad;
             this.mgr.changeCar(this.node, 2);
             return;
         }
 
         if (
-            this.carState == Level29086Config.CarState.OnBottomRight &&
+            this.carState == CarState.OnBottomRight &&
             this.node.x >= this.mgr.getRouteSideLimitX(this.node, 1)
         ) {
-            this.carState = Level29086Config.CarState.GoingRoad;
+            this.carState = CarState.GoingRoad;
             this.mgr.changeCar(this.node, 2);
             return;
         }
 
         if (
-            this.carState == Level29086Config.CarState.OutParking &&
+            this.carState == CarState.OutParking &&
             this.node.x >= cc.winSize.width / 2 + 6 * this.node.width
         ) {
             this.mgr.checkRes();
@@ -116,7 +133,7 @@ export default class Level29086BoxCarItem extends cc.Component {
         }
 
         if (
-            this.carState == Level29086Config.CarState.WaterSprayLeave &&
+            this.carState == CarState.WaterSprayLeave &&
             this.node.x <= -(cc.winSize.width / 2 + this.node.height)
         ) {
             level29086SilentLog("销毁消防车");
@@ -125,7 +142,7 @@ export default class Level29086BoxCarItem extends cc.Component {
     }
 
     railCarTurnChange(turnDirection: string) {
-        this.carState = Level29086Config.CarState.Normal;
+        this.carState = CarState.Normal;
 
         if ("up" == turnDirection) {
             this.tramcarPosIndex += 1;
@@ -160,7 +177,7 @@ export default class Level29086BoxCarItem extends cc.Component {
         }
         this.playCrashSound();
         this.mgr.hit(this.node);
-        this.carState = Level29086Config.CarState.Idle;
+        this.carState = CarState.Idle;
 
         if (this.node.isCarPark) {
             this.node.isWen = true;
@@ -222,7 +239,7 @@ export default class Level29086BoxCarItem extends cc.Component {
         }
         this.playCrashSound();
         this.mgr.hit(this.node);
-        this.carState = Level29086Config.CarState.Idle;
+        this.carState = CarState.Idle;
 
         if (this.node.isCarPark) {
             this.node.isWen = true;
@@ -263,7 +280,7 @@ export default class Level29086BoxCarItem extends cc.Component {
         }
         this.playCrashSound();
         this.mgr.hit(this.node);
-        this.carState = Level29086Config.CarState.Idle;
+        this.carState = CarState.Idle;
 
         if (this.node.isCarPark) {
             this.node.isWen = true;
@@ -364,7 +381,7 @@ export default class Level29086BoxCarItem extends cc.Component {
                 item &&
                 !item.isReadyDestroy &&
                 !item.isUTransportCar &&
-                item.carState == Level29086Config.CarState.Idle
+                item.carState == CarState.Idle
             );
         });
     }
@@ -427,8 +444,8 @@ export default class Level29086BoxCarItem extends cc.Component {
             this.mgr &&
             this.mgr.isTankAssemblyLevel &&
             this.mgr.isTankAssemblyLevel() &&
-            (this.carState == Level29086Config.CarState.OnBottomLeft ||
-                this.carState == Level29086Config.CarState.OnBottomRight)
+            (this.carState == CarState.OnBottomLeft ||
+                this.carState == CarState.OnBottomRight)
         );
     }
 
@@ -558,13 +575,13 @@ export default class Level29086BoxCarItem extends cc.Component {
         }
 
         if (this.node.x <= this.mgr.getRouteSideLimitX(this.node, -1)) {
-            this.carState = Level29086Config.CarState.GoingRoad;
+            this.carState = CarState.GoingRoad;
             this.mgr.changeCar(this.node, 2);
             return true;
         }
 
         if (this.node.x >= this.mgr.getRouteSideLimitX(this.node, 1)) {
-            this.carState = Level29086Config.CarState.GoingRoad;
+            this.carState = CarState.GoingRoad;
             this.mgr.changeCar(this.node, 2);
             return true;
         }
@@ -572,22 +589,22 @@ export default class Level29086BoxCarItem extends cc.Component {
         const bottomTurnY = this.mgr.getRouteBottomTurnY ? this.mgr.getRouteBottomTurnY(this.node.parent) : -620;
 
         if (this.node.y <= bottomTurnY && this.node.x > 0) {
-            this.carState = Level29086Config.CarState.OnBottomRight;
+            this.carState = CarState.OnBottomRight;
             this.mgr.changeCar(this.node, 1, 1, "01" + this.lenImgName + "-1");
             return true;
         }
 
         if (this.node.y <= bottomTurnY && this.node.x < 0) {
-            this.carState = Level29086Config.CarState.OnBottomLeft;
+            this.carState = CarState.OnBottomLeft;
             this.mgr.changeCar(this.node, 1, 2, "01" + this.lenImgName + "-0");
             return true;
         }
 
         if (this.leftObliqueCar && this.node.x >= -189.008) {
-            this.carState = Level29086Config.CarState.GoingRoad;
+            this.carState = CarState.GoingRoad;
             this.mgr.changeCar(this.node, 2);
         } else if (this.rightObliqueCar && this.node.x <= 189.008) {
-            this.carState = Level29086Config.CarState.GoingRoad;
+            this.carState = CarState.GoingRoad;
             this.mgr.changeCar(this.node, 2);
         } else {
             this.checkUTransportTurnToRoad();
@@ -600,7 +617,7 @@ export default class Level29086BoxCarItem extends cc.Component {
     private updateTankAssemblyNormalMovingCar() {
         this.isCanClick = false;
         this.checkMovingCollisionWithIdleCars();
-        if (this.carState == Level29086Config.CarState.Idle) {
+        if (this.carState == CarState.Idle) {
             return true;
         }
 
@@ -633,10 +650,10 @@ export default class Level29086BoxCarItem extends cc.Component {
                 ? -1
                 : 1;
             if (side < 0) {
-                this.carState = Level29086Config.CarState.OnBottomLeft;
+                this.carState = CarState.OnBottomLeft;
                 this.mgr.changeCar(this.node, 1, 2, "01" + this.lenImgName + "-0");
             } else {
-                this.carState = Level29086Config.CarState.OnBottomRight;
+                this.carState = CarState.OnBottomRight;
                 this.mgr.changeCar(this.node, 1, 1, "01" + this.lenImgName + "-1");
             }
             return true;
@@ -650,13 +667,13 @@ export default class Level29086BoxCarItem extends cc.Component {
         var headingRight = headingX > 0.01;
 
         if (!isDown && headingLeft && this.node.x <= this.mgr.getRouteSideLimitX(this.node, -1)) {
-            this.carState = Level29086Config.CarState.GoingRoad;
+            this.carState = CarState.GoingRoad;
             this.mgr.changeCar(this.node, 2);
             return true;
         }
 
         if (!isDown && headingRight && this.node.x >= this.mgr.getRouteSideLimitX(this.node, 1)) {
-            this.carState = Level29086Config.CarState.GoingRoad;
+            this.carState = CarState.GoingRoad;
             this.mgr.changeCar(this.node, 2);
             return true;
         }
@@ -702,7 +719,7 @@ export default class Level29086BoxCarItem extends cc.Component {
         for (let index = 0; index < movingCandidates.length; index++) {
             const otherCar = movingCandidates[index];
             try {
-                if (!otherCar || otherCar.getComponent(Level29086BoxCarItem).carState != Level29086Config.CarState.Idle) {
+                if (!otherCar || otherCar.getComponent(Level29086BoxCarItem).carState != CarState.Idle) {
                     continue;
                 }
 
@@ -819,7 +836,7 @@ export default class Level29086BoxCarItem extends cc.Component {
             this.node.x >= 0;
 
         if (shouldTurnRightToRoad) {
-            this.carState = Level29086Config.CarState.GoingRoad;
+            this.carState = CarState.GoingRoad;
             this.node.x = 0;
             this.mgr.changeCar(this.node, 2);
             if (this.isUTransportCar) {
@@ -834,7 +851,7 @@ export default class Level29086BoxCarItem extends cc.Component {
             this.node.x <= 0;
 
         if (shouldTurnLeftToRoad) {
-            this.carState = Level29086Config.CarState.GoingRoad;
+            this.carState = CarState.GoingRoad;
             this.node.x = 0;
             this.mgr.changeCar(this.node, 2);
             if (this.isUTransportCar) {
@@ -868,7 +885,7 @@ export default class Level29086BoxCarItem extends cc.Component {
 
     private backLinkedCar(carNode: cc.Node, shouldReduceMoveAmount: boolean) {
         carNode.stopAllActions();
-        carNode.getComponent(Level29086BoxCarItem).carState = Level29086Config.CarState.Idle;
+        carNode.getComponent(Level29086BoxCarItem).carState = CarState.Idle;
         if (shouldReduceMoveAmount) {
             this.mgr.moveCarAmount -= 1;
         }

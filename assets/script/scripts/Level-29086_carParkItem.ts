@@ -1,7 +1,6 @@
 // @ts-nocheck
 
 const Level29086BoxCarItem = require("./Level-29086_boxCarItem");
-const Level29086Config = require("./Level-29086_config");
 
 const { ccclass, property } = cc._decorator;
 
@@ -106,7 +105,7 @@ export default class Level29086CarParkItem extends cc.Component {
 
         this.scheduleOnce(() => {
             this.target.isWen = true;
-            this.target.getComponent(Level29086BoxCarItem.default).carState = Level29086Config.CarState.Idle;
+            this.target.getComponent(Level29086BoxCarItem.default).carState = Level29086BoxCarItem.CarState.Idle;
             this.busCom.carparkIng = false;
             this.busCom.updateCarWeight();
         }, moveDuration);

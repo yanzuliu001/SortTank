@@ -105,10 +105,6 @@ export default class Level29086TankBoard {
             return item.node;
         });
         this.owner.tankAssemblyTotalCarAmount = this.items.length;
-        this.owner.allPersonAmount = this.items.reduce(function (total, item) {
-            return total + item.capacity;
-        }, 0);
-        this.owner.allPersonAmount2 = this.owner.allPersonAmount;
     }
 
     isInsideBoard(localPoint) {
@@ -230,6 +226,10 @@ export default class Level29086TankBoard {
 
     handleTouchStart(event) {
         if (!this.ready || !event) {
+            return true;
+        }
+        // Layout debug owns tank touches. Never let another caller start gameplay movement.
+        if (this.owner && this.owner.tankLayoutDebugEnabled) {
             return true;
         }
         var worldPoint = event.getLocation();
