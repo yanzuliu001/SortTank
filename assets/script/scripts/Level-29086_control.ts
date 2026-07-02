@@ -2718,21 +2718,24 @@ export default class Level29086Control extends $brainLevelBase.default {
             position: { x: e.x, y: e.y },
             spritePath: r
         });
+        var a = {
+            node: e,
+            config: t,
+            pathIndex: 0,
+            absorbing: false,
+            spriteReady: false
+        };
+        this.tankAssemblyParts.push(a);
         var n = this;
         this.loadTankSpriteFrame(r, function (t) {
             if (t && cc.isValid(e)) {
                 o.spriteFrame = t;
+                a.spriteReady = true;
             } else {
                 n.logTankAssemblyDebug("partSpriteMissing_" + r, "零件图片加载失败", {
                     spritePath: r
                 });
             }
-        });
-        this.tankAssemblyParts.push({
-            node: e,
-            config: t,
-            pathIndex: 0,
-            absorbing: false
         });
     }
     moveTankAssemblyPart(t, e) {
@@ -2761,10 +2764,23 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
     }
     tryAbsorbTankAssemblyPart(t) {
-        if (!this.isTankAssemblyPartOnBottomRow(t)) {
+        if (!t || false === t.spriteReady) {
             return;
         }
-        var e = this.getMatchingTankAssemblyParking(t.config.colorId, t);
+        var e = null;
+        var o = $level_29086_config.TankAssemblyPartAbsorbTriggerType || {};
+        var i = Number(TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbTriggerType);
+        if (!i) {
+            i = o.BottomAligned || 2;
+        }
+        if (i == (o.Direct || 1)) {
+            e = this.getMatchingTankAssemblyParking(t.config.colorId);
+        } else {
+            if (!this.isTankAssemblyPartOnBottomRow(t)) {
+                return;
+            }
+            e = this.getMatchingTankAssemblyParking(t.config.colorId, t);
+        }
         if (!e) {
             return;
         }
@@ -2915,10 +2931,11 @@ export default class Level29086Control extends $brainLevelBase.default {
                     }
                     t.absorbCompleted = true;
                     if (TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterDebugLog) {
-                        cc.log("[TankPartShatter] complete", {
-                            colorId: t.config && t.config.colorId,
-                            duration: TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbDuration
-                        });
+                        //组装完成打印
+                        // cc.log("[TankPartShatter] complete", {
+                        //     colorId: t.config && t.config.colorId,
+                        //     duration: TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbDuration
+                        // });
                     }
                     l.releaseTankAssemblyPartCapacity(t);
                     if (!l.tankAssemblyEnded) {
@@ -2942,13 +2959,13 @@ export default class Level29086Control extends $brainLevelBase.default {
         i.enabled = false;
         t.shatterNode = n;
         if (TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterDebugLog) {
-            cc.log("[TankPartShatter] start", {
-                colorId: t.config && t.config.colorId,
-                duration: TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbDuration,
-                pieces: 2 *
-                    (TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterColumns || 2) *
-                    (TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterRows || 2)
-            });
+            // cc.log("[TankPartShatter] start", {
+            //     colorId: t.config && t.config.colorId,
+            //     duration: TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbDuration,
+            //     pieces: 2 *
+            //         (TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterColumns || 2) *
+            //         (TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterRows || 2)
+            // });
         }
         return true;
     }

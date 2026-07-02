@@ -8,7 +8,6 @@ export default class Level29086TankBoard {
     root: cc.Node = null;
     config: any = null;
     items: any[] = [];
-    movingItem: any = null;
     ready: boolean = false;
     debugCreateIndex: number = 0;
     boardDebugNode: cc.Node = null;
@@ -18,7 +17,6 @@ export default class Level29086TankBoard {
         this.root = root;
         this.config = config;
         this.items = [];
-        this.movingItem = null;
         this.ready = false;
         this.debugCreateIndex = 0;
         this.boardDebugNode = null;
@@ -172,7 +170,6 @@ export default class Level29086TankBoard {
             }
         }
         this.items = [];
-        this.movingItem = null;
         this.syncOwnerData();
     }
 
@@ -232,7 +229,7 @@ export default class Level29086TankBoard {
     }
 
     handleTouchStart(event) {
-        if (!this.ready || this.movingItem || !event) {
+        if (!this.ready || !event) {
             return true;
         }
         var worldPoint = event.getLocation();
@@ -243,7 +240,7 @@ export default class Level29086TankBoard {
 
         var parking = this.findFirstEmptyParking();
         if (!parking) {
-            this.owner.show("位置已满");
+            this.owner.show("位置不足");
             item.shake();
             return true;
         }
@@ -259,7 +256,6 @@ export default class Level29086TankBoard {
         item.parking = parking;
         item.state = $tankItem.TankWaitingState.Moving;
         item.setArrowVisible(false);
-        this.movingItem = item;
         this.runSegments(item, route, 0, this.finishItemAtRoad.bind(this, item, parking));
         return true;
     }
@@ -479,7 +475,6 @@ export default class Level29086TankBoard {
             item.state = $tankItem.TankWaitingState.Parked;
             parking.tankWaitingReservation = null;
             self.owner.finishTankAssemblyParking(item.node, parking);
-            self.movingItem = null;
         };
         if (distance <= 0.1) {
             complete();
@@ -501,7 +496,6 @@ export default class Level29086TankBoard {
             item.state = $tankItem.TankWaitingState.Idle;
             item.setArrowVisible(true);
         }
-        this.movingItem = null;
     }
 
     getItemData(node) {

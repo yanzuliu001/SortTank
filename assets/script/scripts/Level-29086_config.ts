@@ -2760,6 +2760,13 @@ export const TankDebugLayerColorId = {
     purple: 6,
     yellow: 1
 };
+// 传送带零件触发吸入动画的方式。
+export const TankAssemblyPartAbsorbTriggerType = {
+    // 零件贴图准备完成后，只要装配区存在可接收的同色坦克就立即飞入。
+    Direct: 1,
+    // 零件到达下排，并与对应坦克的世界 X 坐标对齐后才飞入。
+    BottomAligned: 2
+};
 export const TankAssemblyConveyorConfig = {
     // 零件默认生产速度，单位个/秒；1.11 约等于每 0.9 秒生产 1 个。
     spawnRate: 1.11,
@@ -2775,6 +2782,8 @@ export const TankAssemblyConveyorConfig = {
     moveSpeedMax: 1000,
     // 进入关卡后第一颗零件的延迟时间，单位秒；只影响首颗零件。
     startDelay: 1.2,
+    // 零件吸入触发类型：1=传送带上直接匹配飞入，2=下排与坦克 X 对齐后飞入。
+    absorbTriggerType: TankAssemblyPartAbsorbTriggerType.Direct,
     // 零件匹配坦克后飞向停车位的时间，单位秒。
     absorbDuration: 2,
     // 吸收飞行进行到多少比例后才开始缩小；0.75 表示最后 25% 路程才缩小。
