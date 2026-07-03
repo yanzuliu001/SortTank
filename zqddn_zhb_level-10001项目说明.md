@@ -8,8 +8,8 @@
 
 1. 等待区根据静态配置动态创建坦克。
 2. 玩家点击坦克，坦克离开等待区并预订装配台。
-3. 传送带生产不同颜色的坦克零件。
-4. 零件匹配装配台坦克，播放碎裂吸入动画并增加装配进度。
+3. 传送带初始化固定颜色和数量的零件长龙，并沿路径整体推进。
+4. 零件匹配装配台坦克，分出小零件精灵飞向坦克并增加装配进度。
 5. 坦克装满后离开装配台。
 6. 所有坦克完成后显示 `okPrefab`。
 
@@ -116,13 +116,14 @@ initTankAssemblyParkingSlots()
 - 判断是否进入坦克装配玩法。
 - 初始化装配台和等待区。
 - 连接预制体节点与代码。
-- 传送带路径点读取、零件生产和移动。
-- 零件颜色匹配、容量预占、碎裂吸入。
+- 传送带路径点读取、固定长龙创建和统一移动。
+- 零件颜色匹配、并发锁定、容量预占和小零件吸入。
+- 零件被吸收后的前段后退补位和路径终点失败判断。
 - 装配进度、坦克离场和胜利判断。
 - 速度滑条、倍速按钮和调试面板。
 - `okPrefab` 胜利节点显隐。
 
-该文件已从约 7700 行收缩到约 2100 行，只保留装配玩法、等待区调试和必要生命周期。
+该文件已从约 7700 行收缩到约 2400 行，只保留装配玩法、等待区调试和必要生命周期。
 当前修改时可优先定位这些方法组：
 
 - `initTankAssemblyParkingSlots`
@@ -130,9 +131,11 @@ initTankAssemblyParkingSlots()
 - `initTankAssemblyConveyor`
 - `buildTankAssemblyPathPoints`
 - `updateTankAssemblyConveyor`
-- `createTankAssemblyPart`
-- `tryAbsorbTankAssemblyPart`
+- `createTankAssemblyPartChain`
+- `moveTankAssemblyPartChain`
+- `planTankAssemblyChainAbsorptions`
 - `absorbTankAssemblyPart`
+- `completeTankAssemblyPartAbsorption`
 - `applyTankAssemblyPartToParking`
 - `finishTankAssemblyParking`
 - `completeTankAssemblyParking`
@@ -147,15 +150,8 @@ initTankAssemblyParkingSlots()
 
 - `TankAssemblyLevelIds`：哪些关卡启用装配玩法。
 - `TankAssemblyTypes`：零件颜色、计数板和贴图对应关系。
-- `TankAssemblyConveyorConfig`：生产速度、移动速度、吸入类型、碎片数量和动画时间。
+- `TankAssemblyConveyorConfig`：长龙颜色序列、间距、移动/后退速度和吸入动画参数。
 - `TankAssemblyBottomButtonsHiddenLevelIds`：隐藏 Game 公共底栏。
-
-零件吸入类型：
-
-```ts
-Direct = 1         // 传送带上出现同色零件后直接飞入
-BottomAligned = 2  // 到下排并与坦克世界 X 对齐后飞入
-```
 
 ### 3.3 等待区关卡配置
 
@@ -211,21 +207,127 @@ BottomAligned = 2  // 到下排并与坦克世界 X 对齐后飞入
 
 保存不同坦克贴图的碰撞多边形数据，由 `Level-29086_tankItem.ts` 使用。它只影响等待区寻路判断，不控制视觉大小。
 
-### 3.7 碎裂动画
+### 3.7 零件吸入动画
 
 代码：
 
 - `assets/script/scripts/Level-29086_tankPartShatter.ts`
 - `assets/resources/zqddn_zhb/effect/tank-part-shatter.effect`
 
-职责：
+以上 Shader 碎裂实现目前保留但未启用。正式运行使用 `Level-29086_control.ts` 中的
+`playTankAssemblyMiniPartFlight()`：从被吸收的零件本体生成多个缩小精灵，连续飞向装配位的
+`tankStop`。飞行全部到达后才增加坦克装配进度。
+
+保留的 Shader 方案职责：
 
 - 自定义 `cc.RenderComponent + cc.Assembler` 创建三角碎片网格。
 - Effect 顶点 Shader 驱动碎片沿曲线飞向 `tankStop`。
 - 当前 `4 x 4` 网格生成32个三角碎片、96个顶点。
 - 每个效果仍为一个渲染节点和一个 Draw Call。
 
-## 4. 关卡预制体
+## 4. 玩法数量、颜色与配置规则
+
+### 4.1 当前第一关总量
+
+第一关固定配置如下：
+
+| 内容 | 数量 | 说明 |
+| --- | ---: | --- |
+| 等待区坦克 | 16辆 | 4种颜色，每种4辆 |
+| 装配位（炮台位） | 8个 | `parkingRoot/p0...p7`，第一排4个、第二排4个 |
+| 零件长龙 | 88节 | 数量严格等于16辆坦克的总装配容量 |
+| 同时吸收上限 | 8个 | 每个已停车且未完成的坦克最多锁定1个零件 |
+
+当前玩法没有独立炮台节点。停入装配位的坦克本身就相当于一个炮台：它会从长龙中锁定一个
+同色零件并播放吸入动画。空装配位、正在离场的坦克和已经装满的坦克都不会吸收零件。
+
+### 4.2 `type`、`colorId`、容量对应关系
+
+`type` 和 `colorId` 是两套不同编号，配置时不要混用：
+
+- `type` 写在 `TankWaitingBoardByLevel[关卡ID].tanks` 中，表示等待区坦克类型。
+- `colorId` 写在 `TankAssemblyTypes` 和 `chainRunCycle` 中，表示传送带零件及装配匹配颜色。
+
+| 颜色 | tanks.type | 内部类型 | 零件 colorId | 单辆容量 | 第一关坦克数 | 第一关零件需求 |
+| --- | ---: | --- | ---: | ---: | ---: | ---: |
+| 绿 | 1 | `green` | 4 | 6 | 4 | 24 |
+| 蓝 | 2 | `blue` | 2 | 4 | 4 | 16 |
+| 紫 | 3 | `purple` | 6 | 10 | 4 | 40 |
+| 橙/黄 | 4 | `yellow` | 1 | 2 | 4 | 8 |
+| **合计** | - | - | - | - | **16** | **88** |
+
+核心公式：
+
+```text
+某颜色零件总数 = 该颜色坦克数量 × 该颜色单辆容量
+全关零件总数 = 所有坦克 capacity 之和
+```
+
+因此第一关为：
+
+```text
+橙 4×2=8，蓝 4×4=16，绿 4×6=24，紫 4×10=40，总计88。
+```
+
+### 4.3 当前88节长龙如何生成
+
+配置位置：`Level-29086_config.ts / TankAssemblyConveyorConfig`。
+
+`chainRunCycle` 单轮有22节：橙2、蓝4、绿6、紫10，恰好够装配一组“每种颜色各1辆”的坦克。
+`chainRepeat: 4` 将该序列重复4次，得到第一关所需的88节。
+
+```ts
+chainRepeat: 4,
+chainRunCycle: [
+    { colorId: 1, count: 2 },
+    { colorId: 2, count: 2 },
+    { colorId: 4, count: 3 },
+    { colorId: 6, count: 3 },
+    { colorId: 2, count: 2 },
+    { colorId: 6, count: 3 },
+    { colorId: 4, count: 3 },
+    { colorId: 6, count: 4 }
+]
+```
+
+数组顺序就是长龙从前到后的颜色顺序。相同颜色可以拆成多段穿插配置，用于控制关卡节奏；只要
+每种颜色的最终总数与坦克需求相等即可。
+
+长龙初始化时一次创建全部88个逻辑节段：第一节位于路径入口，后续节段按
+`-index × chainSpacing` 排在入口外并隐藏，移动进入路径后才显示。当前 `chainSpacing=42`。
+
+### 4.4 装配位、锁定和补位规则
+
+1. 玩家点击坦克成功后立即预订一个空装配位，坦克尚在路上时该位置也不能被其他坦克占用。
+2. 装配位按 `parkingRoot` 子节点顺序使用，先填第一排4个，再填第二排4个。
+3. 每帧按装配位顺序寻找长龙中第一个“已进入路径、未锁定、同色”的零件。
+4. `perParkingConcurrency=1`，同一辆坦克一次只能吸收一个零件；同一零件也只能被一个坦克锁定。
+5. 零件开始飞行时，位于它前方的链段立即累计后退一个 `chainSpacing`，后方链段保持原位。
+6. 当前 `retreatSpeedMultiplier=4`。长龙仍正常前进，因此视觉净后退约为基础速度的3倍。
+7. 小零件全部到达 `tankStop` 后才把 `assemblyCollected` 加1并刷新百分比。
+
+链头到达 `conveyorPathRoot` 终点时，会先尝试本帧匹配。若链头未被吸收且已经没有飞行中的零件，
+则冻结长龙和新的坦克点击，并提示“零件到达终点”。胜利条件仍是16辆坦克全部装满并完成离场。
+
+### 4.5 新增或修改关卡时如何配置
+
+1. 在 `Level-29086_tankBoardConfig.ts` 的 `TankWaitingBoardByLevel` 中新增关卡，仅配置 `tanks`。
+2. `tanks[].type` 使用表中的1/2/3/4；`direction` 使用0-7；`x/y` 是 `carRoot` 本地坐标。
+3. 统计每种颜色的坦克数量，并按“坦克数 × capacity”计算四种零件需求。
+4. 在 `TankAssemblyConveyorConfig.chainRunCycle` 中配置对应 `colorId` 和数量，使四种颜色总量严格匹配。
+5. 颜色数量均为同一倍数时，可以用一轮基础序列配合 `chainRepeat`；数量不均匀时建议设置
+   `chainRepeat: 1`，直接写出本关完整颜色序列。
+6. 装配位数量由预制体 `parkingRoot` 的有效子节点决定，不在 tanks 配置中填写。当前固定为8个。
+7. 修改后运行 `node verify_tank_waiting_board.js -关卡ID`，检查坦克布局可解且零件颜色总量等于容量需求。
+
+必须保持的配置约束：
+
+- 零件少于需求：对应颜色坦克永远无法全部装满，关卡不可胜利。
+- 零件多于需求：完成所有坦克后多余零件会被胜利清理，但会破坏关卡数量设计。
+- 某颜色零件出现顺序过晚：可能在对应坦克进场前让链头到达终点，形成难度或死局。
+- 修改坦克 `capacity/colorId` 时，必须同步检查 `TankAssemblyTypes`、长龙数量和计数板贴图映射。
+
+## 5. 关卡预制体
 
 文件：
 
@@ -233,7 +335,7 @@ BottomAligned = 2  // 到下排并与坦克世界 X 对齐后飞入
 
 预制体不仅是画面资源，也是代码依赖的节点接口。以下节点名不能随意修改。
 
-### 4.1 等待区和道路
+### 5.1 等待区和道路
 
 - `game/element/carRoot`
   - 等待区运行时根节点。
@@ -246,18 +348,18 @@ BottomAligned = 2  // 到下排并与坦克世界 X 对齐后飞入
 - `game/element/toproad`
   - 上排坦克离场道路。
 
-### 4.2 装配台
+### 5.2 装配台
 
 - `game/element/parkingRoot`
   - 当前有 `p0 ... p7` 共8个装配台。
   - 前4个为第一排，后4个为第二排。
 - 每个装配台需要：
-  - `tankStop`：坦克停靠点及碎片飞行终点。
+  - `tankStop`：坦克停靠点及小零件飞行终点。
   - `progressRoot`：装配百分比 Label。
 
 装配台在坦克点击成功时立即预订。`isEmpty = false` 同时表示“已有坦克”或“已有坦克正在驶来”。
 
-### 4.3 传送带
+### 5.3 传送带
 
 - `game/element/assemblyTopRoot`
   - 顶部传送带总节点。
@@ -266,30 +368,30 @@ BottomAligned = 2  // 到下排并与坦克世界 X 对齐后飞入
   - 代码读取所有符合 `/^c\d+$/` 的直接子节点，并按数字排序。
   - 路径点数量没有固定上限。
 - `partLayer`
-  - 普通传送带零件父节点。
+  - 零件长龙节点父节点。
 - `absorbEffectLayer`
-  - 碎裂吸入效果层。
+  - 小零件吸入效果层。
 - `countBoardRoot`
   - 四种坦克的完成数量面板。
 
-### 4.4 调试和速度控制
+### 5.4 调试和速度控制
 
 - `debugLayer`：4种坦克、8方向样例和布局编辑 UI。
 - `curLevel`：显示当前关卡。
 - `levelEdit`：指定打印配置的目标关卡 ID。
 - `speedLabel / speedSlider`：零件移动速度。
-- `scLabel / scSlider`：零件生产速度。
+- `scLabel / scSlider`：旧生产速度控件；固定长龙不再按时间生产，运行时隐藏。
 - `tank_speed`：1倍/2倍速度切换按钮。
 
-打开调试面板时，传送带更新和生产计时暂停；关闭后从原状态继续。
+打开调试面板时，长龙移动暂停；关闭后从原位置继续。
 
-### 4.5 胜利节点
+### 5.5 胜利节点
 
 - `game/okPrefab`
   - 初始化时隐藏。
   - 所有坦克装配完成并离场后显示。
 
-## 5. 主要资源目录
+## 6. 主要资源目录
 
 ### 坦克和零件
 
@@ -310,11 +412,11 @@ BottomAligned = 2  // 到下排并与坦克世界 X 对齐后飞入
 
 包括方向箭头、速度按钮、装配阶段图标等。
 
-### 碎裂 Effect
+### 备用碎裂 Effect
 
 `assets/resources/zqddn_zhb/effect/tank-part-shatter.effect`
 
-## 6. 框架依赖文件
+## 7. 框架依赖文件
 
 这些文件不是当前玩法核心，但加载流程仍直接依赖：
 
@@ -331,16 +433,16 @@ BottomAligned = 2  // 到下排并与坦克世界 X 对齐后飞入
 
 如果未来制作独立、纯净的坦克装配工程，才适合逐步替换这些公共框架。
 
-## 7. 遗留代码与清理边界
+## 8. 遗留代码与清理边界
 
-### 7.1 当前不是主逻辑，但不能直接删除
+### 8.1 当前不是主逻辑，但不能直接删除
 
 `Level-29086_control.ts` 已不再静态引用龙、乘客、复活、旧车辆和平台存档模块。
 但 `zqddn_zhb_level-10001.prefab/carPrefab` 的 15 个隐藏模板节点仍序列化了
 `Level-29086_boxCarItem.ts`。新等待区坦克实际使用 `Level-29086_tankItem.ts`，但在从预制体
 删除 `carPrefab` 之前，`Level-29086_boxCarItem.ts` 仍需保留以保证反序列化正常。
 
-### 7.2 第一关运行时通常不会使用
+### 8.2 第一关运行时通常不会使用
 
 - `Level-29086_tankLayoutConfig.ts` 中的 `TankLayoutByLevel`
   - 新等待区已经改读 `tankBoardConfig`。
@@ -355,7 +457,7 @@ BottomAligned = 2  // 到下排并与坦克世界 X 对齐后飞入
 - `packages/magic_layout`
   - Cocos 编辑器布局插件，只在编辑器使用，不参与游戏运行。
 
-### 7.3 推荐清理顺序
+### 8.3 推荐清理顺序
 
 不要直接批量删除。建议按以下顺序逐步收敛：
 
@@ -365,7 +467,7 @@ BottomAligned = 2  // 到下排并与坦克世界 X 对齐后飞入
 4. 视维护成本再将传送带、装配台和调试面板拆成独立控制器。
 5. 最后才处理其他关卡预制体、广告、商城、原玩法 UI 和公共框架。
 
-## 8. 当前数据流
+## 9. 当前数据流
 
 ### 点击坦克
 
@@ -384,12 +486,26 @@ Level29086Control.touchStart
 ```text
 Level29086Control.update
   -> updateTankAssemblyConveyor
-  -> create/moveTankAssemblyPart
-  -> tryAbsorbTankAssemblyPart
+  -> moveTankAssemblyPartChain
+  -> planTankAssemblyChainAbsorptions
   -> 预占 assemblyIncoming
-  -> TankPartShatter 动画
+  -> 从长龙移除目标并立即安排前方链段后退
+  -> playTankAssemblyMiniPartFlight
+  -> completeTankAssemblyPartAbsorption
   -> applyTankAssemblyPartToParking
   -> 更新 collected / capacity 百分比
+```
+
+### 路径终点失败
+
+```text
+长龙链头到达路径终点
+  -> 先执行本帧同色匹配
+  -> 等待已经起飞的小零件全部落地
+  -> 链头仍未被吸收
+  -> checkTankAssemblyChainEndFailure
+  -> 冻结长龙和新坦克点击
+  -> 提示“零件到达终点”
 ```
 
 ### 完成和胜利
@@ -405,7 +521,7 @@ collected >= capacity
   -> 显示 okPrefab
 ```
 
-## 9. 常用修改入口
+## 10. 常用修改入口
 
 ### 修改第一关坦克布局
 
@@ -423,11 +539,20 @@ collected >= capacity
 
 在预制体调整 `conveyorPathRoot` 下的 `c001...` 节点坐标和顺序。
 
-### 修改零件速度和碎裂
+### 修改零件长龙和吸入效果
 
 编辑 `Level-29086_config.ts` 中的 `TankAssemblyConveyorConfig`。
 
-### 修改碎裂运动方式
+常用字段：
+
+- `chainRunCycle / chainRepeat`：零件颜色顺序和总数量。
+- `chainSpacing`：相邻零件间距。
+- `moveSpeed`：长龙基础前进速度。
+- `retreatSpeedMultiplier`：吸收后的前段补位速度。
+- `perParkingConcurrency`：单装配位同时吸收数，当前必须保持为1。
+- `miniPartCount / miniPartScale / miniPartFlySpeed`：小零件飞行表现。
+
+### 修改备用 Shader 碎裂方式
 
 - 网格和运行时数据：`Level-29086_tankPartShatter.ts`
 - Shader 轨迹和透明度：`tank-part-shatter.effect`
@@ -436,7 +561,7 @@ collected >= capacity
 
 编辑预制体 `parkingRoot/p0...p7`，并同步检查 `tankStop`、`progressRoot` 和代码中的排数判断。
 
-## 10. 验证
+## 11. 验证
 
 等待区配置验证：
 
@@ -444,4 +569,5 @@ collected >= capacity
 node verify_tank_waiting_board.js -10001
 ```
 
-该脚本验证配置结构和至少一条可解顺序，但不能替代 Cocos Creator 中的实际动画、坐标和触摸测试。
+该脚本验证坦克配置、至少一条可解顺序，以及长龙各颜色数量是否等于对应坦克容量需求，
+但不能替代 Cocos Creator 中的实际动画、坐标和触摸测试。

@@ -52,19 +52,19 @@ export default class Level29086Control extends $brainLevelBase.default {
     tankAssemblyAbsorbLayer: any = null;
     tankAssemblyCountBoardRoot: any = null;
     tankAssemblyPathPoints: any[] = [];
-    tankAssemblyBottomPathStartIndex: any = -1;
+    tankAssemblyPathDistances: any[] = [];
+    tankAssemblyPathLength: any = 0;
     tankAssemblyParts: any[] = [];
+    tankAssemblyChainItems: any[] = [];
+    tankAssemblyActiveAbsorptionCount: any = 0;
+    tankAssemblyFailed: any = false;
     tankAssemblyShatterMaterial: any = null;
     tankAssemblyShatterLoading: any = false;
-    tankAssemblyPartSpawnRate: any = "number" == typeof TANK_ASSEMBLY_CONVEYOR_CONFIG.spawnRate
-        ? TANK_ASSEMBLY_CONVEYOR_CONFIG.spawnRate : 1;
     tankAssemblyPartMoveSpeed: any = "number" == typeof TANK_ASSEMBLY_CONVEYOR_CONFIG.moveSpeed
         ? TANK_ASSEMBLY_CONVEYOR_CONFIG.moveSpeed : 160;
     tankAssemblySpeedMultiplier: any = 1;
     tankAssemblyTypeByColor: any = {};
     tankAssemblyCounters: any = {};
-    tankAssemblySpawnTimer: any = 0;
-    tankAssemblySpawnStarted: any = false;
     tankAssemblyEnded: any = false;
     tankAssemblyCompletedAmount: any = 0;
     tankAssemblyTotalCarAmount: any = 0;
@@ -212,6 +212,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         parking.assemblyProgress = 0;
         parking.assemblyComplete = false;
         parking.assemblyCompleting = false;
+        parking.assemblyActivePart = null;
         this.setTankAssemblyParkingTankVisual(parking, tankNode, data);
         this.setTankAssemblyParkingProgress(parking, 0);
         tankNode.stopAllActions();
@@ -566,62 +567,16 @@ export default class Level29086Control extends $brainLevelBase.default {
             }
         }
 
-    getTankAssemblyPartSpawnRateRange() {
-            var t = TANK_ASSEMBLY_CONVEYOR_CONFIG.spawnRateMin;
-            var e = TANK_ASSEMBLY_CONVEYOR_CONFIG.spawnRateMax;
-            t = "number" == typeof t ? t : 0;
-            e = "number" == typeof e && e > t ? e : t + 2;
-            return { min: t, max: e };
-        }
-
-    getTankAssemblyPartSpawnRate() {
-            return "number" == typeof this.tankAssemblyPartSpawnRate
-                ? this.tankAssemblyPartSpawnRate
-                : 1;
-        }
-
-    getTankAssemblyPartSpawnInterval() {
-            var t = this.getTankAssemblyPartSpawnRate();
-            if (t <= 0) {
-                return Infinity;
-            }
-            return 1 / t;
-        }
-
-    setTankAssemblyPartSpawnRate(t) {
-            var e = this.getTankAssemblyPartSpawnRateRange();
-            var o = Number(t);
-            if (!isFinite(o)) {
-                return;
-            }
-            this.tankAssemblyPartSpawnRate = Math.max(e.min, Math.min(e.max, o));
-            this.updateTankAssemblySpawnRateLabel();
-        }
-
-    updateTankAssemblySpawnRateLabel() {
-            var t = Number(this.getTankAssemblyPartSpawnRate().toFixed(2));
-            this.dict.scLabel.getComponent(cc.Label).string =
-                "生产速度：" + t //+ " 个/秒";
-        }
-
-    onTankAssemblySpawnRateSlider(t) {
-            var e = t && "number" == typeof t.progress ? t : this.dict.scSlider.getComponent(cc.Slider);
-            var o = this.getTankAssemblyPartSpawnRateRange();
-            this.setTankAssemblyPartSpawnRate(o.min + (o.max - o.min) * e.progress);
-        }
-
-    bindTankAssemblySpawnRateControl() {
+    hideTankAssemblyProductionSpeedControl() {
             var t = this.dict.scSlider;
-            var e = t.getComponent(cc.Slider);
-            var o = this.getTankAssemblyPartSpawnRateRange();
-            var i = this.getTankAssemblyPartSpawnRate();
-            t.active = true;
-            this.dict.scLabel.active = true;
-            e.progress = Math.max(0, Math.min(1, (i - o.min) / (o.max - o.min)));
             var r = cc.Slider.EventType && cc.Slider.EventType.SLIDE ? cc.Slider.EventType.SLIDE : "slide";
-            t.off(r, this.onTankAssemblySpawnRateSlider, this);
-            t.on(r, this.onTankAssemblySpawnRateSlider, this);
-            this.updateTankAssemblySpawnRateLabel();
+            if (t) {
+                t.off(r);
+                t.active = false;
+            }
+            if (this.dict.scLabel) {
+                this.dict.scLabel.active = false;
+            }
         }
 
     updateTankLayoutCurrentLevelText() {
@@ -1023,7 +978,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             this.updateTankLayoutCurrentLevelText();
             this.bindTankAssemblySpeedControl();
             this.bindTankAssemblySpeedToggle();
-            this.bindTankAssemblySpawnRateControl();
+            this.hideTankAssemblyProductionSpeedControl();
             this.bindTankDebugLayerButtons();
             this.setTankDebugLayerVisible(this.tankLayoutDebugEnabled);
             var t = this.dict.debugBtn;
@@ -1085,7 +1040,6 @@ export default class Level29086Control extends $brainLevelBase.default {
                 this.isNodeOrChildOf(t, this.getTankLayoutResetButton()) ||
                 this.isNodeOrChildOf(t, this.getTankAssemblySpeedSliderNode()) ||
                 this.isNodeOrChildOf(t, this.getTankAssemblySpeedToggleNode()) ||
-                this.isNodeOrChildOf(t, this.dict.scSlider) ||
                 this.isNodeOrChildOf(t, this.dict.debugLayer)
             );
         }
@@ -1235,6 +1189,8 @@ export default class Level29086Control extends $brainLevelBase.default {
                 e.assemblyIncoming = 0;
                 e.assemblyProgress = 0;
                 e.assemblyComplete = false;
+                e.assemblyCompleting = false;
+                e.assemblyActivePart = null;
                 if (e.active && !e.getChildByName("videoLock") && !e.getChildByName("fireSpine")) {
                     e.isEmpty = true;
                     this.parkingNodes.push(e);
@@ -1310,10 +1266,13 @@ export default class Level29086Control extends $brainLevelBase.default {
                 this.tankAssemblyAbsorbLayer.active = true;
             }
             this.tankAssemblyParts = [];
+            this.tankAssemblyChainItems = [];
+            this.tankAssemblyPathDistances = [];
+            this.tankAssemblyPathLength = 0;
+            this.tankAssemblyActiveAbsorptionCount = 0;
+            this.tankAssemblyFailed = false;
             this.tankAssemblyTypeByColor = {};
             this.tankAssemblyCounters = {};
-            this.tankAssemblySpawnTimer = this.isTankAssemblyTopEnabled() ? -(TANK_ASSEMBLY_CONVEYOR_CONFIG.startDelay || 0) : 0;
-            this.tankAssemblySpawnStarted = this.isTankAssemblyTopEnabled();
             this.tankAssemblyEnded = false;
             this.tankAssemblyCompletedAmount = 0;
             this.tankAssemblyCompletionPendingAmount = 0;
@@ -1336,6 +1295,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                 pathPointCount: this.tankAssemblyPathPoints.length
             });
             this.initTankAssemblyCountBoard();
+            this.createTankAssemblyPartChain();
         }
 
     initTankAssemblyCountBoard() {
@@ -1370,7 +1330,8 @@ export default class Level29086Control extends $brainLevelBase.default {
 
     buildTankAssemblyPathPoints() {
             this.tankAssemblyPathPoints = [];
-            this.tankAssemblyBottomPathStartIndex = -1;
+            this.tankAssemblyPathDistances = [];
+            this.tankAssemblyPathLength = 0;
             if (!this.tankAssemblyPartLayer) {
                 return;
             }
@@ -1390,7 +1351,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                     this.tankAssemblyPathPoints.push(this.tankAssemblyPartLayer.convertToNodeSpaceAR(r));
                 }
                 if (this.tankAssemblyPathPoints.length >= 2) {
-                    this.updateTankAssemblyBottomPathStartIndex();
+                    this.buildTankAssemblyPathDistances();
                     return;
                 }
                 this.tankAssemblyPathPoints = [];
@@ -1401,25 +1362,15 @@ export default class Level29086Control extends $brainLevelBase.default {
             });
         }
 
-    updateTankAssemblyBottomPathStartIndex() {
-            var t = this.tankAssemblyPathPoints;
-            this.tankAssemblyBottomPathStartIndex = -1;
-            if (!t || t.length < 2) {
-                return;
+    buildTankAssemblyPathDistances() {
+            this.tankAssemblyPathDistances = [0];
+            this.tankAssemblyPathLength = 0;
+            for (var t = 1; t < this.tankAssemblyPathPoints.length; t++) {
+                var e = this.tankAssemblyPathPoints[t - 1];
+                var o = this.tankAssemblyPathPoints[t];
+                this.tankAssemblyPathLength += cc.v2(o.x - e.x, o.y - e.y).mag();
+                this.tankAssemblyPathDistances.push(this.tankAssemblyPathLength);
             }
-            var e = t[0].y;
-            for (var o = 1; o < t.length; o++) {
-                e = Math.min(e, t[o].y);
-            }
-            var i = TANK_ASSEMBLY_CONVEYOR_CONFIG.bottomRowYTolerance;
-            i = "number" == typeof i ? Math.max(0, i) : 4;
-            for (o = 0; o < t.length - 1; o++) {
-                if (Math.abs(t[o].y - e) <= i && Math.abs(t[o + 1].y - e) <= i) {
-                    this.tankAssemblyBottomPathStartIndex = o;
-                    return;
-                }
-            }
-            this.tankAssemblyBottomPathStartIndex = Math.max(0, t.length - 2);
         }
 
     getTankAssemblyConveyorPointNodes(t) {
@@ -1440,13 +1391,6 @@ export default class Level29086Control extends $brainLevelBase.default {
 
     isTankAssemblyConveyorPointNode(t) {
             return !!(t && t.name && /^c\d+$/.test(t.name));
-        }
-
-    getTankAssemblyPartSpawnPosition() {
-            if (!this.tankAssemblyPathPoints || !this.tankAssemblyPathPoints.length) {
-                return null;
-            }
-            return this.tankAssemblyPathPoints[0];
         }
 
     findTankAssemblyNode(t) {
@@ -1514,9 +1458,8 @@ export default class Level29086Control extends $brainLevelBase.default {
             if (this.tankLayoutDebugEnabled) {
                 return;
             }
-            if (!this.tankAssemblySpawnStarted || this.tankAssemblyEnded || !this.tankAssemblyPartLayer) {
+            if (this.tankAssemblyEnded || !this.tankAssemblyPartLayer) {
                 this.logTankAssemblyDebug("updateBlocked", "传送带 update 被跳过：状态未就绪", {
-                    spawnStarted: this.tankAssemblySpawnStarted,
                     ended: this.tankAssemblyEnded,
                     hasPartLayer: !!this.tankAssemblyPartLayer
                 });
@@ -1531,171 +1474,281 @@ export default class Level29086Control extends $brainLevelBase.default {
                 });
                 return;
             }
-            var spawnInterval = this.getTankAssemblyPartSpawnInterval();
-            if (isFinite(spawnInterval)) {
-                this.tankAssemblySpawnTimer += t;
-                if (this.tankAssemblySpawnTimer >= spawnInterval) {
-                    this.tankAssemblySpawnTimer = 0;
-                    this.createTankAssemblyPart();
-                }
-            }
-            for (var e = this.tankAssemblyParts.length - 1; e >= 0; e--) {
-                var o = this.tankAssemblyParts[e];
-                if (!o || !o.node || !cc.isValid(o.node)) {
-                    this.tankAssemblyParts.splice(e, 1);
-                } else {
-                    if (!o.absorbing) {
-                        o.previousWorldPosition = o.node.convertToWorldSpaceAR(cc.v2(0, 0));
-                        this.moveTankAssemblyPart(o, t);
-                        if (this.tankAssemblyParts.indexOf(o) >= 0 && o.node && cc.isValid(o.node)) {
-                            this.tryAbsorbTankAssemblyPart(o);
-                        }
+            this.moveTankAssemblyPartChain(Math.max(0, Number(t) || 0));
+            this.planTankAssemblyChainAbsorptions();
+            this.checkTankAssemblyChainEndFailure();
+        }
+
+    getTankAssemblyChainColorIds() {
+            var t = [];
+            var e = TANK_ASSEMBLY_CONVEYOR_CONFIG.chainRunCycle || [];
+            var o = Math.max(1, Math.floor(Number(TANK_ASSEMBLY_CONVEYOR_CONFIG.chainRepeat) || 1));
+            for (var i = 0; i < o; i++) {
+                for (var r = 0; r < e.length; r++) {
+                    var n = e[r];
+                    var a = Math.max(0, Math.floor(Number(n && n.count) || 0));
+                    for (var c = 0; c < a; c++) {
+                        t.push(Number(n.colorId));
                     }
                 }
             }
+            return t;
         }
 
-    createTankAssemblyPart() {
-            if (!TANK_ASSEMBLY_TYPES.length || this.tankAssemblyPathPoints.length < 2) {
+    validateTankAssemblyChainColors(t) {
+            var e = {};
+            for (var o = 0; o < t.length; o++) {
+                e[t[o]] = (e[t[o]] || 0) + 1;
+            }
+            var i = {};
+            for (var r = 0; r < this.carNodeArr.length; r++) {
+                var n = this.getTankAssemblyCarData(this.carNodeArr[r]);
+                if (n) {
+                    i[n.carColor] = (i[n.carColor] || 0) + Math.max(1, Number(n.seatTotalAmount) || 1);
+                }
+            }
+            var a = [];
+            for (var c = 0; c < TANK_ASSEMBLY_TYPES.length; c++) {
+                var l = TANK_ASSEMBLY_TYPES[c].colorId;
+                if ((e[l] || 0) != (i[l] || 0)) {
+                    a.push("colorId " + l + ": chain=" + (e[l] || 0) + ", demand=" + (i[l] || 0));
+                }
+            }
+            if (a.length) {
+                cc.error("Tank assembly chain color count mismatch", a);
+                return false;
+            }
+            return true;
+        }
+
+    createTankAssemblyPartChain() {
+            if (!this.tankAssemblyPartLayer || this.tankAssemblyPathPoints.length < 2) {
                 return;
             }
-            var t = TANK_ASSEMBLY_TYPES[this.randomNum(0, TANK_ASSEMBLY_TYPES.length - 1)];
-            var e = new cc.Node("tankAssemblyPart_" + t.colorId);
-            var i = this.getTankAssemblyPartSpawnPosition();
-            if (!i) {
-                return;
+            var t = this.getTankAssemblyChainColorIds();
+            this.validateTankAssemblyChainColors(t);
+            var e = Math.max(1, Number(TANK_ASSEMBLY_CONVEYOR_CONFIG.chainSpacing) || 42);
+            for (var o = 0; o < t.length; o++) {
+                var i = this.getTankAssemblyTypeByColor(t[o]);
+                if (!i) {
+                    cc.error("Unknown tank assembly chain colorId:", t[o]);
+                    continue;
+                }
+                this.createTankAssemblyChainItem(i, o, -o * e);
             }
-            e.parent = this.tankAssemblyPartLayer;
-            e.position = cc.v2(i.x, i.y);
-            e.scale = TANK_ASSEMBLY_CONVEYOR_CONFIG.partScale || 0.55;
-            var o = e.addComponent(cc.Sprite);
-            var r = TANK_SKIN_SPRITE_DIR + t.partSprite;
-            this.logTankAssemblyDebug("firstPartCreated", "创建传送带零件", {
-                nodeName: e.name,
-                parent: e.parent && e.parent.name,
-                position: { x: e.x, y: e.y },
-                spritePath: r
+            this.logTankAssemblyDebug("chainCreated", "创建零件长龙", {
+                amount: this.tankAssemblyChainItems.length,
+                spacing: e,
+                pathLength: this.tankAssemblyPathLength
             });
-            var a = {
-                node: e,
+        }
+
+    createTankAssemblyChainItem(t, e, o) {
+            var i = new cc.Node("tankAssemblyChainPart_" + e + "_" + t.colorId);
+            i.parent = this.tankAssemblyPartLayer;
+            i.angle = 0;
+            i.scale = TANK_ASSEMBLY_CONVEYOR_CONFIG.partScale || 1;
+            i.active = false;
+            var r = i.addComponent(cc.Sprite);
+            var n = {
+                node: i,
                 config: t,
-                pathIndex: 0,
+                chainIndex: e,
+                chainDistance: o,
+                retreatRemaining: 0,
+                chainRetreatQueued: false,
+                isChainPart: true,
                 absorbing: false,
+                absorbCompleted: false,
                 spriteReady: false
             };
-            this.tankAssemblyParts.push(a);
-            var n = this;
-            this.loadTankSpriteFrame(r, function (t) {
-                if (t && cc.isValid(e)) {
-                    o.spriteFrame = t;
-                    a.spriteReady = true;
+            this.tankAssemblyParts.push(n);
+            this.tankAssemblyChainItems.push(n);
+            this.updateTankAssemblyChainItemVisual(n);
+            var a = TANK_SKIN_SPRITE_DIR + t.partSprite;
+            var c = this;
+            this.loadTankSpriteFrame(a, function (t) {
+                if (t && cc.isValid(i)) {
+                    r.spriteFrame = t;
+                    n.spriteReady = true;
+                    c.updateTankAssemblyChainItemVisual(n);
                 } else {
-                    n.logTankAssemblyDebug("partSpriteMissing_" + r, "零件图片加载失败", {
-                        spritePath: r
-                    });
+                    cc.warn && cc.warn("load tank chain part sprite failed:", a);
                 }
             });
         }
 
-    moveTankAssemblyPart(t, e) {
-            var o = this.tankAssemblyPathPoints[t.pathIndex + 1];
-            if (!o) {
-                this.removeTankAssemblyPart(t);
+    getTankAssemblyPathPosition(t) {
+            if (!this.tankAssemblyPathPoints.length) {
+                return null;
+            }
+            if (t <= 0) {
+                return this.tankAssemblyPathPoints[0];
+            }
+            if (t >= this.tankAssemblyPathLength) {
+                return this.tankAssemblyPathPoints[this.tankAssemblyPathPoints.length - 1];
+            }
+            for (var e = 1; e < this.tankAssemblyPathDistances.length; e++) {
+                if (t <= this.tankAssemblyPathDistances[e]) {
+                    var o = this.tankAssemblyPathDistances[e - 1];
+                    var i = this.tankAssemblyPathDistances[e] - o;
+                    var r = i > 0 ? (t - o) / i : 0;
+                    var n = this.tankAssemblyPathPoints[e - 1];
+                    var a = this.tankAssemblyPathPoints[e];
+                    return cc.v2(n.x + (a.x - n.x) * r, n.y + (a.y - n.y) * r);
+                }
+            }
+            return this.tankAssemblyPathPoints[this.tankAssemblyPathPoints.length - 1];
+        }
+
+    updateTankAssemblyChainItemVisual(t) {
+            if (!t || !t.node || !cc.isValid(t.node) || t.absorbing) {
                 return;
             }
-            var i = cc.v2(o.x - t.node.x, o.y - t.node.y);
-            var r = i.mag();
-            var n = this.getTankAssemblyPartMoveSpeed() * (e || 0.016);
-            if (r <= n) {
-                t.node.position = cc.v2(o.x, o.y);
-                t.pathIndex++;
-                if (t.pathIndex >= this.tankAssemblyPathPoints.length - 1) {
-                    this.removeTankAssemblyPart(t);
-                }
-            } else {
-                t.node.position = t.node.position.add(i.normalize().mul(n));
+            t.node.active = t.chainDistance >= 0;
+            t.node.angle = 0;
+            if (!t.node.active) {
+                return;
+            }
+            var e = this.getTankAssemblyPathPosition(t.chainDistance);
+            if (e) {
+                t.node.position = cc.v2(e.x, e.y);
             }
         }
 
-    tryAbsorbTankAssemblyPart(t) {
-            if (!t || false === t.spriteReady) {
-                return;
-            }
-            var e = null;
-            var o = $level_29086_config.TankAssemblyPartAbsorbTriggerType || {};
-            var i = Number(TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbTriggerType);
-            if (!i) {
-                i = o.BottomAligned || 2;
-            }
-            if (i == (o.Direct || 1)) {
-                e = this.getMatchingTankAssemblyParking(t.config.colorId);
-            } else {
-                if (!this.isTankAssemblyPartOnBottomRow(t)) {
-                    return;
+    moveTankAssemblyPartChain(t) {
+            for (var e = this.tankAssemblyChainItems.length - 1; e >= 0; e--) {
+                var o = this.tankAssemblyChainItems[e];
+                if (!o || !o.node || !cc.isValid(o.node)) {
+                    this.tankAssemblyChainItems.splice(e, 1);
+                    var i = this.tankAssemblyParts.indexOf(o);
+                    if (i >= 0) {
+                        this.tankAssemblyParts.splice(i, 1);
+                    }
                 }
-                e = this.getMatchingTankAssemblyParking(t.config.colorId, t);
             }
-            if (!e) {
+            if (!this.tankAssemblyChainItems.length) {
                 return;
             }
-            this.absorbTankAssemblyPart(t, e);
+            var r = this.getTankAssemblyPartMoveSpeed();
+            var n = Math.max(1, Number(TANK_ASSEMBLY_CONVEYOR_CONFIG.retreatSpeedMultiplier) || 4);
+            for (e = 0; e < this.tankAssemblyChainItems.length; e++) {
+                o = this.tankAssemblyChainItems[e];
+                if (o.retreatRemaining > 0) {
+                    var a = Math.min(o.retreatRemaining, r * n * t);
+                    o.chainDistance -= a;
+                    o.retreatRemaining -= a;
+                }
+            }
+            var c = this.tankAssemblyChainItems[0];
+            var l = Math.max(0, this.tankAssemblyPathLength - c.chainDistance);
+            var h = Math.min(l, r * t);
+            for (e = 0; e < this.tankAssemblyChainItems.length; e++) {
+                o = this.tankAssemblyChainItems[e];
+                o.chainDistance += h;
+                this.updateTankAssemblyChainItemVisual(o);
+            }
         }
 
-    isTankAssemblyPartOnBottomRow(t) {
+    planTankAssemblyChainAbsorptions() {
+            var t = Math.max(1, Math.floor(Number(TANK_ASSEMBLY_CONVEYOR_CONFIG.perParkingConcurrency) || 1));
+            for (var e = 0; e < this.parkingNodes.length; e++) {
+                var o = this.parkingNodes[e];
+                if (!this.canTankAssemblyParkingAbsorb(o, t)) {
+                    continue;
+                }
+                var i = this.findTankAssemblyChainItemForParking(o);
+                if (i) {
+                    this.absorbTankAssemblyPart(i, o);
+                }
+            }
+        }
+
+    canTankAssemblyParkingAbsorb(t, e) {
             return !!(
                 t &&
-                "number" == typeof t.pathIndex &&
-                this.tankAssemblyBottomPathStartIndex >= 0 &&
-                t.pathIndex >= this.tankAssemblyBottomPathStartIndex
+                t.active &&
+                !t.isEmpty &&
+                t.assemblyConfig &&
+                !t.assemblyComplete &&
+                !t.assemblyCompleting &&
+                (Number(t.assemblyIncoming) || 0) < e &&
+                (Number(t.assemblyCollected) || 0) + (Number(t.assemblyIncoming) || 0) <
+                    Math.max(1, Number(t.assemblyCapacity) || 1)
             );
         }
 
-    isTankAssemblyPartAlignedWithParking(t, e) {
-            if (!t || !t.node || !cc.isValid(t.node) || !e) {
-                return false;
-            }
-            var o = e.getChildByName("tankStop") || e;
-            var i = t.node.convertToWorldSpaceAR(cc.v2(0, 0)).x;
-            var r = o.convertToWorldSpaceAR(cc.v2(0, 0)).x;
-            var n = t.previousWorldPosition && "number" == typeof t.previousWorldPosition.x
-                ? t.previousWorldPosition.x
-                : i;
-            var a = TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbXAlignmentTolerance;
-            a = "number" == typeof a ? Math.max(0, a) : 4;
-            return Math.abs(i - r) <= a || (n - r) * (i - r) <= 0;
-        }
-
-    getMatchingTankAssemblyParking(t, e?) {
-            var o = null;
-            var i = Infinity;
-            for (var r = 0; r < this.parkingNodes.length; r++) {
-                var n = this.parkingNodes[r];
+    findTankAssemblyChainItemForParking(t) {
+            for (var e = 0; e < this.tankAssemblyChainItems.length; e++) {
+                var o = this.tankAssemblyChainItems[e];
                 if (
-                    n &&
-                    n.active &&
-                    !n.isEmpty &&
-                    n.assemblyConfig &&
-                    n.assemblyConfig.colorId == t &&
-                    !n.assemblyComplete &&
-                    !n.assemblyCompleting &&
-                    (Number(n.assemblyCollected) || 0) + (Number(n.assemblyIncoming) || 0) <
-                        Math.max(1, Number(n.assemblyCapacity) || 1) &&
-                    (!e || this.isTankAssemblyPartAlignedWithParking(e, n))
+                    o &&
+                    !o.absorbing &&
+                    o.spriteReady &&
+                    o.chainDistance >= 0 &&
+                    o.chainDistance <= this.tankAssemblyPathLength &&
+                    o.config &&
+                    o.config.colorId == t.assemblyConfig.colorId
                 ) {
-                    if (!e) {
-                        return n;
-                    }
-                    var a = n.getChildByName("tankStop") || n;
-                    var c = e.node.convertToWorldSpaceAR(cc.v2(0, 0)).x;
-                    var l = a.convertToWorldSpaceAR(cc.v2(0, 0)).x;
-                    var h = Math.abs(c - l);
-                    if (h < i) {
-                        i = h;
-                        o = n;
-                    }
+                    return o;
                 }
             }
-            return o;
+            return null;
+        }
+
+    detachTankAssemblyChainItem(t, e) {
+            var o = this.tankAssemblyChainItems.indexOf(t);
+            if (o < 0) {
+                return false;
+            }
+            t.chainRetreatTargets = this.tankAssemblyChainItems.slice(0, o);
+            this.tankAssemblyChainItems.splice(o, 1);
+            t.chainAbsorptionActive = true;
+            this.tankAssemblyActiveAbsorptionCount += 1;
+            e.assemblyActivePart = t;
+            this.queueTankAssemblyChainRetreat(t);
+            return true;
+        }
+
+    queueTankAssemblyChainRetreat(t) {
+            if (!t || t.chainRetreatQueued) {
+                return;
+            }
+            t.chainRetreatQueued = true;
+            var e = Math.max(1, Number(TANK_ASSEMBLY_CONVEYOR_CONFIG.chainSpacing) || 42);
+            var o = t.chainRetreatTargets || [];
+            for (var i = 0; i < o.length; i++) {
+                var r = o[i];
+                if (this.tankAssemblyChainItems.indexOf(r) >= 0 && !r.absorbing) {
+                    r.retreatRemaining = Math.max(0, Number(r.retreatRemaining) || 0) + e;
+                }
+            }
+        }
+
+    checkTankAssemblyChainEndFailure() {
+            if (
+                this.tankAssemblyEnded ||
+                this.tankAssemblyActiveAbsorptionCount > 0 ||
+                !this.tankAssemblyChainItems.length
+            ) {
+                return;
+            }
+            var t = this.tankAssemblyChainItems[0];
+            var e = Math.max(0, Number(TANK_ASSEMBLY_CONVEYOR_CONFIG.endTolerance) || 0.5);
+            if (t.chainDistance < this.tankAssemblyPathLength - e) {
+                return;
+            }
+            this.tankAssemblyFailed = true;
+            this.tankAssemblyEnded = true;
+            this.isCanStartClick = false;
+            this.show("零件到达终点", 2);
+            var o = {
+                reason: "pathEnd",
+                isFail: true,
+                remainingPartAmount: this.tankAssemblyChainItems.length
+            };
+            level29086SilentLog("坦克装配阶段失败", o);
+            cc.game.emit("tankAssemblyStageEnd", o);
         }
 
     absorbTankAssemblyPart(t, e) {
@@ -1703,6 +1756,10 @@ export default class Level29086Control extends $brainLevelBase.default {
                 return;
             }
             if (!this.reserveTankAssemblyPartCapacity(t, e)) {
+                return;
+            }
+            if (t.isChainPart && !this.detachTankAssemblyChainItem(t, e)) {
+                this.releaseTankAssemblyPartCapacity(t);
                 return;
             }
             t.absorbing = true;
@@ -1736,9 +1793,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                     position: n
                 })
                 .call(function () {
-                    a.releaseTankAssemblyPartCapacity(t);
-                    a.applyTankAssemblyPartToParking(e);
-                    a.removeTankAssemblyPart(t);
+                    a.completeTankAssemblyPartAbsorption(t, e);
                 })
                 .start();
         }
@@ -1804,12 +1859,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                 if (completed < count || t.absorbCompleted) {
                     return;
                 }
-                t.absorbCompleted = true;
-                owner.releaseTankAssemblyPartCapacity(t);
-                if (!owner.tankAssemblyEnded) {
-                    owner.applyTankAssemblyPartToParking(e);
-                }
-                owner.removeTankAssemblyPart(t);
+                owner.completeTankAssemblyPartAbsorption(t, e);
             };
 
             try {
@@ -1932,7 +1982,6 @@ export default class Level29086Control extends $brainLevelBase.default {
                         if (t.absorbCompleted) {
                             return;
                         }
-                        t.absorbCompleted = true;
                         if (TANK_ASSEMBLY_CONVEYOR_CONFIG.shatterDebugLog) {
                             //组装完成打印
                             // cc.log("[TankPartShatter] complete", {
@@ -1940,11 +1989,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                             //     duration: TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbDuration
                             // });
                         }
-                        l.releaseTankAssemblyPartCapacity(t);
-                        if (!l.tankAssemblyEnded) {
-                            l.applyTankAssemblyPartToParking(e);
-                        }
-                        l.removeTankAssemblyPart(t);
+                        l.completeTankAssemblyPartAbsorption(t, e);
                     }
                 );
                 if (!h) {
@@ -1971,6 +2016,29 @@ export default class Level29086Control extends $brainLevelBase.default {
                 // });
             }
             return true;
+        }
+
+    completeTankAssemblyPartAbsorption(t, e) {
+            if (!t || t.absorbCompleted) {
+                return;
+            }
+            t.absorbCompleted = true;
+            if (t.chainAbsorptionActive) {
+                t.chainAbsorptionActive = false;
+                this.tankAssemblyActiveAbsorptionCount = Math.max(
+                    0,
+                    this.tankAssemblyActiveAbsorptionCount - 1
+                );
+                if (e && e.assemblyActivePart == t) {
+                    e.assemblyActivePart = null;
+                }
+                t.chainRetreatTargets = [];
+            }
+            this.releaseTankAssemblyPartCapacity(t);
+            if (!this.tankAssemblyEnded) {
+                this.applyTankAssemblyPartToParking(e);
+            }
+            this.removeTankAssemblyPart(t);
         }
 
     reserveTankAssemblyPartCapacity(t, e) {
@@ -2159,10 +2227,22 @@ export default class Level29086Control extends $brainLevelBase.default {
             t.assemblyProgress = 0;
             t.assemblyComplete = false;
             t.assemblyCompleting = false;
+            t.assemblyActivePart = null;
             t.isEmpty = true;
         }
 
     removeTankAssemblyPart(t) {
+            var parking = t && t.assemblyParking;
+            if (t && t.chainAbsorptionActive) {
+                t.chainAbsorptionActive = false;
+                this.tankAssemblyActiveAbsorptionCount = Math.max(
+                    0,
+                    this.tankAssemblyActiveAbsorptionCount - 1
+                );
+            }
+            if (parking && parking.assemblyActivePart == t) {
+                parking.assemblyActivePart = null;
+            }
             this.releaseTankAssemblyPartCapacity(t);
             if (t && t.miniPartNodes) {
                 for (var i = t.miniPartNodes.length - 1; i >= 0; i--) {
@@ -2178,7 +2258,12 @@ export default class Level29086Control extends $brainLevelBase.default {
             if (e >= 0) {
                 this.tankAssemblyParts.splice(e, 1);
             }
+            var chainIndex = this.tankAssemblyChainItems.indexOf(t);
+            if (chainIndex >= 0) {
+                this.tankAssemblyChainItems.splice(chainIndex, 1);
+            }
             if (t && t.node && cc.isValid(t.node)) {
+                t.node.stopAllActions();
                 t.node.destroy();
             }
         }
@@ -2187,6 +2272,8 @@ export default class Level29086Control extends $brainLevelBase.default {
             for (var t = this.tankAssemblyParts.length - 1; t >= 0; t--) {
                 this.removeTankAssemblyPart(this.tankAssemblyParts[t]);
             }
+            this.tankAssemblyChainItems = [];
+            this.tankAssemblyActiveAbsorptionCount = 0;
         }
 
     finishTankAssemblyStage() {
@@ -2194,7 +2281,6 @@ export default class Level29086Control extends $brainLevelBase.default {
                 return;
             }
             this.tankAssemblyEnded = true;
-            this.tankAssemblySpawnStarted = false;
             this.clearTankAssemblyParts();
             this.setTankAssemblyOkVisible(true);
             var e = {

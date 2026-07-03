@@ -5,6 +5,7 @@ const path = require("path");
 
 const ROOT = __dirname;
 const CONFIG_FILE = path.join(ROOT, "assets/script/scripts/Level-29086_tankBoardConfig.ts");
+const ASSEMBLY_CONFIG_FILE = path.join(ROOT, "assets/script/scripts/Level-29086_config.ts");
 const HIT_POLYGON_FILE = path.join(ROOT, "assets/script/scripts/Level-29086_tankHitPolygons.ts");
 const PREFAB_FILE = path.join(ROOT, "assets/resources/zqddn_zhb/prefab/level/zqddn_zhb_level-10001.prefab");
 const TEXTURE_DIR = path.join(ROOT, "assets/resources/zqddn_zhb/texture/tank");
@@ -23,6 +24,10 @@ function loadConfigModule() {
 }
 
 const moduleData = loadConfigModule();
+const assemblyModuleData = new Function(
+    fs.readFileSync(ASSEMBLY_CONFIG_FILE, "utf8").replace(/export const /g, "const ") +
+        "\nreturn { TankAssemblyTypes, TankAssemblyConveyorConfig };"
+)();
 const hitPolygonData = new Function(
     fs.readFileSync(HIT_POLYGON_FILE, "utf8").replace(/export const /g, "const ") +
         "\nreturn TankHitPolygonByAsset;"
@@ -78,6 +83,19 @@ function bodyLocalPolygon(tank, direction) {
 function bodyPolygon(tank, position, direction) {
     return bodyLocalPolygon(tank, direction == null ? tank.direction : direction)
         .map(point => add(position || tank, point));
+}
+
+function getChainCounts() {
+    const conveyor = assemblyModuleData.TankAssemblyConveyorConfig;
+    const repeat = Math.max(1, Math.floor(Number(conveyor.chainRepeat) || 1));
+    const counts = {};
+    for (let iteration = 0; iteration < repeat; iteration++) {
+        for (const run of conveyor.chainRunCycle || []) {
+            const count = Math.max(0, Math.floor(Number(run.count) || 0));
+            counts[run.colorId] = (counts[run.colorId] || 0) + count;
+        }
+    }
+    return counts;
 }
 
 function polygonsIntersect(a, b) {
@@ -228,6 +246,29 @@ function validate() {
             }
         }
     }
+
+    const conveyor = assemblyModuleData.TankAssemblyConveyorConfig;
+    const chainCounts = getChainCounts();
+    const demandCounts = {};
+    for (const tank of config.tanks) {
+        const type = moduleData.TankTypeConfig[moduleData.getTankTypeKey(tank.type)];
+        if (type) demandCounts[type.colorId] = (demandCounts[type.colorId] || 0) + type.capacity;
+    }
+    for (const type of assemblyModuleData.TankAssemblyTypes) {
+        if ((chainCounts[type.colorId] || 0) !== (demandCounts[type.colorId] || 0)) {
+            errors.push(
+                "Chain demand mismatch colorId " + type.colorId +
+                ": chain=" + (chainCounts[type.colorId] || 0) +
+                ", demand=" + (demandCounts[type.colorId] || 0)
+            );
+        }
+    }
+    if (!Number.isFinite(conveyor.chainSpacing) || conveyor.chainSpacing <= 0) {
+        errors.push("Invalid chainSpacing: " + conveyor.chainSpacing);
+    }
+    if (conveyor.perParkingConcurrency !== 1) {
+        errors.push("perParkingConcurrency must be 1: " + conveyor.perParkingConcurrency);
+    }
     return errors;
 }
 
@@ -260,4 +301,7 @@ if (!solution) {
 
 console.log("Tank waiting board config OK: " + LEVEL_ID);
 console.log("Tanks: " + config.tanks.length);
+const chainCounts = getChainCounts();
+console.log("Chain parts: " + Object.values(chainCounts).reduce((sum, count) => sum + count, 0));
+console.log("Chain colors: " + JSON.stringify(chainCounts));
 console.log("Solution: " + solution.join(" -> "));

@@ -43,30 +43,35 @@ export const TankAssemblyProgressStages = [
     { progress: 100 }
 ];
 
-// 零件触发吸入动画的方式。
-export const TankAssemblyPartAbsorbTriggerType = {
-    // 贴图准备完成后，只要装配区存在可接收的同色坦克就立即飞入。
-    Direct: 1,
-    // 到达下排，并与对应坦克的世界 X 坐标对齐后才飞入。
-    BottomAligned: 2
-};
-
 export const TankAssemblyConveyorConfig = {
-    // 零件生产速度，单位：个/秒。
-    spawnRate: 1.11,
-    spawnRateMin: 0,
-    spawnRateMax: 2.22,
-
-    // 零件沿 conveyorPathRoot 路径移动的速度，单位：像素/秒。
+    // 整条零件长龙沿 conveyorPathRoot 前进的基础速度，单位：像素/秒。
     moveSpeed: 60,
     moveSpeedMin: 0,
     moveSpeedMax: 1000,
 
-    // 第一颗零件生产前的等待时间，单位：秒。
-    startDelay: 1.2,
+    // 相邻两个零件中心之间的固定距离，单位：像素。
+    chainSpacing: 42,
+    // 零件开始飞行时，前方链段立即以基础移动速度的该倍数后退，用于补齐空位。
+    // 链段同时仍在正常前进，因此 4 倍后退对应约 3 倍基础速度的视觉净后退。
+    retreatSpeedMultiplier: 4,
+    // 链头距离路径终点小于该值时视为到达终点，单位：像素。
+    endTolerance: 0.5,
+    // 每个装配位同一时间最多吸收的零件数；当前玩法固定为 1。
+    perParkingConcurrency: 1,
+    // 下方颜色序列的重复次数；22 节一轮，重复 4 次共 88 节。
+    chainRepeat: 4,
+    // 固定长龙颜色序列。colorId：1=橙，2=蓝，4=绿，6=紫。
+    chainRunCycle: [
+        { colorId: 1, count: 2 },
+        { colorId: 2, count: 2 },
+        { colorId: 4, count: 3 },
+        { colorId: 6, count: 3 },
+        { colorId: 2, count: 2 },
+        { colorId: 6, count: 3 },
+        { colorId: 4, count: 3 },
+        { colorId: 6, count: 4 }
+    ],
 
-    // 1=传送带上直接匹配飞入；2=下排与坦克 X 对齐后飞入。
-    absorbTriggerType: TankAssemblyPartAbsorbTriggerType.Direct,
     // Shader 或整图回退动画的飞行时长，单位：秒。
     absorbDuration: 2,
     // 动画进行到该比例后开始缩小。
@@ -98,10 +103,6 @@ export const TankAssemblyConveyorConfig = {
     miniPartMinFlyDuration: 0.35,
     // 到达坦克时相对初始小零件的最终缩放。
     miniPartArrivalScale: 0.5,
-
-    // BottomAligned 模式使用的判断参数。
-    bottomRowYTolerance: 4,
-    absorbXAlignmentTolerance: 4,
 
     // 装配完成后的坦克离场动画。
     assemblyExitVerticalDuration: 0.35,
