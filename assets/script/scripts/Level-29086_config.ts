@@ -67,21 +67,37 @@ export const TankAssemblyConveyorConfig = {
 
     // 1=传送带上直接匹配飞入；2=下排与坦克 X 对齐后飞入。
     absorbTriggerType: TankAssemblyPartAbsorbTriggerType.Direct,
-    // 碎裂零件飞向坦克的时长，单位：秒。
+    // Shader 或整图回退动画的飞行时长，单位：秒。
     absorbDuration: 2,
     // 动画进行到该比例后开始缩小。
     absorbShrinkDelayRatio: 0.75,
     // 飞到坦克时的最终缩放。
     absorbEndScale: 0.2,
 
-    // Shader 碎裂效果。
-    shatterEnabled: true,
+    // Shader 碎裂效果暂时停用，代码保留用于后续效果对比。
+    shatterEnabled: false,
     shatterDebugLog: true,
     // 4x4 网格，每格两个三角形，共32个碎片、96个顶点。
     shatterColumns: 4,
     shatterRows: 4,
     shatterCurveSpread: 44,
     shatterRotation: 540,
+
+    // 小零件精灵飞行效果：从原零件处连续发射并汇聚到对应坦克。
+    miniPartEnabled: true,
+    // 每个原零件分出的精灵数量。
+    miniPartCount: 20,
+    // 小零件相对原零件的显示缩放。
+    miniPartScale: 0.8,
+    // 轨迹半宽，单位：像素；只在路线垂直方向做轻微错开。
+    miniPartTrailHalfWidth: 16,
+    // 相邻小零件开始飞行的时间间隔，单位：秒。
+    miniPartEmitInterval: 0.018,
+    // 汇聚飞行速度，单位：像素/秒；最短时间用于避免近距离瞬移。
+    miniPartFlySpeed: 450,
+    miniPartMinFlyDuration: 0.35,
+    // 到达坦克时相对初始小零件的最终缩放。
+    miniPartArrivalScale: 0.5,
 
     // BottomAligned 模式使用的判断参数。
     bottomRowYTolerance: 4,

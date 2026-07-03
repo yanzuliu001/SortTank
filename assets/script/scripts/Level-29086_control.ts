@@ -1711,9 +1711,13 @@ export default class Level29086Control extends $brainLevelBase.default {
             t.node.position = t.node.parent.convertToNodeSpaceAR(o);
             var i = e.getChildByName("tankStop") || e;
             var r = i.convertToWorldSpaceAR(cc.v2(0, 0));
-            if (this.playTankAssemblyPartShatter(t, e, r)) {
+            if (this.playTankAssemblyMiniPartFlight(t, e, r)) {
                 return;
             }
+            // Shader 碎裂飞行暂时停用，保留实现方便后续对比切换。
+            // if (this.playTankAssemblyPartShatter(t, e, r)) {
+            //     return;
+            // }
             var n = t.node.parent.convertToNodeSpaceAR(r);
             var a = this;
             var c = TANK_ASSEMBLY_CONVEYOR_CONFIG.absorbDuration || 0.25;
@@ -1737,6 +1741,146 @@ export default class Level29086Control extends $brainLevelBase.default {
                     a.removeTankAssemblyPart(t);
                 })
                 .start();
+        }
+
+    playTankAssemblyMiniPartFlight(t, e, targetWorldPosition) {
+            if (false === TANK_ASSEMBLY_CONVEYOR_CONFIG.miniPartEnabled) {
+                return false;
+            }
+            var sourceSprite = t.node.getComponent(cc.Sprite);
+            var spriteFrame = sourceSprite && sourceSprite.spriteFrame;
+            var parent = t.node.parent;
+            if (!sourceSprite || !spriteFrame || !parent || !cc.isValid(parent)) {
+                return false;
+            }
+
+            var count = Math.max(1, Math.floor(TANK_ASSEMBLY_CONVEYOR_CONFIG.miniPartCount || 20));
+            var miniScale = Math.max(0.05, Number(TANK_ASSEMBLY_CONVEYOR_CONFIG.miniPartScale) || 0.8);
+            var trailHalfWidth = Math.max(
+                0,
+                Number(TANK_ASSEMBLY_CONVEYOR_CONFIG.miniPartTrailHalfWidth) || 16
+            );
+            var emitInterval = Math.max(
+                0,
+                Number(TANK_ASSEMBLY_CONVEYOR_CONFIG.miniPartEmitInterval) || 0.018
+            );
+            var flySpeed = Math.max(1, Number(TANK_ASSEMBLY_CONVEYOR_CONFIG.miniPartFlySpeed) || 450);
+            var minFlyDuration = Math.max(
+                0.01,
+                Number(TANK_ASSEMBLY_CONVEYOR_CONFIG.miniPartMinFlyDuration) || 0.35
+            );
+            var arrivalScale = Math.max(
+                0.01,
+                Number(TANK_ASSEMBLY_CONVEYOR_CONFIG.miniPartArrivalScale) || 0.5
+            );
+            var sourcePosition = cc.v2(t.node.x, t.node.y);
+            var targetPosition = parent.convertToNodeSpaceAR(targetWorldPosition);
+            var routeVector = cc.v2(
+                targetPosition.x - sourcePosition.x,
+                targetPosition.y - sourcePosition.y
+            );
+            var routeLength = routeVector.mag();
+            var routeDirection = routeLength > 0.001
+                ? cc.v2(routeVector.x / routeLength, routeVector.y / routeLength)
+                : cc.v2(0, 1);
+            var routeNormal = cc.v2(-routeDirection.y, routeDirection.x);
+            var sourceScaleX = t.node.scaleX;
+            var sourceScaleY = t.node.scaleY;
+            var sourceOpacity = t.node.opacity;
+            var completed = 0;
+            var owner = this;
+            t.miniPartNodes = [];
+
+            var completeOne = function (node) {
+                var index = t.miniPartNodes.indexOf(node);
+                if (index >= 0) {
+                    t.miniPartNodes.splice(index, 1);
+                }
+                if (node && cc.isValid(node)) {
+                    node.opacity = 0;
+                    node.destroy();
+                }
+                completed += 1;
+                if (completed < count || t.absorbCompleted) {
+                    return;
+                }
+                t.absorbCompleted = true;
+                owner.releaseTankAssemblyPartCapacity(t);
+                if (!owner.tankAssemblyEnded) {
+                    owner.applyTankAssemblyPartToParking(e);
+                }
+                owner.removeTankAssemblyPart(t);
+            };
+
+            try {
+                for (var index = 0; index < count; index++) {
+                    var node = new cc.Node("tankMiniPart_" + index);
+                    node.parent = parent;
+                    node.position = sourcePosition;
+                    node.anchorX = t.node.anchorX;
+                    node.anchorY = t.node.anchorY;
+                    node.width = t.node.width;
+                    node.height = t.node.height;
+                    node.angle = t.node.angle || 0;
+                    node.opacity = 0;
+                    node.color = t.node.color;
+                    node.scaleX = sourceScaleX * miniScale;
+                    node.scaleY = sourceScaleY * miniScale;
+                    var sprite = node.addComponent(cc.Sprite);
+                    sprite.spriteFrame = spriteFrame;
+                    if (cc.Sprite.SizeMode && void 0 !== cc.Sprite.SizeMode.CUSTOM) {
+                        sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+                    }
+
+                    var sideDistance = (Math.random() * 2 - 1) * trailHalfWidth;
+                    var startPosition = cc.v2(
+                        sourcePosition.x + routeNormal.x * sideDistance,
+                        sourcePosition.y + routeNormal.y * sideDistance
+                    );
+                    node.position = startPosition;
+                    var flyDistance = startPosition.sub(targetPosition).mag();
+                    var flyDuration = Math.max(minFlyDuration, flyDistance / flySpeed);
+                    var endScaleX = node.scaleX * arrivalScale;
+                    var endScaleY = node.scaleY * arrivalScale;
+                    var endAngle = node.angle + (Math.random() * 24 - 12);
+                    var startDelay = index * emitInterval;
+                    t.miniPartNodes.push(node);
+
+                    (function (miniNode, delay, duration, scaleX, scaleY, angle) {
+                        cc.tween(miniNode)
+                            .delay(delay)
+                            .call(function () {
+                                if (cc.isValid(miniNode)) {
+                                    miniNode.opacity = sourceOpacity;
+                                }
+                            })
+                            .to(duration, {
+                                position: targetPosition,
+                                scaleX: scaleX,
+                                scaleY: scaleY,
+                                angle: angle
+                            })
+                            .call(function () {
+                                completeOne(miniNode);
+                            })
+                            .start();
+                    })(node, startDelay, flyDuration, endScaleX, endScaleY, endAngle);
+                }
+            } catch (error) {
+                for (var cleanupIndex = t.miniPartNodes.length - 1; cleanupIndex >= 0; cleanupIndex--) {
+                    var createdNode = t.miniPartNodes[cleanupIndex];
+                    if (createdNode && cc.isValid(createdNode)) {
+                        createdNode.stopAllActions();
+                        createdNode.destroy();
+                    }
+                }
+                t.miniPartNodes.length = 0;
+                cc.warn && cc.warn("create tank mini part effect failed, use tween fallback:", error);
+                return false;
+            }
+
+            t.node.opacity = 0;
+            return true;
         }
 
     playTankAssemblyPartShatter(t, e, o) {
@@ -2020,6 +2164,16 @@ export default class Level29086Control extends $brainLevelBase.default {
 
     removeTankAssemblyPart(t) {
             this.releaseTankAssemblyPartCapacity(t);
+            if (t && t.miniPartNodes) {
+                for (var i = t.miniPartNodes.length - 1; i >= 0; i--) {
+                    var miniPart = t.miniPartNodes[i];
+                    if (miniPart && cc.isValid(miniPart)) {
+                        miniPart.stopAllActions();
+                        miniPart.destroy();
+                    }
+                }
+                t.miniPartNodes.length = 0;
+            }
             var e = this.tankAssemblyParts.indexOf(t);
             if (e >= 0) {
                 this.tankAssemblyParts.splice(e, 1);
