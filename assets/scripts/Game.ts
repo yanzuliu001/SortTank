@@ -38,6 +38,8 @@ const PoolUtils = require("./PoolUtils");
 const AssetManager = require("./AssetManager");
 const Tools = require("./Tools");
 
+const TANK_ASSEMBLY_LEVEL_READY_EVENT = "tankAssemblyLevelReady";
+
 const { ccclass, property } = cc._decorator;
 
 @ccclass
@@ -1304,6 +1306,13 @@ class Game extends BaseUI.default {
                                             }
                                             n.x = 0;
                                             this.currentPrefabAsset.push(t);
+                                            if (Number(c) === -10001) {
+                                                MemoryStorageManager.default.set(
+                                                    MemoryStorageConst.default.CollectGoodsID,
+                                                    null
+                                                );
+                                                return [3, 4];
+                                            }
                                             return [4, ConfigManager.Config.get(ConfigConst.ConfigConst.Collect)];
                                         case 1:
                                             r = s.sent();
@@ -1343,6 +1352,9 @@ class Game extends BaseUI.default {
                                         case 4:
                                             this.level.addChild(n);
                                             window.levelContent = n;
+                                            if (Number(c) === -10001) {
+                                                cc.game.emit(TANK_ASSEMBLY_LEVEL_READY_EVENT, c);
+                                            }
                                             this.scheduleOnce(function () {
                                                 u.screenshot();
                                                 PlatformManager.Platform.startRecordCap();

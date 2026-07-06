@@ -74,6 +74,7 @@ export default class Level29086Control extends $brainLevelBase.default {
     tankAssemblyDebugLogged: any = {};
 
     onLoad() {
+        this.preloadAsset = false;
         $brainLevelBase.default.prototype.onLoad.call(this);
         this.carRoot = this.dict.carRoot || null;
         this.setTankAssemblyOkVisible(false);
@@ -81,6 +82,8 @@ export default class Level29086Control extends $brainLevelBase.default {
         this.hideTankAssemblyBottomButtons();
         if (this.dict.carPrefab) this.dict.carPrefab.active = false;
     }
+
+    setDefaultSpriteFrame() {}
 
     onLevelReady() {
         if (!this.isTankAssemblyLevel()) {

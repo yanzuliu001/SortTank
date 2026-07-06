@@ -24,6 +24,8 @@ const CopyRightDialog = require("./CopyRightDialog");
 const OPPOAndroidAdUtils = require("./OPPOAndroidAdUtils");
 const XMADUtils = require("./XMADUtils");
 const LocalStorageManager = require("./LocalStorageManager");
+const AssetManager = require("./AssetManager");
+const ResManager = require("./ResManager");
 const SceneManager = require("./SceneManager");
 const SceneConst = require("./SceneConst");
 
@@ -35,6 +37,10 @@ const FONT_INDEX_BY_LANG = {
 };
 
 const DIRECT_TANK_ASSEMBLY_DEMO = true;
+const TANK_ASSEMBLY_ENTRY_PREFAB_PATH = "zqddn_zhb/prefab/level/zqddn_zhb_level-enter";
+const TANK_ASSEMBLY_GAME_PREFAB_PATH = "prefab/scene/Game";
+const TANK_ASSEMBLY_LEVEL_PREFAB_PATH = "zqddn_zhb/prefab/level/zqddn_zhb_level-10001";
+const TANK_ASSEMBLY_LEVEL_READY_EVENT = "tankAssemblyLevelReady";
 
 const { ccclass, property } = cc._decorator;
 
@@ -115,6 +121,18 @@ class App extends cc.Component {
 
     abBunds: Record<string, any> = {};
 
+    tankAssemblyEntryNode: cc.Node = null;
+
+    tankAssemblyEntryLoading: boolean = false;
+
+    tankAssemblyGameStarting: boolean = false;
+
+    tankAssemblySceneLoadStarted: boolean = false;
+
+    tankAssemblyPreloadPromise: any = null;
+
+    tankAssemblyStartClickTime: number = 0;
+
     onLoad() {
         this.initMgr();
         this.initEvent();
@@ -123,6 +141,9 @@ class App extends cc.Component {
             this.fullAdCounter++;
         }, 1);
         this.loadLevelSub();
+        if (DIRECT_TANK_ASSEMBLY_DEMO) {
+            this.preloadTankAssemblyGame();
+        }
     }
 
     loadLevelSub() {
@@ -474,7 +495,7 @@ class App extends cc.Component {
         this.updateSkin();
         if (DIRECT_TANK_ASSEMBLY_DEMO) {
             this.startOppo();
-            this.gotoGame();
+            this.showTankAssemblyEntry();
             return;
         }
 
@@ -667,6 +688,154 @@ class App extends cc.Component {
         UserManager.User.setTempData(UserConst.TempData.CURRENT_MODE, 0);
         UserManager.User.setTempData(UserConst.TempData.CURRENT_LEVEL, 1);
         SceneManager.default.loadScene(SceneConst.SceneConst.GAME);
+    }
+
+    showTankAssemblyEntry() {
+        if (this.tankAssemblyEntryLoading || cc.isValid(this.tankAssemblyEntryNode)) {
+            return;
+        }
+
+        const canvas = cc.find("Canvas");
+        const entryRoot = canvas && canvas.getChildByName("popupRoot");
+        if (!cc.isValid(entryRoot)) {
+            cc.error("[TankAssemblyEntry] popupRoot不存在，直接进入关卡");
+            this.gotoGame();
+            return;
+        }
+
+        this.tankAssemblyEntryLoading = true;
+        cc.resources.load(TANK_ASSEMBLY_ENTRY_PREFAB_PATH, cc.Prefab, (error, prefab) => {
+            this.tankAssemblyEntryLoading = false;
+            if (!cc.isValid(this.node)) {
+                return;
+            }
+
+            if (error || !prefab) {
+                cc.error("[TankAssemblyEntry] 入口预制体加载失败", error);
+                this.gotoGame();
+                return;
+            }
+
+            const entryNode = cc.instantiate(prefab);
+            const startGameNode = entryNode.getChildByName("startGame");
+            if (!startGameNode) {
+                cc.error("[TankAssemblyEntry] 未找到startGame按钮，直接进入关卡");
+                entryNode.destroy();
+                this.gotoGame();
+                return;
+            }
+
+            this.tankAssemblyEntryNode = entryNode;
+            this.tankAssemblyGameStarting = false;
+            this.tankAssemblySceneLoadStarted = false;
+            entryRoot.addChild(entryNode);
+            entryNode.setPosition(cc.Vec2.ZERO);
+            entryNode.angle = 0;
+            if (!entryNode.getComponent(cc.BlockInputEvents)) {
+                entryNode.addComponent(cc.BlockInputEvents);
+            }
+            startGameNode.on(cc.Node.EventType.TOUCH_END, this.onTankAssemblyStartGame, this);
+            this.preloadTankAssemblyGame();
+        });
+    }
+
+    waitForTankAssemblyScriptBundle() {
+        if (cc.sys.isBrowser || window.levelSub) {
+            return Promise.resolve();
+        }
+        return new Promise((resolve) => {
+            const checkLoaded = () => {
+                if (!window.levelSub) {
+                    return;
+                }
+                this.unschedule(checkLoaded);
+                resolve();
+            };
+            this.schedule(checkLoaded, 0.1);
+        });
+    }
+
+    preloadTankAssemblyGame() {
+        if (this.tankAssemblyPreloadPromise) {
+            return this.tankAssemblyPreloadPromise;
+        }
+
+        const startTime = Date.now();
+        const gamePrefabPromise = AssetManager.default.getRes(
+            "gameBundle",
+            TANK_ASSEMBLY_GAME_PREFAB_PATH,
+            cc.Prefab
+        );
+        const levelPrefabPromise = this.waitForTankAssemblyScriptBundle().then(() => {
+            return ResManager.Res.load(TANK_ASSEMBLY_LEVEL_PREFAB_PATH);
+        });
+        this.tankAssemblyPreloadPromise = Promise.all([gamePrefabPromise, levelPrefabPromise])
+            .then((assets) => {
+                console.log("[TankAssemblyLoad] 后台预加载完成：" + (Date.now() - startTime) + "ms");
+                return assets;
+            })
+            .catch((error) => {
+                cc.warn("[TankAssemblyLoad] 后台预加载失败，将在进入关卡时重试", error);
+                return null;
+            });
+        return this.tankAssemblyPreloadPromise;
+    }
+
+    onTankAssemblyStartGame(event: cc.Event.EventTouch) {
+        if (this.tankAssemblyGameStarting) {
+            return;
+        }
+
+        this.tankAssemblyGameStarting = true;
+        this.tankAssemblyStartClickTime = Date.now();
+        const startGameNode = event && (event.currentTarget as cc.Node);
+        if (cc.isValid(startGameNode)) {
+            startGameNode.off(cc.Node.EventType.TOUCH_END, this.onTankAssemblyStartGame, this);
+            const button = startGameNode.getComponent(cc.Button);
+            if (button) {
+                button.interactable = false;
+            }
+        }
+        cc.game.off(TANK_ASSEMBLY_LEVEL_READY_EVENT, this.onTankAssemblyLevelReady, this);
+        cc.game.on(TANK_ASSEMBLY_LEVEL_READY_EVENT, this.onTankAssemblyLevelReady, this);
+        this.preloadTankAssemblyGame().then(() => {
+            if (this.tankAssemblySceneLoadStarted) {
+                return;
+            }
+            this.tankAssemblySceneLoadStarted = true;
+            this.gotoGame();
+        });
+    }
+
+    onTankAssemblyLevelReady(levelID: number) {
+        if (Number(levelID) !== -10001) {
+            return;
+        }
+
+        cc.game.off(TANK_ASSEMBLY_LEVEL_READY_EVENT, this.onTankAssemblyLevelReady, this);
+        console.log(
+            "[TankAssemblyLoad] 点击开始到第一关节点就绪：" +
+                (Date.now() - this.tankAssemblyStartClickTime) +
+                "ms"
+        );
+        if (!cc.isValid(this.tankAssemblyEntryNode)) {
+            this.tankAssemblyEntryNode = null;
+            return;
+        }
+
+        const entryNode = this.tankAssemblyEntryNode;
+        entryNode.stopAllActions();
+        cc.tween(entryNode)
+            .to(0.15, { opacity: 0 })
+            .call(() => {
+                if (cc.isValid(entryNode)) {
+                    entryNode.destroy();
+                }
+                if (this.tankAssemblyEntryNode === entryNode) {
+                    this.tankAssemblyEntryNode = null;
+                }
+            })
+            .start();
     }
 
     judgeMainMode(modeID: number) {
