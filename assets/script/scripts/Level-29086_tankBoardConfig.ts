@@ -53,6 +53,21 @@ export const TankBoardTankTypeValue = {
     yellow: 4
 };
 
+// 关卡表中的坦克编号。编号只负责标识颜色，运行时会转换成 TankBoardTankType。
+export const TankBoardTankCodeByType = {
+    1: 10001,
+    2: 10011,
+    3: 10021,
+    4: 10031
+};
+
+export const TankBoardTankTypeByCode = {
+    10001: 1,
+    10011: 2,
+    10021: 3,
+    10031: 4
+};
+
 export function getTankTypeKey(type) {
     return "number" == typeof type ? TankBoardTankTypeKey[type] : type;
 }
@@ -99,7 +114,7 @@ export const TankTypeConfig = {
     }
 };
 
-// 等待区通用配置。新增关卡在 TankWaitingBoardByLevel 里配置 tanks 和 parts。
+// 等待区通用配置。关卡本身只配置 i/t/d/c/pt/pn，运行时在读取入口转换成 tanks/parts。
 export const TankWaitingBoardCommonConfig = {
     // board: 等待区可放置/寻路的本地坐标范围；运行时如果 prefab 里有 rectNode，会用 rectNode 换算后的范围覆盖这里。
     board: { left: -260, right: 260, bottom: -230, top: 230 },
@@ -118,56 +133,26 @@ export const TankWaitingBoardCommonConfig = {
 };
 
 export const TankWaitingBoardByLevel = {
-    // key 是关卡 id。调试打印会同时输出 tanks 和 parts，可直接复制新增关卡。
-    "-10001": {
-        // tanks: 本关等待区坦克列表。打印按钮会连同 parts 输出完整关卡块。
-        // id: 本关内唯一标识，打印时会按从上到下、从左到右重新生成 t01/t02...
-        // type: 坦克类型，直接填写具体数值：1=Green，2=Blue，3=Purple，4=Orange。
-        // direction: 0-7 八方向，和 TankDirectionVector/TankDirectionAngle 的 key 对应。
-        // x/y: 坦克中心点在 carRoot 下的本地坐标。
-        tanks: [
-            { id: "t01", type: 4, direction: 2, x: -180, y: 170 },
-            { id: "t02", type: 2, direction: 2, x: -60, y: 170 },
-            { id: "t03", type: 1, direction: 3, x: 60, y: 170 },
-            { id: "t04", type: 3, direction: 0, x: 180, y: 170 },
-
-            { id: "t05", type: 2, direction: 1, x: -180, y: 70 },
-            { id: "t06", type: 1, direction: 4, x: -60, y: 70 },
-            { id: "t07", type: 3, direction: 6, x: 60, y: 70 },
-            { id: "t08", type: 4, direction: 5, x: 180, y: 70 },
-
-            { id: "t09", type: 1, direction: 0, x: -180, y: -20 },
-            { id: "t10", type: 3, direction: 7, x: -60, y: -20 },
-            { id: "t11", type: 4, direction: 7, x: 60, y: -20 },
-            { id: "t12", type: 2, direction: 3, x: 180, y: -20 },
-
-            { id: "t13", type: 3, direction: 1, x: -180, y: -130 },
-            { id: "t14", type: 4, direction: 4, x: -60, y: -130 },
-            { id: "t15", type: 2, direction: 6, x: 60, y: -130 },
-            { id: "t16", type: 1, direction: 5, x: 180, y: -130 }
-        ],
-        // parts: 零件长龙从链头到链尾的连续颜色段，可配置任意段数和总数量。
-        // type 与坦克 type 完全一致：1=绿，2=蓝，3=紫，4=橙。
-        // count 只表示该颜色连续出现的零件数量，容量仍读取 TankTypeConfig.capacity。
-        parts: [
-            { type: 4, count: 2 },  // t01 橙
-            { type: 2, count: 4 },  // t02 蓝
-            { type: 1, count: 6 },  // t03 绿
-            { type: 3, count: 10 }, // t04 紫
-            { type: 2, count: 4 },  // t05 蓝
-            { type: 1, count: 6 },  // t06 绿
-            { type: 3, count: 10 }, // t07 紫
-            { type: 4, count: 2 },  // t08 橙
-            { type: 1, count: 6 },  // t09 绿
-            { type: 3, count: 10 }, // t10 紫
-            { type: 4, count: 2 },  // t11 橙
-            { type: 2, count: 4 },  // t12 蓝
-            { type: 3, count: 10 }, // t13 紫
-            { type: 4, count: 2 },  // t14 橙
-            { type: 2, count: 4 },  // t15 蓝
-            { type: 1, count: 6 }   // t16 绿
-        ]
+    // i: 流程关卡ID。
+    // t: 坦克编号，10001=绿、10011=蓝、10021=紫、10031=橙。
+    // d: 与 t 一一对应的方向编号。
+    // c: 与 t 一一对应的 carRoot 本地坐标 [x, y]。
+    // pt/pn: 零件颜色和连续数量，两组数组一一对应。
+    1: {
+        i: 1,
+        t: [10031, 10011, 10001, 10021, 10011, 10001, 10021, 10031, 10001, 10021, 10031, 10011, 10021, 10031, 10011, 10001],
+        d: [2, 2, 3, 0, 1, 4, 6, 5, 0, 7, 7, 3, 1, 4, 6, 5],
+        c: [[-180, 170], [-60, 170], [60, 170], [180, 170], [-180, 70], [-60, 70], [60, 70], [180, 70], [-180, -20], [-60, -20], [60, -20], [180, -20], [-180, -130], [-60, -130], [60, -130], [180, -130]],
+        pt: [4, 2, 1, 3, 2, 1, 3, 4, 1, 3, 4, 2, 3, 4, 2, 1],
+        pn: [2, 4, 6, 10, 4, 6, 10, 2, 6, 10, 2, 4, 10, 2, 4, 6]
     }
+};
+
+// 当前只接第一关：流程关卡1对应资源关卡 zqddn_zhb_level-10001（运行时ID为-10001）。
+export const TankWaitingBoardLevelIdMap = {
+    1: 1,
+    10001: 1,
+    "-10001": 1
 };
 
 // 根据 tanks 顺序生成连续颜色段，供调试打印和缺失 parts 时的开发回退使用。
@@ -210,6 +195,142 @@ export function buildTankPartsFromTanks(tanks) {
     return parts;
 }
 
+export function getTankWaitingBoardLevelConfigId(levelId) {
+    return TankWaitingBoardLevelIdMap["" + levelId] || null;
+}
+
+export function getTankWaitingBoardCompactConfig(levelId) {
+    var configId = getTankWaitingBoardLevelConfigId(levelId);
+    return configId ? TankWaitingBoardByLevel[configId] || null : null;
+}
+
+function isTankCompactInteger(value) {
+    return "number" == typeof value && isFinite(value) && Math.floor(value) == value;
+}
+
+// 返回空数组表示配置合法；错误文本同时供运行时日志和离线验证使用。
+export function validateTankWaitingBoardCompactConfig(config) {
+    var errors = [];
+    if (!config || !isTankCompactInteger(config.i) || config.i <= 0) {
+        return ["Invalid compact level id"];
+    }
+    var tankFields = ["t", "d", "c"];
+    for (var fieldIndex = 0; fieldIndex < tankFields.length; fieldIndex++) {
+        var field = tankFields[fieldIndex];
+        if (!Array.isArray(config[field])) {
+            errors.push("Compact field must be an array: " + field);
+        }
+    }
+    if (errors.length) {
+        return errors;
+    }
+    if (!config.t.length || config.t.length != config.d.length || config.t.length != config.c.length) {
+        errors.push("Compact t/d/c lengths must match and not be empty");
+    }
+    if (!Array.isArray(config.pt) || !Array.isArray(config.pn)) {
+        errors.push("Compact pt/pn must be arrays");
+    } else if (!config.pt.length || config.pt.length != config.pn.length) {
+        errors.push("Compact pt/pn lengths must match and not be empty");
+    }
+    for (var tankIndex = 0; tankIndex < config.t.length; tankIndex++) {
+        if (!isTankCompactInteger(config.t[tankIndex]) || !TankBoardTankTypeByCode[config.t[tankIndex]]) {
+            errors.push("Unknown tank code @ t[" + tankIndex + "]: " + config.t[tankIndex]);
+        }
+        if (!isTankCompactInteger(config.d[tankIndex]) || config.d[tankIndex] < 0 || config.d[tankIndex] > 7) {
+            errors.push("Invalid direction @ d[" + tankIndex + "]: " + config.d[tankIndex]);
+        }
+        var position = config.c[tankIndex];
+        if (
+            !Array.isArray(position) ||
+            position.length != 2 ||
+            !isFinite(Number(position[0])) ||
+            !isFinite(Number(position[1]))
+        ) {
+            errors.push("Invalid position @ c[" + tankIndex + "]");
+        }
+    }
+    if (Array.isArray(config.pt) && Array.isArray(config.pn)) {
+        for (var partIndex = 0; partIndex < config.pt.length; partIndex++) {
+            if (!isTankCompactInteger(config.pt[partIndex]) || !TankBoardTankTypeKey[config.pt[partIndex]]) {
+                errors.push("Invalid part type @ pt[" + partIndex + "]: " + config.pt[partIndex]);
+            }
+            if (!isTankCompactInteger(config.pn[partIndex]) || config.pn[partIndex] <= 0) {
+                errors.push("Invalid part count @ pn[" + partIndex + "]: " + config.pn[partIndex]);
+            }
+        }
+    }
+    return errors;
+}
+
+export function buildTankRuntimeTanksFromCompact(config) {
+    var tanks = [];
+    for (var i = 0; i < config.t.length; i++) {
+        tanks.push({
+            id: "t" + (i + 1 < 10 ? "0" : "") + (i + 1),
+            type: TankBoardTankTypeByCode[config.t[i]],
+            direction: config.d[i],
+            x: Number(config.c[i][0]),
+            y: Number(config.c[i][1])
+        });
+    }
+    return tanks;
+}
+
+export function buildTankRuntimePartsFromCompact(config) {
+    var parts = [];
+    for (var i = 0; i < config.pt.length; i++) {
+        parts.push({ type: config.pt[i], count: config.pn[i] });
+    }
+    return parts;
+}
+
+function formatTankCompactNumber(value) {
+    return "" + Number(Number(value).toFixed(3));
+}
+
+// 调试布局打印格式；pt/pn根据当前坦克顺序和对应容量重新生成。
+export function buildTankCompactConfigText(tanks, levelId) {
+    var configId = getTankWaitingBoardLevelConfigId(levelId);
+    if (!configId || !Array.isArray(tanks) || !tanks.length) {
+        return null;
+    }
+    var tankCodes = [];
+    var directions = [];
+    var positions = [];
+    var partTypes = [];
+    var partCounts = [];
+    for (var i = 0; i < tanks.length; i++) {
+        var tank = tanks[i];
+        var type = getTankTypeValue(tank && tank.type);
+        var tankCode = TankBoardTankCodeByType[type];
+        var typeConfig = TankTypeConfig[getTankTypeKey(type)];
+        if (
+            !tankCode ||
+            !typeConfig ||
+            !isTankCompactInteger(tank.direction) ||
+            tank.direction < 0 ||
+            tank.direction > 7 ||
+            !isFinite(Number(tank.x)) ||
+            !isFinite(Number(tank.y))
+        ) {
+            return null;
+        }
+        tankCodes.push(tankCode);
+        directions.push(tank.direction);
+        positions.push("{" + formatTankCompactNumber(tank.x) + "," + formatTankCompactNumber(tank.y) + "}");
+        partTypes.push(type);
+        partCounts.push(Math.max(1, Math.floor(Number(typeConfig.capacity) || 1)));
+    }
+    return (
+        "{i=" + configId +
+        ",t={" + tankCodes.join(",") + "}" +
+        ",d={" + directions.join(",") + "}" +
+        ",c={" + positions.join(",") + "}" +
+        ",pt={" + partTypes.join(",") + "}" +
+        ",pn={" + partCounts.join(",") + "}},"
+    );
+}
+
 // 生成可直接粘贴到 Excel/WPS 的制表符分隔文本，一辆坦克对应一行。
 export function buildTankExcelTsv(tanks, levelId) {
     var rows = [
@@ -241,16 +362,20 @@ export function buildTankExcelTsv(tanks, levelId) {
     return rows.join("\n");
 }
 
-// 运行时统一入口。
-// 返回值 = 通用配置 TankWaitingBoardCommonConfig + 当前关卡配置。
-// 当前关卡配置 tanks/parts，并自动继承通用 board/moveSpeed/碰撞参数/visualScale。
-// 如果某个关卡确实需要特殊参数，也可以在该关卡块里覆盖同名字段。
+// 运行时统一入口：紧凑配置只在这里转换成现有 TankBoard/长龙逻辑使用的 tanks/parts。
 export function getTankWaitingBoardConfig(levelId) {
-    var levelConfig = TankWaitingBoardByLevel[levelId] || TankWaitingBoardByLevel["" + levelId] || null;
+    var levelConfig = getTankWaitingBoardCompactConfig(levelId);
     if (!levelConfig) {
         return null;
     }
+    var errors = validateTankWaitingBoardCompactConfig(levelConfig);
+    if (errors.length) {
+        console.error("Invalid tank waiting board compact config:", levelId, errors);
+        return null;
+    }
     return Object.assign({}, TankWaitingBoardCommonConfig, levelConfig, {
-        board: Object.assign({}, TankWaitingBoardCommonConfig.board, levelConfig.board || {})
+        board: Object.assign({}, TankWaitingBoardCommonConfig.board, levelConfig.board || {}),
+        tanks: buildTankRuntimeTanksFromCompact(levelConfig),
+        parts: buildTankRuntimePartsFromCompact(levelConfig)
     });
 }

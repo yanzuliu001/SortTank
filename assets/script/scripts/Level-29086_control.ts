@@ -597,14 +597,6 @@ export default class Level29086Control extends $brainLevelBase.default {
             return o || this.getTankLayoutCurrentLevelDisplayId();
         }
 
-    getTankLayoutPrintConfigLevelId() {
-            var t = this.getTankLayoutPrintLevelId();
-            if ("-" == t.charAt(0)) {
-                return t;
-            }
-            return "-" == ("" + this.levelID).charAt(0) ? "-" + t : t;
-        }
-
     updateTankLayoutDebugButtonText() {
             if (this.dict.debugBtn) {
                 this.setButtonLabel(this.dict.debugBtn, this.tankLayoutDebugEnabled ? "关闭调试" : "开启调试");
@@ -1052,53 +1044,15 @@ export default class Level29086Control extends $brainLevelBase.default {
                 return;
             }
             var t = this.tankWaitingBoard.getConfigSnapshot();
-            var configLevelId = this.getTankLayoutPrintConfigLevelId();
-            var e = t
-                .map(function (t) {
-                    return (
-                        '            { id: "' +
-                        t.id +
-                        '", type: ' +
-                        t.type +
-                        ", direction: " +
-                        t.direction +
-                        ", x: " +
-                        t.x +
-                        ", y: " +
-                        t.y +
-                        " },"
-                    );
-                })
-                .join("\n");
-            var partsLines = t
-                .map(function (tank) {
-                    var typeKey = $level_29086_tankBoardConfig.getTankTypeKey(tank.type);
-                    var typeConfig = $level_29086_tankBoardConfig.TankTypeConfig[typeKey];
-                    if (!typeConfig) {
-                        return "";
-                    }
-                    var capacity = Math.max(1, Math.floor(Number(typeConfig.capacity) || 1));
-                    return (
-                        "            { type: " + tank.type +
-                        ", count: " + capacity + " }, // " + tank.id + " " + typeKey
-                    );
-                })
-                .filter(function (line) {
-                    return !!line;
-                })
-                .join("\n");
-            console.log(
-                '    "' + configLevelId + '": {\n' +
-                "        tanks: [\n" +
-                e +
-                "\n        ],\n" +
-                "        parts: [\n" +
-                partsLines +
-                "\n        ]\n" +
-                "    },"
-            );
-            console.log("[TankExcelTSV:" + configLevelId + "]");
-            console.log($level_29086_tankBoardConfig.buildTankExcelTsv(t, configLevelId));
+            var configLevelId = this.getTankLayoutPrintLevelId();
+            var compactText = $level_29086_tankBoardConfig.buildTankCompactConfigText(t, configLevelId);
+            if (!compactText) {
+                cc.warn("[TankWaitingBoardConfig] 当前只支持打印第一关，levelEdit请填写1或10001：", configLevelId);
+                return;
+            }
+            console.log(compactText);
+            // console.log("[TankExcelTSV:" + configLevelId + "]");
+            // console.log($level_29086_tankBoardConfig.buildTankExcelTsv(t, configLevelId));
         }
 
     handleTankLayoutDebugTouchStart(t) {

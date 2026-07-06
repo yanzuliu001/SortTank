@@ -19,7 +19,7 @@ function loadConfigModule() {
         .replace(/export function /g, "function ");
     return new Function(
         source +
-            "\nreturn { TankDirectionVector, TankDirectionAngle, TankBoardTankType, TankBoardTankTypeKey, TankBoardTankTypeValue, getTankTypeKey, getTankTypeValue, TankTypeConfig, TankWaitingBoardCommonConfig, TankWaitingBoardByLevel, buildTankPartRunsFromTanks, expandTankPartRuns, buildTankPartsFromTanks, buildTankExcelTsv, getTankWaitingBoardConfig };"
+            "\nreturn { TankDirectionVector, TankDirectionAngle, TankBoardTankType, TankBoardTankTypeKey, TankBoardTankTypeValue, TankBoardTankCodeByType, TankBoardTankTypeByCode, getTankTypeKey, getTankTypeValue, TankTypeConfig, TankWaitingBoardCommonConfig, TankWaitingBoardByLevel, TankWaitingBoardLevelIdMap, buildTankPartRunsFromTanks, expandTankPartRuns, buildTankPartsFromTanks, getTankWaitingBoardLevelConfigId, getTankWaitingBoardCompactConfig, validateTankWaitingBoardCompactConfig, buildTankRuntimeTanksFromCompact, buildTankRuntimePartsFromCompact, buildTankCompactConfigText, buildTankExcelTsv, getTankWaitingBoardConfig };"
     )();
 }
 
@@ -33,6 +33,7 @@ const hitPolygonData = new Function(
         "\nreturn TankHitPolygonByAsset;"
 )();
 const config = moduleData.getTankWaitingBoardConfig(LEVEL_ID);
+const compactConfig = moduleData.getTankWaitingBoardCompactConfig(LEVEL_ID);
 if (!config) {
     console.error("Missing tank waiting board config: " + LEVEL_ID);
     process.exit(1);
@@ -197,6 +198,32 @@ function canExit(tank, remaining) {
 
 function validate() {
     const errors = [];
+    if (!compactConfig) {
+        errors.push("Missing compact config: " + LEVEL_ID);
+    } else {
+        errors.push(...moduleData.validateTankWaitingBoardCompactConfig(compactConfig));
+        if (compactConfig.i !== 1) errors.push("First compact level id must be 1");
+        if (compactConfig.t.length !== 16) errors.push("First compact tank amount must be 16");
+        if (compactConfig.pt.length !== compactConfig.pn.length) errors.push("Compact pt/pn length mismatch");
+        for (let index = 0; index < compactConfig.t.length; index++) {
+            const tank = config.tanks[index];
+            const position = compactConfig.c[index];
+            if (
+                tank.type !== moduleData.TankBoardTankTypeByCode[compactConfig.t[index]] ||
+                tank.direction !== compactConfig.d[index] ||
+                tank.x !== position[0] ||
+                tank.y !== position[1]
+            ) {
+                errors.push("Compact tank conversion mismatch @ " + index);
+            }
+        }
+        for (let index = 0; index < compactConfig.pt.length; index++) {
+            const run = config.parts[index];
+            if (!run || run.type !== compactConfig.pt[index] || run.count !== compactConfig.pn[index]) {
+                errors.push("Compact part conversion mismatch @ " + index);
+            }
+        }
+    }
     const ids = new Set();
     for (const tank of config.tanks) {
         if (!tank.id || ids.has(tank.id)) errors.push("Duplicate or empty id: " + tank.id);
@@ -292,6 +319,13 @@ function validate() {
         if ((generatedCounts[type.colorId] || 0) !== (demandCounts[type.colorId] || 0)) {
             errors.push("Generated parts mismatch colorId " + type.colorId);
         }
+    }
+    const compactText = moduleData.buildTankCompactConfigText(config.tanks, "10001");
+    if (!compactText || !compactText.startsWith("{i=1,t={") || !compactText.endsWith("},")) {
+        errors.push("Compact print format mismatch");
+    }
+    if (moduleData.buildTankCompactConfigText(config.tanks, "10002") !== null) {
+        errors.push("Unsupported compact print level should return null");
     }
     const excelRows = moduleData.buildTankExcelTsv(config.tanks, LEVEL_ID).split("\n");
     if (excelRows.length !== config.tanks.length + 1) {
