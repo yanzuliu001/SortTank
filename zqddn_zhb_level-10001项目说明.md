@@ -150,7 +150,7 @@ initTankAssemblyParkingSlots()
 
 - `TankAssemblyLevelIds`：哪些关卡启用装配玩法。
 - `TankAssemblyTypes`：零件颜色、计数板和贴图对应关系。
-- `TankAssemblyConveyorConfig`：长龙颜色序列、间距、移动/后退速度和吸入动画参数。
+- `TankAssemblyConveyorConfig`：长龙间距、移动/后退速度和吸入动画参数。
 - `TankAssemblyBottomButtonsHiddenLevelIds`：隐藏 Game 公共底栏。
 
 ### 3.3 等待区关卡配置
@@ -164,13 +164,16 @@ initTankAssemblyParkingSlots()
 - `TankTypeConfig`：4种坦克的贴图前缀、颜色 ID、容量和逻辑碰撞尺寸。
 - `TankWaitingBoardCommonConfig`：等待区通用移动、碰撞和视觉缩放参数。
 - `TankWaitingBoardByLevel["-10001"].tanks`：第一关16辆坦克的类型、方向和坐标。
+- `TankWaitingBoardByLevel["-10001"].parts`：第一关零件长龙从链头到链尾的连续颜色段。
 
 新增关卡通常只需要增加一份：
 
 ```ts
 "-关卡ID": {
-    tanks: [
-        { id, type, direction, x, y }
+    tanks: [{ id, type, direction, x, y }],
+    parts: [
+        { type: 1, count: 6 },
+        { type: 2, count: 4 }
     ]
 }
 ```
@@ -243,17 +246,19 @@ initTankAssemblyParkingSlots()
 
 ### 4.2 `type`、`colorId`、容量对应关系
 
-`type` 和 `colorId` 是两套不同编号，配置时不要混用：
+`type` 和 `colorId` 现在统一使用同一套颜色编号：
 
 - `type` 写在 `TankWaitingBoardByLevel[关卡ID].tanks` 中，表示等待区坦克类型。
-- `colorId` 写在 `TankAssemblyTypes` 和 `chainRunCycle` 中，表示传送带零件及装配匹配颜色。
+- `parts[].type` 与 `tanks[].type` 使用同一套编号，表示传送带零件颜色。
+- `colorId` 只作为运行时装配匹配键保留在类型配置中。
+- 同一种颜色必须满足 `colorId === type`；容量单独读取 `TankTypeConfig.capacity`。
 
-| 颜色 | tanks.type | 内部类型 | 零件 colorId | 单辆容量 | 第一关坦克数 | 第一关零件需求 |
+| 颜色 | tanks.type / parts.type | 内部类型 | 内部 colorId | 单辆容量 | 第一关坦克数 | 第一关零件需求 |
 | --- | ---: | --- | ---: | ---: | ---: | ---: |
-| 绿 | 1 | `green` | 4 | 6 | 4 | 24 |
+| 绿 | 1 | `green` | 1 | 6 | 4 | 24 |
 | 蓝 | 2 | `blue` | 2 | 4 | 4 | 16 |
-| 紫 | 3 | `purple` | 6 | 10 | 4 | 40 |
-| 橙/黄 | 4 | `yellow` | 1 | 2 | 4 | 8 |
+| 紫 | 3 | `purple` | 3 | 10 | 4 | 40 |
+| 橙/黄 | 4 | `yellow` | 4 | 2 | 4 | 8 |
 | **合计** | - | - | - | - | **16** | **88** |
 
 核心公式：
@@ -271,27 +276,24 @@ initTankAssemblyParkingSlots()
 
 ### 4.3 当前88节长龙如何生成
 
-配置位置：`Level-29086_config.ts / TankAssemblyConveyorConfig`。
+配置位置：`Level-29086_tankBoardConfig.ts / TankWaitingBoardByLevel[关卡ID].parts`。
 
-`chainRunCycle` 单轮有22节：橙2、蓝4、绿6、紫10，恰好够装配一组“每种颜色各1辆”的坦克。
-`chainRepeat: 4` 将该序列重复4次，得到第一关所需的88节。
+`parts` 保存从链头到链尾的连续颜色段，不再使用“单轮”和“重复次数”。每段的 `count` 相加
+就是本关零件总数，因此可以是任意值，不要求是22或其他数量的整倍数。数组第一段是链头，
+最后一段是链尾。
+
+调试打印按 `t01、t02...` 顺序处理坦克，每辆坦克生成一个 `{ type, count }` 颜色段，
+其中 `count` 取该坦克的 `capacity`。例如：
 
 ```ts
-chainRepeat: 4,
-chainRunCycle: [
-    { colorId: 1, count: 2 },
-    { colorId: 2, count: 2 },
-    { colorId: 4, count: 3 },
-    { colorId: 6, count: 3 },
-    { colorId: 2, count: 2 },
-    { colorId: 6, count: 3 },
-    { colorId: 4, count: 3 },
-    { colorId: 6, count: 4 }
+parts: [
+    { type: 4, count: 2 }, // t01 yellow
+    { type: 2, count: 4 }  // t02 blue
 ]
 ```
 
-数组顺序就是长龙从前到后的颜色顺序。相同颜色可以拆成多段穿插配置，用于控制关卡节奏；只要
-每种颜色的最终总数与坦克需求相等即可。
+第一关16辆坦克配置为16个颜色段，运行时展开后共88节。需要调整关卡节奏时，可以在打印后
+交换颜色段顺序或拆分颜色段，但四种颜色的总数必须保持与坦克容量需求一致。
 
 长龙初始化时一次创建全部88个逻辑节段：第一节位于路径入口，后续节段按
 `-index × chainSpacing` 排在入口外并隐藏，移动进入路径后才显示。当前 `chainSpacing=42`。
@@ -311,21 +313,19 @@ chainRunCycle: [
 
 ### 4.5 新增或修改关卡时如何配置
 
-1. 在 `Level-29086_tankBoardConfig.ts` 的 `TankWaitingBoardByLevel` 中新增关卡，仅配置 `tanks`。
+1. 在调试模式中完成等待区坦克布局并点击打印。
 2. `tanks[].type` 使用表中的1/2/3/4；`direction` 使用0-7；`x/y` 是 `carRoot` 本地坐标。
-3. 统计每种颜色的坦克数量，并按“坦克数 × capacity”计算四种零件需求。
-4. 在 `TankAssemblyConveyorConfig.chainRunCycle` 中配置对应 `colorId` 和数量，使四种颜色总量严格匹配。
-5. 颜色数量均为同一倍数时，可以用一轮基础序列配合 `chainRepeat`；数量不均匀时建议设置
-   `chainRepeat: 1`，直接写出本关完整颜色序列。
-6. 装配位数量由预制体 `parkingRoot` 的有效子节点决定，不在 tanks 配置中填写。当前固定为8个。
-7. 修改后运行 `node verify_tank_waiting_board.js -关卡ID`，检查坦克布局可解且零件颜色总量等于容量需求。
+3. 打印逻辑按坦克顺序和容量自动生成 `parts`，并与 `tanks` 一起输出一个完整关卡块。
+4. 将关卡块复制到 `TankWaitingBoardByLevel`；如需改变零件出现节奏，只调整 `parts` 顺序。
+5. 装配位数量由预制体 `parkingRoot` 的有效子节点决定，不在关卡配置中填写。当前固定为8个。
+6. 修改后运行 `node verify_tank_waiting_board.js -关卡ID`，检查坦克布局可解且零件颜色总量等于容量需求。
 
 必须保持的配置约束：
 
 - 零件少于需求：对应颜色坦克永远无法全部装满，关卡不可胜利。
 - 零件多于需求：完成所有坦克后多余零件会被胜利清理，但会破坏关卡数量设计。
 - 某颜色零件出现顺序过晚：可能在对应坦克进场前让链头到达终点，形成难度或死局。
-- 修改坦克 `capacity/colorId` 时，必须同步检查 `TankAssemblyTypes`、长龙数量和计数板贴图映射。
+- 修改坦克 `capacity/type` 映射时，必须同步检查 `TankAssemblyTypes`、长龙数量和计数板贴图映射。
 
 ## 5. 关卡预制体
 
@@ -531,6 +531,16 @@ collected >= capacity
 
 修改 `TankWaitingBoardByLevel["-10001"].tanks`。
 
+### 将调试配置粘贴到 Excel/WPS
+
+1. 打开调试面板并完成坦克布局。
+2. 点击原有打印按钮；控制台会先输出可粘贴到代码的关卡块。
+3. 找到 `[TankExcelTSV:关卡ID]` 标记，复制它下一条日志中的完整 TSV 正文。
+4. 在 Excel 或 WPS 中选中 `A1` 单元格直接粘贴，制表符会自动拆成11列。
+
+TSV 每辆坦克一行，列为：关卡ID、坦克ID、坦克类型、颜色、方向、X、Y、容量、零件顺序、
+零件类型、零件数量。该表仅用于查看、归档和人工调整，不提供 Excel 自动回写代码功能。
+
 ### 修改等待区大小
 
 优先在预制体调整 `rectNode` 的宽高。运行时会覆盖通用配置中的 `board`。
@@ -541,11 +551,12 @@ collected >= capacity
 
 ### 修改零件长龙和吸入效果
 
-编辑 `Level-29086_config.ts` 中的 `TankAssemblyConveyorConfig`。
+零件顺序编辑 `Level-29086_tankBoardConfig.ts` 中对应关卡的 `parts`；移动和动画参数编辑
+`Level-29086_config.ts` 中的 `TankAssemblyConveyorConfig`。
 
 常用字段：
 
-- `chainRunCycle / chainRepeat`：零件颜色顺序和总数量。
+- `TankWaitingBoardByLevel[关卡ID].parts`：连续颜色段顺序；`count` 之和为零件总数量。
 - `chainSpacing`：相邻零件间距。
 - `moveSpeed`：长龙基础前进速度。
 - `retreatSpeedMultiplier`：吸收后的前段补位速度。

@@ -97,7 +97,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
         this.initTankAssemblyConveyor();
         this.onTouch();
-        this.isCanStartClick = true;
+        this.isCanStartClick = !this.tankAssemblyEnded;
     }
 
     onTouch() {
@@ -1067,13 +1067,35 @@ export default class Level29086Control extends $brainLevelBase.default {
                     );
                 })
                 .join("\n");
+            var partsLines = t
+                .map(function (tank) {
+                    var typeKey = $level_29086_tankBoardConfig.getTankTypeKey(tank.type);
+                    var typeConfig = $level_29086_tankBoardConfig.TankTypeConfig[typeKey];
+                    if (!typeConfig) {
+                        return "";
+                    }
+                    var capacity = Math.max(1, Math.floor(Number(typeConfig.capacity) || 1));
+                    return (
+                        "            { type: " + tank.type +
+                        ", count: " + capacity + " }, // " + tank.id + " " + typeKey
+                    );
+                })
+                .filter(function (line) {
+                    return !!line;
+                })
+                .join("\n");
             console.log(
                 '    "' + configLevelId + '": {\n' +
                 "        tanks: [\n" +
                 e +
+                "\n        ],\n" +
+                "        parts: [\n" +
+                partsLines +
                 "\n        ]\n" +
                 "    },"
             );
+            console.log("[TankExcelTSV:" + configLevelId + "]");
+            console.log($level_29086_tankBoardConfig.buildTankExcelTsv(t, configLevelId));
         }
 
     handleTankLayoutDebugTouchStart(t) {
@@ -1480,24 +1502,64 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
 
     getTankAssemblyChainColorIds() {
-            var t = [];
-            var e = TANK_ASSEMBLY_CONVEYOR_CONFIG.chainRunCycle || [];
-            var o = Math.max(1, Math.floor(Number(TANK_ASSEMBLY_CONVEYOR_CONFIG.chainRepeat) || 1));
-            for (var i = 0; i < o; i++) {
-                for (var r = 0; r < e.length; r++) {
-                    var n = e[r];
-                    var a = Math.max(0, Math.floor(Number(n && n.count) || 0));
-                    for (var c = 0; c < a; c++) {
-                        t.push(Number(n.colorId));
+            var t = this.getTankWaitingBoardConfig() || {};
+            if (null != t.parts) {
+                if (!Array.isArray(t.parts)) {
+                    cc.error("Tank assembly parts must be an array:", this.levelID);
+                    return null;
+                }
+                var validTypes = {};
+                for (var typeIndex = 0; typeIndex < TANK_ASSEMBLY_TYPES.length; typeIndex++) {
+                    validTypes[TANK_ASSEMBLY_TYPES[typeIndex].colorId] = true;
+                }
+                for (var runIndex = 0; runIndex < t.parts.length; runIndex++) {
+                    var run = t.parts[runIndex];
+                    if (
+                        !run ||
+                        "number" != typeof run.type ||
+                        !validTypes[run.type] ||
+                        "number" != typeof run.count ||
+                        run.count <= 0 ||
+                        Math.floor(run.count) != run.count
+                    ) {
+                        cc.error("Invalid tank assembly part run:", {
+                            levelID: this.levelID,
+                            index: runIndex,
+                            run: run
+                        });
+                        return null;
                     }
                 }
+                return $level_29086_tankBoardConfig.expandTankPartRuns(t.parts);
             }
-            return t;
+            var e = $level_29086_tankBoardConfig.buildTankPartsFromTanks(t.tanks || []);
+            cc.warn(
+                "Tank assembly parts missing; generated from tanks for debug:",
+                this.levelID,
+                e.length
+            );
+            return e;
         }
 
     validateTankAssemblyChainColors(t) {
+            if (!Array.isArray(t) || !t.length) {
+                cc.error("Tank assembly parts are empty:", this.levelID);
+                return false;
+            }
+            var validColors = {};
+            for (var typeIndex = 0; typeIndex < TANK_ASSEMBLY_TYPES.length; typeIndex++) {
+                validColors[TANK_ASSEMBLY_TYPES[typeIndex].colorId] = true;
+            }
             var e = {};
             for (var o = 0; o < t.length; o++) {
+                if ("number" != typeof t[o] || Math.floor(t[o]) != t[o] || !validColors[t[o]]) {
+                    cc.error("Invalid tank assembly part colorId:", {
+                        levelID: this.levelID,
+                        index: o,
+                        colorId: t[o]
+                    });
+                    return false;
+                }
                 e[t[o]] = (e[t[o]] || 0) + 1;
             }
             var i = {};
@@ -1526,7 +1588,11 @@ export default class Level29086Control extends $brainLevelBase.default {
                 return;
             }
             var t = this.getTankAssemblyChainColorIds();
-            this.validateTankAssemblyChainColors(t);
+            if (!this.validateTankAssemblyChainColors(t)) {
+                this.tankAssemblyEnded = true;
+                this.isCanStartClick = false;
+                return;
+            }
             var e = Math.max(1, Number(TANK_ASSEMBLY_CONVEYOR_CONFIG.chainSpacing) || 42);
             for (var o = 0; o < t.length; o++) {
                 var i = this.getTankAssemblyTypeByColor(t[o]);

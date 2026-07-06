@@ -27,12 +27,12 @@ export const TankAssemblyAutoNextWhenTopDisabledLevelIds = {
 };
 export const TankAssemblyAutoNextDelay = 0.35;
 
-// 四种装配零件及计数板映射。
+// 四种装配零件及计数板映射。colorId 与 TankBoardTankType 的 type 数值保持一致。
 export const TankAssemblyTypes = [
-    { colorId: 1, counterNode: "p0", counterSprite: "tank_yellow_a_4", partSprite: "tank_yellow_a" },
+    { colorId: 1, counterNode: "p2", counterSprite: "tank_green_a_4", partSprite: "tank_green_a" },
     { colorId: 2, counterNode: "p1", counterSprite: "tank_blue_a_4", partSprite: "tank_blue_a" },
-    { colorId: 4, counterNode: "p2", counterSprite: "tank_green_a_4", partSprite: "tank_green_a" },
-    { colorId: 6, counterNode: "p3", counterSprite: "tank_purple_a_4", partSprite: "tank_purple_a" }
+    { colorId: 3, counterNode: "p3", counterSprite: "tank_purple_a_4", partSprite: "tank_purple_a" },
+    { colorId: 4, counterNode: "p0", counterSprite: "tank_yellow_a_4", partSprite: "tank_yellow_a" }
 ];
 
 // 装配百分比阶段。当前 Label 显示真实百分比，该数组用于保证进度配置有效。
@@ -58,20 +58,6 @@ export const TankAssemblyConveyorConfig = {
     endTolerance: 0.5,
     // 每个装配位同一时间最多吸收的零件数；当前玩法固定为 1。
     perParkingConcurrency: 1,
-    // 下方颜色序列的重复次数；22 节一轮，重复 4 次共 88 节。
-    chainRepeat: 4,
-    // 固定长龙颜色序列。colorId：1=橙，2=蓝，4=绿，6=紫。
-    chainRunCycle: [
-        { colorId: 1, count: 2 },
-        { colorId: 2, count: 2 },
-        { colorId: 4, count: 3 },
-        { colorId: 6, count: 3 },
-        { colorId: 2, count: 2 },
-        { colorId: 6, count: 3 },
-        { colorId: 4, count: 3 },
-        { colorId: 6, count: 4 }
-    ],
-
     // Shader 或整图回退动画的飞行时长，单位：秒。
     absorbDuration: 2,
     // 动画进行到该比例后开始缩小。

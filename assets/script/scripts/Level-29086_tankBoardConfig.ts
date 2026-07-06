@@ -63,43 +63,43 @@ export function getTankTypeValue(type) {
 
 // key 是内部坦克类型名，也是 debugLayer 的颜色分组名。
 export const TankTypeConfig = {
-    // yellow: 橙/黄坦克，装配计数颜色 colorId=1，容量 2。
+    // yellow: 橙/黄坦克，type/colorId=4，容量 2。
     yellow: {
         // assetPrefix: 对应 assets/resources/zqddn_zhb/texture/tank 下的贴图前缀。
         // direction=2 时会加载 tank_yellow_a_2。
         assetPrefix: "tank_yellow_a",
-        // colorId: 装配台统计和零件颜色使用的颜色编号。
-        colorId: 1,
+        // colorId: 装配台统计和零件匹配编号，必须与该颜色的 TankBoardTankType 数值一致。
+        colorId: 4,
         // capacity: 这辆坦克需要收集的乘员/零件数量。
         capacity: 2,
         // body: 逻辑碰撞体尺寸；只影响路径阻挡检测，不跟视觉缩放联动。
         // width=车身宽，length=车身长，corner=矩形削角大小。
         body: { width: 48, length: 62, corner: 6 }
     },
-    // blue: 蓝色坦克，装配计数颜色 colorId=2，容量 4。
+    // blue: 蓝色坦克，type/colorId=2，容量 4。
     blue: {
         assetPrefix: "tank_blue_a",
         colorId: 2,
         capacity: 4,
         body: { width: 48, length: 62, corner: 6 }
     },
-    // green: 绿色坦克，装配计数颜色 colorId=4，容量 6。
+    // green: 绿色坦克，type/colorId=1，容量 6。
     green: {
         assetPrefix: "tank_green_a",
-        colorId: 4,
+        colorId: 1,
         capacity: 6,
         body: { width: 48, length: 62, corner: 6 }
     },
-    // purple: 紫色坦克，装配计数颜色 colorId=6，容量 10。
+    // purple: 紫色坦克，type/colorId=3，容量 10。
     purple: {
         assetPrefix: "tank_purple_a",
-        colorId: 6,
+        colorId: 3,
         capacity: 10,
         body: { width: 48, length: 62, corner: 6 }
     }
 };
 
-// 等待区通用配置。新增关卡通常只需要在 TankWaitingBoardByLevel 里配置 tanks。
+// 等待区通用配置。新增关卡在 TankWaitingBoardByLevel 里配置 tanks 和 parts。
 export const TankWaitingBoardCommonConfig = {
     // board: 等待区可放置/寻路的本地坐标范围；运行时如果 prefab 里有 rectNode，会用 rectNode 换算后的范围覆盖这里。
     board: { left: -260, right: 260, bottom: -230, top: 230 },
@@ -118,9 +118,9 @@ export const TankWaitingBoardCommonConfig = {
 };
 
 export const TankWaitingBoardByLevel = {
-    // key 是关卡 id。新增关卡时复制一个关卡块，只替换 tanks 即可。
+    // key 是关卡 id。调试打印会同时输出 tanks 和 parts，可直接复制新增关卡。
     "-10001": {
-        // tanks: 本关等待区坦克列表。打印按钮会输出完整关卡块，直接复制到 TankWaitingBoardByLevel 即可。
+        // tanks: 本关等待区坦克列表。打印按钮会连同 parts 输出完整关卡块。
         // id: 本关内唯一标识，打印时会按从上到下、从左到右重新生成 t01/t02...
         // type: 坦克类型，直接填写具体数值：1=Green，2=Blue，3=Purple，4=Orange。
         // direction: 0-7 八方向，和 TankDirectionVector/TankDirectionAngle 的 key 对应。
@@ -145,13 +145,105 @@ export const TankWaitingBoardByLevel = {
             { id: "t14", type: 4, direction: 4, x: -60, y: -130 },
             { id: "t15", type: 2, direction: 6, x: 60, y: -130 },
             { id: "t16", type: 1, direction: 5, x: 180, y: -130 }
+        ],
+        // parts: 零件长龙从链头到链尾的连续颜色段，可配置任意段数和总数量。
+        // type 与坦克 type 完全一致：1=绿，2=蓝，3=紫，4=橙。
+        // count 只表示该颜色连续出现的零件数量，容量仍读取 TankTypeConfig.capacity。
+        parts: [
+            { type: 4, count: 2 },  // t01 橙
+            { type: 2, count: 4 },  // t02 蓝
+            { type: 1, count: 6 },  // t03 绿
+            { type: 3, count: 10 }, // t04 紫
+            { type: 2, count: 4 },  // t05 蓝
+            { type: 1, count: 6 },  // t06 绿
+            { type: 3, count: 10 }, // t07 紫
+            { type: 4, count: 2 },  // t08 橙
+            { type: 1, count: 6 },  // t09 绿
+            { type: 3, count: 10 }, // t10 紫
+            { type: 4, count: 2 },  // t11 橙
+            { type: 2, count: 4 },  // t12 蓝
+            { type: 3, count: 10 }, // t13 紫
+            { type: 4, count: 2 },  // t14 橙
+            { type: 2, count: 4 },  // t15 蓝
+            { type: 1, count: 6 }   // t16 绿
         ]
     }
 };
 
+// 根据 tanks 顺序生成连续颜色段，供调试打印和缺失 parts 时的开发回退使用。
+export function buildTankPartRunsFromTanks(tanks) {
+    var runs = [];
+    if (!Array.isArray(tanks)) {
+        return runs;
+    }
+    for (var i = 0; i < tanks.length; i++) {
+        var tank = tanks[i];
+        var typeConfig = tank && TankTypeConfig[getTankTypeKey(tank.type)];
+        if (!typeConfig) {
+            continue;
+        }
+        var capacity = Math.max(1, Math.floor(Number(typeConfig.capacity) || 1));
+        runs.push({ type: getTankTypeValue(tank.type), count: capacity });
+    }
+    return runs;
+}
+
+// 将颜色段展开成运行时逐节颜色数组。
+export function expandTankPartRuns(runs) {
+    var parts = [];
+    if (!Array.isArray(runs)) {
+        return parts;
+    }
+    for (var i = 0; i < runs.length; i++) {
+        var run = runs[i];
+        var count = Math.max(0, Math.floor(Number(run && run.count) || 0));
+        for (var index = 0; index < count; index++) {
+            parts.push(run.type);
+        }
+    }
+    return parts;
+}
+
+// 直接根据 tanks 生成运行时逐节颜色数组。
+export function buildTankPartsFromTanks(tanks) {
+    var parts = expandTankPartRuns(buildTankPartRunsFromTanks(tanks));
+    return parts;
+}
+
+// 生成可直接粘贴到 Excel/WPS 的制表符分隔文本，一辆坦克对应一行。
+export function buildTankExcelTsv(tanks, levelId) {
+    var rows = [
+        ["关卡ID", "坦克ID", "坦克类型", "颜色", "方向", "X", "Y", "容量", "零件顺序", "零件类型", "零件数量"].join("\t")
+    ];
+    var colorNames = { 1: "绿", 2: "蓝", 3: "紫", 4: "橙" };
+    if (!Array.isArray(tanks)) {
+        return rows.join("\n");
+    }
+    for (var i = 0; i < tanks.length; i++) {
+        var tank = tanks[i];
+        var type = getTankTypeValue(tank && tank.type);
+        var typeConfig = TankTypeConfig[getTankTypeKey(type)];
+        var capacity = typeConfig ? Math.max(1, Math.floor(Number(typeConfig.capacity) || 1)) : "";
+        rows.push([
+            levelId,
+            tank && tank.id,
+            type,
+            colorNames[type] || "",
+            tank && tank.direction,
+            tank && tank.x,
+            tank && tank.y,
+            capacity,
+            i + 1,
+            type,
+            capacity
+        ].join("\t"));
+    }
+    return rows.join("\n");
+}
+
 // 运行时统一入口。
 // 返回值 = 通用配置 TankWaitingBoardCommonConfig + 当前关卡配置。
-// 当前关卡只配置 tanks 时，会自动继承通用 board/moveSpeed/碰撞参数/visualScale。
+// 当前关卡配置 tanks/parts，并自动继承通用 board/moveSpeed/碰撞参数/visualScale。
 // 如果某个关卡确实需要特殊参数，也可以在该关卡块里覆盖同名字段。
 export function getTankWaitingBoardConfig(levelId) {
     var levelConfig = TankWaitingBoardByLevel[levelId] || TankWaitingBoardByLevel["" + levelId] || null;

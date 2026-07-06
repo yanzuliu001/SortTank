@@ -19,7 +19,7 @@ function loadConfigModule() {
         .replace(/export function /g, "function ");
     return new Function(
         source +
-            "\nreturn { TankDirectionVector, TankDirectionAngle, TankBoardTankType, TankBoardTankTypeKey, TankBoardTankTypeValue, getTankTypeKey, getTankTypeValue, TankTypeConfig, TankWaitingBoardCommonConfig, TankWaitingBoardByLevel, getTankWaitingBoardConfig };"
+            "\nreturn { TankDirectionVector, TankDirectionAngle, TankBoardTankType, TankBoardTankTypeKey, TankBoardTankTypeValue, getTankTypeKey, getTankTypeValue, TankTypeConfig, TankWaitingBoardCommonConfig, TankWaitingBoardByLevel, buildTankPartRunsFromTanks, expandTankPartRuns, buildTankPartsFromTanks, buildTankExcelTsv, getTankWaitingBoardConfig };"
     )();
 }
 
@@ -86,14 +86,10 @@ function bodyPolygon(tank, position, direction) {
 }
 
 function getChainCounts() {
-    const conveyor = assemblyModuleData.TankAssemblyConveyorConfig;
-    const repeat = Math.max(1, Math.floor(Number(conveyor.chainRepeat) || 1));
     const counts = {};
-    for (let iteration = 0; iteration < repeat; iteration++) {
-        for (const run of conveyor.chainRunCycle || []) {
-            const count = Math.max(0, Math.floor(Number(run.count) || 0));
-            counts[run.colorId] = (counts[run.colorId] || 0) + count;
-        }
+    for (const run of config.parts || []) {
+        if (!run) continue;
+        counts[run.type] = (counts[run.type] || 0) + (Number(run.count) || 0);
     }
     return counts;
 }
@@ -218,6 +214,13 @@ function validate() {
 
     for (const typeName of Object.keys(moduleData.TankTypeConfig)) {
         const type = moduleData.TankTypeConfig[typeName];
+        if (type.colorId !== moduleData.TankBoardTankTypeValue[typeName]) {
+            errors.push(
+                "Tank type/colorId mismatch: " + typeName +
+                " type=" + moduleData.TankBoardTankTypeValue[typeName] +
+                ", colorId=" + type.colorId
+            );
+        }
         if (!Number.isFinite(type.capacity) || type.capacity <= 0) {
             errors.push("Invalid capacity: " + typeName);
         }
@@ -248,6 +251,19 @@ function validate() {
     }
 
     const conveyor = assemblyModuleData.TankAssemblyConveyorConfig;
+    const validColors = new Set(assemblyModuleData.TankAssemblyTypes.map(type => type.colorId));
+    if (!Array.isArray(config.parts) || !config.parts.length) {
+        errors.push("Missing or empty parts config: " + LEVEL_ID);
+    } else {
+        config.parts.forEach((run, index) => {
+            if (!run || !Number.isInteger(run.type) || !validColors.has(run.type)) {
+                errors.push("Invalid part type: " + (run && run.type) + " @ parts[" + index + "]");
+            }
+            if (!run || !Number.isInteger(run.count) || run.count <= 0) {
+                errors.push("Invalid part count: " + (run && run.count) + " @ parts[" + index + "]");
+            }
+        });
+    }
     const chainCounts = getChainCounts();
     const demandCounts = {};
     for (const tank of config.tanks) {
@@ -268,6 +284,43 @@ function validate() {
     }
     if (conveyor.perParkingConcurrency !== 1) {
         errors.push("perParkingConcurrency must be 1: " + conveyor.perParkingConcurrency);
+    }
+    const generatedParts = moduleData.buildTankPartsFromTanks(config.tanks);
+    const generatedCounts = {};
+    for (const colorId of generatedParts) generatedCounts[colorId] = (generatedCounts[colorId] || 0) + 1;
+    for (const type of assemblyModuleData.TankAssemblyTypes) {
+        if ((generatedCounts[type.colorId] || 0) !== (demandCounts[type.colorId] || 0)) {
+            errors.push("Generated parts mismatch colorId " + type.colorId);
+        }
+    }
+    const excelRows = moduleData.buildTankExcelTsv(config.tanks, LEVEL_ID).split("\n");
+    if (excelRows.length !== config.tanks.length + 1) {
+        errors.push("Excel TSV row count mismatch: " + excelRows.length);
+    }
+    for (let rowIndex = 0; rowIndex < excelRows.length; rowIndex++) {
+        const columns = excelRows[rowIndex].split("\t");
+        if (columns.length !== 11) {
+            errors.push("Excel TSV column count mismatch @ row " + rowIndex + ": " + columns.length);
+        }
+    }
+    if (config.tanks.length) {
+        const firstTank = config.tanks[0];
+        const firstType = moduleData.TankTypeConfig[moduleData.getTankTypeKey(firstTank.type)];
+        const firstColumns = excelRows[1].split("\t");
+        if (
+            firstColumns[0] !== LEVEL_ID ||
+            firstColumns[1] !== firstTank.id ||
+            Number(firstColumns[2]) !== firstTank.type ||
+            Number(firstColumns[4]) !== firstTank.direction ||
+            Number(firstColumns[5]) !== firstTank.x ||
+            Number(firstColumns[6]) !== firstTank.y ||
+            Number(firstColumns[7]) !== firstType.capacity ||
+            Number(firstColumns[8]) !== 1 ||
+            Number(firstColumns[9]) !== firstTank.type ||
+            Number(firstColumns[10]) !== firstType.capacity
+        ) {
+            errors.push("Excel TSV first tank data mismatch: " + firstTank.id);
+        }
     }
     return errors;
 }
