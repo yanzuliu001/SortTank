@@ -1,18 +1,21 @@
 // @ts-nocheck
 
-// 当前只启用第一个坦克装配关卡。
+// levelID=1 的预制体承载全部正式坦克装配配置关卡，关卡内容来自 bgcCfg.leveList。
 export const TankAssemblyLevelIds = {
-    "-10001": true
+    1: true
 };
+
+// 单个配置关卡完成后，完成节点保留显示的时间；有下一关时随后在同一预制体内刷新。
+export const TankAssemblyNextLevelDelay = 0.3;
 
 // 坦克装配关卡不显示原玩法的手势和文字引导。
 export const TankAssemblyGuideDisabledLevelIds = {
-    "-10001": true
+    1: true
 };
 
 // Game 场景和关卡预制体中的原玩法底部按钮均需隐藏。
 export const TankAssemblyBottomButtonsHiddenLevelIds = {
-    "-10001": true
+    1: true
 };
 
 // 坦克和传送带零件贴图目录。
@@ -23,7 +26,7 @@ export const TankAssemblyTopEnabled = true;
 
 // 顶部传送带关闭时的备用流程；当前顶部开启，因此通常不会触发。
 export const TankAssemblyAutoNextWhenTopDisabledLevelIds = {
-    "-10001": true
+    1: true
 };
 export const TankAssemblyAutoNextDelay = 0.35;
 

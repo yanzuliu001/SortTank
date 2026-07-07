@@ -86,6 +86,10 @@ export default class Level29086TankBoard {
             cc.error("Unknown tank type:", spawn.type, spawn.id);
             return null;
         }
+        typeConfig = Object.assign({}, typeConfig, {
+            colorId: null != spawn.partType ? spawn.partType : typeConfig.colorId,
+            capacity: Math.max(1, Math.floor(Number(spawn.capacity) || Number(typeConfig.capacity) || 1))
+        });
         var node = new cc.Node("tank_" + spawn.id);
         this.root.addChild(node);
         var item = node.addComponent($tankItem.default);
@@ -145,7 +149,10 @@ export default class Level29086TankBoard {
         var item = this.createItem(
             {
                 id: "debug_" + this.debugCreateIndex,
+                aid: $tankBoardConfig.TankBoardDefaultTankAidByType[$tankBoardConfig.getTankTypeValue(type)],
                 type: type,
+                partType: $tankBoardConfig.getTankTypeValue(type),
+                capacity: typeConfig.capacity,
                 direction: direction,
                 x: Number(localPoint.x.toFixed(3)),
                 y: Number(localPoint.y.toFixed(3))
@@ -177,7 +184,10 @@ export default class Level29086TankBoard {
                 continue;
             }
             result.push({
+                aid: item.tankAid || $tankBoardConfig.TankBoardDefaultTankAidByType[item.colorId],
                 type: $tankBoardConfig.getTankTypeValue(item.tankTypeKey || item.tankType),
+                partType: item.colorId,
+                capacity: item.capacity,
                 direction: item.direction,
                 x: Number(item.node.x.toFixed(3)),
                 y: Number(item.node.y.toFixed(3))

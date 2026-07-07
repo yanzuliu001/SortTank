@@ -6,9 +6,9 @@
 
 项目路径：`/Users/user/Documents/cocosCreator/SortTank`
 
-当前主要目标：把原 `Level-29086` 营救女孩/打龙玩法中的“箱子移动”部分逐步改造成“坦克组装”玩法 demo。当前重点关卡是第一关 `-10001`，对应 prefab：
+当前主要目标：把原 `Level-29086` 营救女孩/打龙玩法中的“箱子移动”部分逐步改造成“坦克组装”玩法 demo。当前重点业务关卡ID是`1`，对应 prefab：
 
-`assets/resources/zqddn_zhb/prefab/level/zqddn_zhb_level-10001.prefab`
+`assets/resources/zqddn_zhb/prefab/level/zqddn_zhb_level-1.prefab`
 
 第二关是 `-29290`，对应 prefab：
 
@@ -56,10 +56,10 @@ CURRENT_MODE = 0
 CURRENT_LEVEL = 1
 ```
 
-`assets/resources/config/theme0.json` 第一关 `id = 1` 对应 `levelID = -10001`，所以最终加载：
+`assets/resources/config/theme0.json` 第一关`id = 1`对应`levelID = 1`，加载资源时再拼接负号，所以最终加载：
 
 ```text
-zqddn_zhb/prefab/level/zqddn_zhb_level-10001
+zqddn_zhb/prefab/level/zqddn_zhb_level-1
 ```
 
 ## 公共 UI 隐藏
@@ -68,7 +68,7 @@ zqddn_zhb/prefab/level/zqddn_zhb_level-10001
 
 关键点：
 
-- `-10001 / -29290` 会隐藏 `bottomBar0`、`content` 和底部刷新/消除/排序等按钮。
+- 业务关卡`1`和旧资源关卡`-29290`会隐藏`bottomBar0`、`content`及底部刷新/消除/排序等按钮。
 - 加载关卡 prefab 前会先隐藏一次，避免短暂露出。
 - 加载完成后会再次隐藏。
 
@@ -273,7 +273,7 @@ sort_tank_icon3  // 100%
 
 ## carPrefab 的结论
 
-`zqddn_zhb_level-10001.prefab` 里的 `carPrefab` 不能直接删。
+`zqddn_zhb_level-1.prefab` 里的 `carPrefab` 不能直接删。
 
 它不是场上实际坦克，而是旧逻辑的车辆模板库。当前场上实际坦克在 `carRoot`，第一关目前只有 4 个初始坦克。
 
@@ -297,7 +297,7 @@ sort_tank_icon3  // 100%
 
 prefab 中位置：
 
-- `zqddn_zhb_level-10001.prefab`
+- `zqddn_zhb_level-1.prefab`
 - `zqddn_zhb_level-29290.prefab`
 
 组件：`cc.MotionStreak`
@@ -361,7 +361,7 @@ cwd = "/Users/user/Documents/cocosCreator/SortTank/packages/cocos-mcp-2x/server/
 
 1. 新会话先读本文档、根目录 `文档` 和 `git diff`。
 2. 如果要继续调 Cocos 节点，先确认 `cocos-mcp-2x` 是否挂载成功。
-3. 如果继续优化第一关布局，优先编辑 `zqddn_zhb_level-10001.prefab` 的 `carRoot / parkingRoot / assemblyTopRoot`，不要删 `carPrefab`。
+3. 如果继续优化第一关布局，优先编辑 `zqddn_zhb_level-1.prefab` 的 `carRoot / parkingRoot / assemblyTopRoot`，不要删 `carPrefab`。
 4. 收尾前把 `TankAssemblyDebugLog` 改为 `false`。
 5. 把 `addTailGasSpine()` 的临时 `if (true) return` 改成配置化开关。
 6. 如果要扩展第二关 `-29290`，需要确认它是否已经有 `assemblyTopRoot / conveyorPathRoot / parkingRoot` 等同构节点。
@@ -369,4 +369,4 @@ cwd = "/Users/user/Documents/cocosCreator/SortTank/packages/cocos-mcp-2x/server/
 
 ## 方向
 0 - 7 分别对应 左上， 左， 上， 右上，左下，右， 右下， 下
-比如  蓝左上 对应的就是  tank_blue_a_0 
+比如  蓝左上 对应的就是  tank_blue_a_0

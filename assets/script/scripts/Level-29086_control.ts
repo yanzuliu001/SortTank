@@ -66,6 +66,8 @@ export default class Level29086Control extends $brainLevelBase.default {
     tankAssemblyTypeByColor: any = {};
     tankAssemblyCounters: any = {};
     tankAssemblyEnded: any = false;
+    tankAssemblyConfigLevelId: any = 0;
+    tankAssemblyTransitioning: any = false;
     tankAssemblyCompletedAmount: any = 0;
     tankAssemblyTotalCarAmount: any = 0;
     tankAssemblyCompletionPendingAmount: any = 0;
@@ -75,6 +77,7 @@ export default class Level29086Control extends $brainLevelBase.default {
 
     onLoad() {
         this.preloadAsset = false;
+        this.tankAssemblyConfigLevelId = Number(this.levelID) || 1;
         $brainLevelBase.default.prototype.onLoad.call(this);
         this.carRoot = this.dict.carRoot || null;
         this.setTankAssemblyOkVisible(false);
@@ -91,6 +94,8 @@ export default class Level29086Control extends $brainLevelBase.default {
             return;
         }
         this.carRoot = this.dict.carRoot || this.carRoot;
+        this.tankAssemblyConfigLevelId = Number(this.tankAssemblyConfigLevelId) || Number(this.levelID) || 1;
+        this.tankAssemblyTransitioning = false;
         this.hideTankAssemblyGuide();
         this.hideTankAssemblyBottomButtons();
         this.initTankAssemblyParkingSlots();
@@ -318,7 +323,11 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
 
     getTankWaitingBoardConfig() {
-            return $level_29086_tankBoardConfig.getTankWaitingBoardConfig(this.levelID);
+            return $level_29086_tankBoardConfig.getTankWaitingBoardConfig(this.getTankAssemblyConfigLevelId());
+        }
+
+    getTankAssemblyConfigLevelId() {
+            return Number(this.tankAssemblyConfigLevelId) || Number(this.levelID) || 1;
         }
 
     getTankWaitingBoardRectNode() {
@@ -413,7 +422,7 @@ export default class Level29086Control extends $brainLevelBase.default {
         }
 
     getTankLayoutCurrentLevelDisplayId() {
-            var t = "" + this.levelID;
+            var t = "" + this.getTankAssemblyConfigLevelId();
             return "-" == t.charAt(0) ? t.substring(1) : t;
         }
 
@@ -684,7 +693,10 @@ export default class Level29086Control extends $brainLevelBase.default {
                 this.getTankDebugLayerItemManager(),
                 {
                     id: e + "_" + o + (r ? "_drag" : ""),
+                    aid: $level_29086_tankBoardConfig.TankBoardDefaultTankAidByType[$level_29086_tankBoardConfig.getTankTypeValue(e)],
                     type: e,
+                    partType: $level_29086_tankBoardConfig.getTankTypeValue(e),
+                    capacity: n.capacity,
                     direction: o,
                     x: i.x,
                     y: i.y
@@ -782,7 +794,8 @@ export default class Level29086Control extends $brainLevelBase.default {
 
     getTankDebugLayerLayoutConfig() {
             var t = $level_29086_tankLayoutConfig.TankDebugLayerLayoutByLevel || {};
-            return t[this.levelID] || t["" + this.levelID] || t;
+            var e = this.getTankAssemblyConfigLevelId();
+            return t[e] || t["" + e] || t;
         }
 
     applyTankDebugLayerLayoutConfig() {
@@ -1047,7 +1060,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             var configLevelId = this.getTankLayoutPrintLevelId();
             var compactText = $level_29086_tankBoardConfig.buildTankCompactConfigText(t, configLevelId);
             if (!compactText) {
-                cc.warn("[TankWaitingBoardConfig] 当前只支持打印第一关，levelEdit请填写1或10001：", configLevelId);
+                cc.warn("[TankWaitingBoardConfig] 关卡ID或坦克布局数据无效：", configLevelId);
                 return;
             }
             console.log(compactText);
@@ -1154,6 +1167,8 @@ export default class Level29086Control extends $brainLevelBase.default {
                 var o = e.getChildByName("tankStop");
                 var i = e.getChildByName("progressRoot");
                 if (o) {
+                    o.stopAllActions();
+                    o.position = cc.v2(0, 0);
                     o.active = false;
                 }
                 if (i) {
@@ -1161,6 +1176,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                 }
                 e.car = null;
                 e.assemblyCar = null;
+                e.tankWaitingReservation = null;
                 e.assemblyColor = null;
                 e.assemblyConfig = null;
                 e.assemblyCapacity = 0;
@@ -1170,8 +1186,8 @@ export default class Level29086Control extends $brainLevelBase.default {
                 e.assemblyComplete = false;
                 e.assemblyCompleting = false;
                 e.assemblyActivePart = null;
+                e.isEmpty = true;
                 if (e.active && !e.getChildByName("videoLock") && !e.getChildByName("fireSpine")) {
-                    e.isEmpty = true;
                     this.parkingNodes.push(e);
                 }
             }
@@ -1264,7 +1280,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             this.buildTankAssemblyPathPoints();
             var t = this.getTankAssemblyConveyorPathRoot();
             this.logTankAssemblyDebug("initConveyor", "传送带初始化", {
-                levelID: this.levelID,
+                levelID: this.getTankAssemblyConfigLevelId(),
                 topEnabled: this.isTankAssemblyTopEnabled(),
                 partLayer: this.tankAssemblyPartLayer && this.tankAssemblyPartLayer.name,
                 absorbLayer: this.tankAssemblyAbsorbLayer && this.tankAssemblyAbsorbLayer.name,
@@ -1429,7 +1445,7 @@ export default class Level29086Control extends $brainLevelBase.default {
     updateTankAssemblyConveyor(t) {
             if (!this.isTankAssemblyTopEnabled()) {
                 this.logTankAssemblyDebug("updateTopDisabled", "传送带 update 被跳过：顶部开关关闭", {
-                    levelID: this.levelID
+                    levelID: this.getTankAssemblyConfigLevelId()
                 });
                 return;
             }
@@ -1462,7 +1478,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             var t = this.getTankWaitingBoardConfig() || {};
             if (null != t.parts) {
                 if (!Array.isArray(t.parts)) {
-                    cc.error("Tank assembly parts must be an array:", this.levelID);
+                    cc.error("Tank assembly parts must be an array:", this.getTankAssemblyConfigLevelId());
                     return null;
                 }
                 var validTypes = {};
@@ -1480,7 +1496,7 @@ export default class Level29086Control extends $brainLevelBase.default {
                         Math.floor(run.count) != run.count
                     ) {
                         cc.error("Invalid tank assembly part run:", {
-                            levelID: this.levelID,
+                            levelID: this.getTankAssemblyConfigLevelId(),
                             index: runIndex,
                             run: run
                         });
@@ -1492,7 +1508,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             var e = $level_29086_tankBoardConfig.buildTankPartsFromTanks(t.tanks || []);
             cc.warn(
                 "Tank assembly parts missing; generated from tanks for debug:",
-                this.levelID,
+                this.getTankAssemblyConfigLevelId(),
                 e.length
             );
             return e;
@@ -1500,7 +1516,7 @@ export default class Level29086Control extends $brainLevelBase.default {
 
     validateTankAssemblyChainColors(t) {
             if (!Array.isArray(t) || !t.length) {
-                cc.error("Tank assembly parts are empty:", this.levelID);
+                cc.error("Tank assembly parts are empty:", this.getTankAssemblyConfigLevelId());
                 return false;
             }
             var validColors = {};
@@ -1511,7 +1527,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             for (var o = 0; o < t.length; o++) {
                 if ("number" != typeof t[o] || Math.floor(t[o]) != t[o] || !validColors[t[o]]) {
                     cc.error("Invalid tank assembly part colorId:", {
-                        levelID: this.levelID,
+                        levelID: this.getTankAssemblyConfigLevelId(),
                         index: o,
                         colorId: t[o]
                     });
@@ -1767,6 +1783,7 @@ export default class Level29086Control extends $brainLevelBase.default {
             this.show("零件到达终点", 2);
             var o = {
                 reason: "pathEnd",
+                levelId: this.getTankAssemblyConfigLevelId(),
                 isFail: true,
                 remainingPartAmount: this.tankAssemblyChainItems.length
             };
@@ -2304,16 +2321,71 @@ export default class Level29086Control extends $brainLevelBase.default {
                 return;
             }
             this.tankAssemblyEnded = true;
+            this.isCanStartClick = false;
             this.clearTankAssemblyParts();
             this.setTankAssemblyOkVisible(true);
+            var currentLevelId = this.getTankAssemblyConfigLevelId();
+            var nextLevelId = $level_29086_tankBoardConfig.getNextTankWaitingBoardLevelId(currentLevelId);
             var e = {
                 reason: "allComplete",
+                levelId: currentLevelId,
+                nextLevelId: nextLevelId,
                 completedAmount: this.tankAssemblyCompletedAmount,
                 totalAmount: this.tankAssemblyTotalCarAmount,
-                guaranteedWin: true
+                guaranteedWin: !nextLevelId,
+                isFinalLevel: !nextLevelId
             };
             level29086SilentLog("坦克组装阶段结束", e);
+            if (nextLevelId) {
+                this.tankAssemblyTransitioning = true;
+                cc.game.emit("tankAssemblyLevelComplete", e);
+                var owner = this;
+                this.scheduleOnce(function () {
+                    owner.enterTankAssemblyConfigLevel(nextLevelId, currentLevelId);
+                }, Math.max(0, Number($level_29086_config.TankAssemblyNextLevelDelay) || 0));
+                return;
+            }
+            this.tankAssemblyTransitioning = false;
             cc.game.emit("tankAssemblyStageEnd", e);
+        }
+
+    enterTankAssemblyConfigLevel(levelId, previousLevelId?) {
+            var nextLevelId = Number(levelId);
+            if (!cc.isValid(this.node) || !this.tankAssemblyTransitioning) {
+                return false;
+            }
+            if (!$level_29086_tankBoardConfig.getTankWaitingBoardCompactConfig(nextLevelId)) {
+                this.tankAssemblyTransitioning = false;
+                cc.error("Tank assembly next level config missing:", nextLevelId);
+                return false;
+            }
+
+            this.clearTankAssemblyParts();
+            this.initTankAssemblyParkingSlots();
+            this.tankAssemblyConfigLevelId = nextLevelId;
+            this.tankAssemblyDebugLogged = {};
+            this.tankLayoutDebugTarget = null;
+            this.tankLayoutDebugOffset = null;
+            this.tankLayoutDebugEnabled = false;
+            this.setTankDebugLayerVisible(false);
+            this.setTankAssemblyOkVisible(false);
+
+            if (!this.initTankWaitingBoard()) {
+                this.tankAssemblyTransitioning = false;
+                this.tankAssemblyEnded = true;
+                cc.error("Tank waiting board next level init failed:", nextLevelId);
+                return false;
+            }
+            this.initTankAssemblyConveyor();
+            this.tankAssemblyTransitioning = false;
+            this.isCanStartClick = !this.tankAssemblyEnded;
+            this.updateTankLayoutCurrentLevelText();
+            this.updateTankLayoutDebugButtonText();
+            cc.game.emit("tankAssemblyLevelChanged", {
+                previousLevelId: Number(previousLevelId) || null,
+                levelId: nextLevelId
+            });
+            return true;
         }
 
     loadTankSpriteFrame(t, e) {

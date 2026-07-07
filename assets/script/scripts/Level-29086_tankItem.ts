@@ -15,6 +15,7 @@ export enum TankWaitingState {
 @ccclass
 export default class Level29086TankItem extends cc.Component {
     tankId: string = "";
+    tankAid: string = "";
     tankType: any = "";
     tankTypeKey: string = "";
     direction: number = 2;
@@ -35,12 +36,13 @@ export default class Level29086TankItem extends cc.Component {
     init(manager, config, typeConfig) {
         this.manager = manager;
         this.tankId = config.id;
+        this.tankAid = config.aid || $tankBoardConfig.TankBoardDefaultTankAidByType[$tankBoardConfig.getTankTypeValue(config.type)] || "";
         this.tankType = config.type;
         this.tankTypeKey = $tankBoardConfig.getTankTypeKey(config.type);
         this.direction = config.direction;
         this.typeConfig = typeConfig;
-        this.colorId = typeConfig.colorId;
-        this.capacity = typeConfig.capacity;
+        this.colorId = null != config.partType ? config.partType : typeConfig.colorId;
+        this.capacity = Math.max(1, Math.floor(Number(config.capacity) || Number(typeConfig.capacity) || 1));
         this.state = TankWaitingState.Idle;
         this.visualScale = (manager && manager.config && manager.config.visualScale) || config.visualScale || 1;
         this.node.name = "tank_" + this.tankId;

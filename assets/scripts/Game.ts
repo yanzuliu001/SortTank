@@ -1239,7 +1239,9 @@ class Game extends BaseUI.default {
                         } else {
                             this.dict.shopBtn.active = !1;
                         }
-                        k = "zqddn_zhb/prefab/level/zqddn_zhb_level" + c;
+                        var numericLevelId = Number(c);
+                        var resourceLevelId = numericLevelId > 0 ? "-" + numericLevelId : c;
+                        k = "zqddn_zhb/prefab/level/zqddn_zhb_level" + resourceLevelId;
                         UserManager.User.setTempData(UserConst.TempData.CURRENT_LEVEL_ID, c);
                         // 进入坦克组装演示关前先隐藏 Game 场景底栏，避免加载关卡 prefab 时短暂露出。
                         this.setTankAssemblyBottomBar0Hidden(c, this.isTankAssemblyBottomButtonsHiddenLevel(c));
@@ -1306,7 +1308,7 @@ class Game extends BaseUI.default {
                                             }
                                             n.x = 0;
                                             this.currentPrefabAsset.push(t);
-                                            if (Number(c) === -10001) {
+                                            if (Number(c) === 1) {
                                                 MemoryStorageManager.default.set(
                                                     MemoryStorageConst.default.CollectGoodsID,
                                                     null
@@ -1352,7 +1354,7 @@ class Game extends BaseUI.default {
                                         case 4:
                                             this.level.addChild(n);
                                             window.levelContent = n;
-                                            if (Number(c) === -10001) {
+                                            if (Number(c) === 1) {
                                                 cc.game.emit(TANK_ASSEMBLY_LEVEL_READY_EVENT, c);
                                             }
                                             this.scheduleOnce(function () {
@@ -1699,7 +1701,7 @@ class Game extends BaseUI.default {
         var e = TankAssemblyConfig.TankAssemblyBottomButtonsHiddenLevelIds || {};
         var n = Number(t);
         // 配置缺失或关卡 ID 类型变化时仍保证坦克组装演示关隐藏 Game 公共底栏。
-        return !!(e[t] || e[String(t)] || e[n] || -10001 == n || -29290 == n);
+        return !!(e[t] || e[String(t)] || e[n] || 1 == n || -29290 == n);
     }
 
     findChildByNameDeep(t, e) {
@@ -1755,7 +1757,7 @@ class Game extends BaseUI.default {
                 r.push(this.dict[o[c]]);
             }
         }
-        // bottomBar0 是 Game 场景公共底栏，-10001/-29290 演示关卡不使用这套按钮。
+        // bottomBar0 是 Game 场景公共底栏，业务关卡1和旧资源关卡-29290不使用这套按钮。
         for (var u = 0; u < r.length; u++) {
             if (r[u]) {
                 r[u].active = false;

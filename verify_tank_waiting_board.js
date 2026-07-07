@@ -5,12 +5,31 @@ const path = require("path");
 
 const ROOT = __dirname;
 const CONFIG_FILE = path.join(ROOT, "assets/script/scripts/Level-29086_tankBoardConfig.ts");
+const BGC_CONFIG_FILE = path.join(ROOT, "assets/resources/sortTankConfig/bgcCfg.ts");
+const TROOPS_CONFIG_FILE = path.join(ROOT, "assets/resources/sortTankConfig/troopsCfg.ts");
 const ASSEMBLY_CONFIG_FILE = path.join(ROOT, "assets/script/scripts/Level-29086_config.ts");
 const HIT_POLYGON_FILE = path.join(ROOT, "assets/script/scripts/Level-29086_tankHitPolygons.ts");
-const PREFAB_FILE = path.join(ROOT, "assets/resources/zqddn_zhb/prefab/level/zqddn_zhb_level-10001.prefab");
+const PREFAB_FILE = path.join(ROOT, "assets/resources/zqddn_zhb/prefab/level/zqddn_zhb_level-1.prefab");
 const TEXTURE_DIR = path.join(ROOT, "assets/resources/zqddn_zhb/texture/tank");
 const ARROW_TEXTURE_DIR = path.join(ROOT, "assets/resources/zqddn_zhb/texture/sorttank");
-const LEVEL_ID = process.argv[2] || "-10001";
+const LEVEL_ID = process.argv[2] || "1";
+
+if (LEVEL_ID === "1" && !fs.existsSync(PREFAB_FILE)) {
+    console.error("Missing first-level prefab: " + PREFAB_FILE);
+    console.error("Rename the existing first-level prefab to zqddn_zhb_level-1 in Cocos Creator first.");
+    process.exit(1);
+}
+
+function loadGeneratedConfig(file, exportName) {
+    const source = fs.readFileSync(file, "utf8")
+        .replace(/export const /g, "const ")
+        .replace(/\s+as const;/g, ";")
+        .replace(new RegExp("export default\\s+" + exportName + "\\s*;"), "");
+    return new Function(source + "\nreturn " + exportName + ";")();
+}
+
+const bgcCfg = loadGeneratedConfig(BGC_CONFIG_FILE, "bgcCfg");
+const troopsCfg = loadGeneratedConfig(TROOPS_CONFIG_FILE, "troopsCfg");
 
 function loadConfigModule() {
     const source = fs.readFileSync(CONFIG_FILE, "utf8")
@@ -18,9 +37,14 @@ function loadConfigModule() {
         .replace(/export enum TankBoardTankType\s*{([\s\S]*?)}/, "const TankBoardTankType = { Green: 1, Blue: 2, Purple: 3, Orange: 4 };")
         .replace(/export function /g, "function ");
     return new Function(
+        "require",
         source +
-            "\nreturn { TankDirectionVector, TankDirectionAngle, TankBoardTankType, TankBoardTankTypeKey, TankBoardTankTypeValue, TankBoardTankCodeByType, TankBoardTankTypeByCode, getTankTypeKey, getTankTypeValue, TankTypeConfig, TankWaitingBoardCommonConfig, TankWaitingBoardByLevel, TankWaitingBoardLevelIdMap, buildTankPartRunsFromTanks, expandTankPartRuns, buildTankPartsFromTanks, getTankWaitingBoardLevelConfigId, getTankWaitingBoardCompactConfig, validateTankWaitingBoardCompactConfig, buildTankRuntimeTanksFromCompact, buildTankRuntimePartsFromCompact, buildTankCompactConfigText, buildTankExcelTsv, getTankWaitingBoardConfig };"
-    )();
+            "\nreturn { TankDirectionVector, TankDirectionAngle, TankBoardTankType, TankBoardTankTypeKey, TankBoardTankTypeValue, TankBoardDefaultTankAidByType, TankBoardTankTypeByAid, getTankTypeKey, getTankTypeValue, TankTypeConfig, TankWaitingBoardCommonConfig, TankWaitingBoardByLevel, getTankWaitingBoardLevelIds, getNextTankWaitingBoardLevelId, buildTankPartRunsFromTanks, expandTankPartRuns, buildTankPartsFromTanks, getTankWaitingBoardCompactConfig, validateTankWaitingBoardCompactConfig, buildTankRuntimeTanksFromCompact, buildTankRuntimePartsFromCompact, buildTankCompactConfigText, buildTankExcelTsv, getTankWaitingBoardConfig };"
+    )(request => {
+        if (/sortTankConfig\/bgcCfg$/.test(request)) return { bgcCfg, default: bgcCfg };
+        if (/sortTankConfig\/troopsCfg$/.test(request)) return { troopsCfg, default: troopsCfg };
+        throw new Error("Unexpected config require: " + request);
+    });
 }
 
 const moduleData = loadConfigModule();
@@ -47,7 +71,7 @@ const length = value => Math.hypot(value.x, value.y);
 const dot = (a, b) => a.x * b.x + a.y * b.y;
 
 function loadRoadY() {
-    if (LEVEL_ID !== "-10001" || !fs.existsSync(PREFAB_FILE)) return config.board.top;
+    if (LEVEL_ID !== "1" || !fs.existsSync(PREFAB_FILE)) return config.board.top;
     const prefab = JSON.parse(fs.readFileSync(PREFAB_FILE, "utf8"));
     const carRoot = prefab.find(node => node && node.__type__ === "cc.Node" && node._name === "carRoot");
     const road = prefab.find(node => node && node.__type__ === "cc.Node" && node._name === "14=road");
@@ -198,18 +222,42 @@ function canExit(tank, remaining) {
 
 function validate() {
     const errors = [];
+    const formalLevelIds = moduleData.getTankWaitingBoardLevelIds();
+    if (JSON.stringify(formalLevelIds) !== JSON.stringify([1, 2])) {
+        errors.push("Formal tank level sequence mismatch: " + JSON.stringify(formalLevelIds));
+    }
+    if (moduleData.getNextTankWaitingBoardLevelId(1) !== 2) {
+        errors.push("Formal next level after 1 must be 2");
+    }
+    if (moduleData.getNextTankWaitingBoardLevelId(2) !== null) {
+        errors.push("Formal level 2 must be the final level");
+    }
+    if (LEVEL_ID === "1") {
+        const prefab = JSON.parse(fs.readFileSync(PREFAB_FILE, "utf8"));
+        const rootNode = prefab.find(node => node && node.__type__ === "cc.Node" && !node._parent);
+        const levelControl = prefab.find(node => node && Object.prototype.hasOwnProperty.call(node, "levelID"));
+        if (!rootNode || rootNode._name !== "zqddn_zhb_level-1") {
+            errors.push("First-level prefab root must be named zqddn_zhb_level-1");
+        }
+        if (!levelControl || levelControl.levelID !== 1) {
+            errors.push("First-level prefab Level-29086_control.levelID must be 1");
+        }
+    }
     if (!compactConfig) {
         errors.push("Missing compact config: " + LEVEL_ID);
     } else {
         errors.push(...moduleData.validateTankWaitingBoardCompactConfig(compactConfig));
-        if (compactConfig.i !== 1) errors.push("First compact level id must be 1");
-        if (compactConfig.t.length !== 16) errors.push("First compact tank amount must be 16");
+        if (LEVEL_ID === "1" && compactConfig.i !== 1) errors.push("First compact level id must be 1");
+        if (LEVEL_ID === "1" && compactConfig.t.length !== 16) errors.push("First compact tank amount must be 16");
         if (compactConfig.pt.length !== compactConfig.pn.length) errors.push("Compact pt/pn length mismatch");
         for (let index = 0; index < compactConfig.t.length; index++) {
             const tank = config.tanks[index];
             const position = compactConfig.c[index];
             if (
-                tank.type !== moduleData.TankBoardTankTypeByCode[compactConfig.t[index]] ||
+                tank.aid !== compactConfig.t[index] ||
+                tank.type !== moduleData.TankBoardTankTypeByAid[compactConfig.t[index]] ||
+                tank.partType !== compactConfig.pt[index] ||
+                tank.capacity !== compactConfig.pn[index] ||
                 tank.direction !== compactConfig.d[index] ||
                 tank.x !== position[0] ||
                 tank.y !== position[1]
@@ -230,6 +278,12 @@ function validate() {
         ids.add(tank.id);
         if (!moduleData.TankTypeConfig[moduleData.getTankTypeKey(tank.type)]) {
             errors.push("Unknown type: " + tank.type + " @ " + tank.id);
+        }
+        if (!tank.aid || !bgcCfg.tankList[tank.aid] || !troopsCfg.tList[tank.aid]) {
+            errors.push("Unknown formal tank aid: " + tank.aid + " @ " + tank.id);
+        }
+        if (!Number.isInteger(tank.capacity) || tank.capacity <= 0) {
+            errors.push("Invalid runtime capacity: " + tank.capacity + " @ " + tank.id);
         }
         if (!Number.isInteger(tank.direction) || tank.direction < 0 || tank.direction > 7) {
             errors.push("Invalid direction: " + tank.direction + " @ " + tank.id);
@@ -294,8 +348,9 @@ function validate() {
     const chainCounts = getChainCounts();
     const demandCounts = {};
     for (const tank of config.tanks) {
-        const type = moduleData.TankTypeConfig[moduleData.getTankTypeKey(tank.type)];
-        if (type) demandCounts[type.colorId] = (demandCounts[type.colorId] || 0) + type.capacity;
+        if (moduleData.TankTypeConfig[moduleData.getTankTypeKey(tank.type)]) {
+            demandCounts[tank.partType] = (demandCounts[tank.partType] || 0) + tank.capacity;
+        }
     }
     for (const type of assemblyModuleData.TankAssemblyTypes) {
         if ((chainCounts[type.colorId] || 0) !== (demandCounts[type.colorId] || 0)) {
@@ -320,12 +375,17 @@ function validate() {
             errors.push("Generated parts mismatch colorId " + type.colorId);
         }
     }
-    const compactText = moduleData.buildTankCompactConfigText(config.tanks, "10001");
-    if (!compactText || !compactText.startsWith("{i=1,t={") || !compactText.endsWith("},")) {
+    const compactText = moduleData.buildTankCompactConfigText(config.tanks, LEVEL_ID);
+    if (
+        !compactText ||
+        !compactText.startsWith('{i=' + LEVEL_ID + ',t={"a') ||
+        !compactText.includes(JSON.stringify(compactConfig.t[0])) ||
+        !compactText.endsWith("},")
+    ) {
         errors.push("Compact print format mismatch");
     }
-    if (moduleData.buildTankCompactConfigText(config.tanks, "10002") !== null) {
-        errors.push("Unsupported compact print level should return null");
+    if (moduleData.buildTankCompactConfigText(config.tanks, "-1") !== null) {
+        errors.push("Negative compact print level should return null");
     }
     const excelRows = moduleData.buildTankExcelTsv(config.tanks, LEVEL_ID).split("\n");
     if (excelRows.length !== config.tanks.length + 1) {
@@ -339,19 +399,18 @@ function validate() {
     }
     if (config.tanks.length) {
         const firstTank = config.tanks[0];
-        const firstType = moduleData.TankTypeConfig[moduleData.getTankTypeKey(firstTank.type)];
         const firstColumns = excelRows[1].split("\t");
         if (
             firstColumns[0] !== LEVEL_ID ||
-            firstColumns[1] !== firstTank.id ||
+            firstColumns[1] !== firstTank.aid ||
             Number(firstColumns[2]) !== firstTank.type ||
             Number(firstColumns[4]) !== firstTank.direction ||
             Number(firstColumns[5]) !== firstTank.x ||
             Number(firstColumns[6]) !== firstTank.y ||
-            Number(firstColumns[7]) !== firstType.capacity ||
+            Number(firstColumns[7]) !== firstTank.capacity ||
             Number(firstColumns[8]) !== 1 ||
-            Number(firstColumns[9]) !== firstTank.type ||
-            Number(firstColumns[10]) !== firstType.capacity
+            Number(firstColumns[9]) !== firstTank.partType ||
+            Number(firstColumns[10]) !== firstTank.capacity
         ) {
             errors.push("Excel TSV first tank data mismatch: " + firstTank.id);
         }

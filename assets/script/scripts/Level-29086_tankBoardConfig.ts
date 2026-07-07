@@ -1,5 +1,11 @@
 // @ts-nocheck
 
+const $bgcCfgModule = require("../../resources/sortTankConfig/bgcCfg");
+const $troopsCfgModule = require("../../resources/sortTankConfig/troopsCfg");
+
+const BGC_CONFIG = $bgcCfgModule.default || $bgcCfgModule.bgcCfg;
+const TROOPS_CONFIG = $troopsCfgModule.default || $troopsCfgModule.troopsCfg;
+
 // 等待区坦克方向编号 -> 移动向量。
 // 关卡配置里的 direction 就是这里的 key：
 // 0=左上，1=左，2=上，3=右上，4=左下，5=右，6=右下，7=下。
@@ -53,20 +59,29 @@ export const TankBoardTankTypeValue = {
     yellow: 4
 };
 
-// 关卡表中的坦克编号。编号只负责标识颜色，运行时会转换成 TankBoardTankType。
-export const TankBoardTankCodeByType = {
-    1: 10001,
-    2: 10011,
-    3: 10021,
-    4: 10031
+// 调试区只选择颜色，没有具体 AID，因此为四种颜色提供默认坦克 AID。
+export const TankBoardDefaultTankAidByType = {
+    1: "a10001",
+    2: "a10011",
+    3: "a10021",
+    4: "a10031"
 };
 
-export const TankBoardTankTypeByCode = {
-    10001: 1,
-    10011: 2,
-    10021: 3,
-    10031: 4
-};
+// 正式坦克 AID -> 本玩法颜色类型。颜色取 bgcCfg.tankList[aid].pt。
+export const TankBoardTankTypeByAid = buildTankTypeByAid(BGC_CONFIG && BGC_CONFIG.tankList);
+
+function buildTankTypeByAid(tankList) {
+    var result = {};
+    var aids = Object.keys(tankList || {});
+    for (var i = 0; i < aids.length; i++) {
+        var aid = aids[i];
+        var type = Number(tankList[aid] && tankList[aid].pt);
+        if (TankBoardTankTypeKey[type]) {
+            result[aid] = type;
+        }
+    }
+    return result;
+}
 
 export function getTankTypeKey(type) {
     return "number" == typeof type ? TankBoardTankTypeKey[type] : type;
@@ -78,34 +93,34 @@ export function getTankTypeValue(type) {
 
 // key 是内部坦克类型名，也是 debugLayer 的颜色分组名。
 export const TankTypeConfig = {
-    // yellow: 橙/黄坦克，type/colorId=4，容量 2。
+    // yellow: 橙/黄坦克，type/colorId=4；capacity 仅作为调试区新建坦克的默认容量。
     yellow: {
         // assetPrefix: 对应 assets/resources/zqddn_zhb/texture/tank 下的贴图前缀。
         // direction=2 时会加载 tank_yellow_a_2。
         assetPrefix: "tank_yellow_a",
         // colorId: 装配台统计和零件匹配编号，必须与该颜色的 TankBoardTankType 数值一致。
         colorId: 4,
-        // capacity: 这辆坦克需要收集的乘员/零件数量。
+        // 正式关卡中每辆坦克的实际容量读取 bgcCfg.leveList 对应位置的 pn。
         capacity: 2,
         // body: 逻辑碰撞体尺寸；只影响路径阻挡检测，不跟视觉缩放联动。
         // width=车身宽，length=车身长，corner=矩形削角大小。
         body: { width: 48, length: 62, corner: 6 }
     },
-    // blue: 蓝色坦克，type/colorId=2，容量 4。
+    // blue: 蓝色坦克，type/colorId=2；正式容量读取关卡 pn。
     blue: {
         assetPrefix: "tank_blue_a",
         colorId: 2,
         capacity: 4,
         body: { width: 48, length: 62, corner: 6 }
     },
-    // green: 绿色坦克，type/colorId=1，容量 6。
+    // green: 绿色坦克，type/colorId=1；正式容量读取关卡 pn。
     green: {
         assetPrefix: "tank_green_a",
         colorId: 1,
         capacity: 6,
         body: { width: 48, length: 62, corner: 6 }
     },
-    // purple: 紫色坦克，type/colorId=3，容量 10。
+    // purple: 紫色坦克，type/colorId=3；正式容量读取关卡 pn。
     purple: {
         assetPrefix: "tank_purple_a",
         colorId: 3,
@@ -132,28 +147,46 @@ export const TankWaitingBoardCommonConfig = {
     visualScale: 0.8
 };
 
-export const TankWaitingBoardByLevel = {
-    // i: 流程关卡ID。
-    // t: 坦克编号，10001=绿、10011=蓝、10021=紫、10031=橙。
-    // d: 与 t 一一对应的方向编号。
-    // c: 与 t 一一对应的 carRoot 本地坐标 [x, y]。
-    // pt/pn: 零件颜色和连续数量，两组数组一一对应。
-    1: {
-        i: 1,
-        t: [10031, 10011, 10001, 10021, 10011, 10001, 10021, 10031, 10001, 10021, 10031, 10011, 10021, 10031, 10011, 10001],
-        d: [2, 2, 3, 0, 1, 4, 6, 5, 0, 7, 7, 3, 1, 4, 6, 5],
-        c: [[-180, 170], [-60, 170], [60, 170], [180, 170], [-180, 70], [-60, 70], [60, 70], [180, 70], [-180, -20], [-60, -20], [60, -20], [180, -20], [-180, -130], [-60, -130], [60, -130], [180, -130]],
-        pt: [4, 2, 1, 3, 2, 1, 3, 4, 1, 3, 4, 2, 3, 4, 2, 1],
-        pn: [2, 4, 6, 10, 4, 6, 10, 2, 6, 10, 2, 4, 10, 2, 4, 6]
-    }
-};
+// bgcCfg.leveList 是正式关卡源；这里仅建立按 i 查询的运行时索引，不复制关卡数据。
+export const TankWaitingBoardByLevel = buildTankWaitingBoardLevelIndex(BGC_CONFIG && BGC_CONFIG.leveList);
 
-// 当前只接第一关：流程关卡1对应资源关卡 zqddn_zhb_level-10001（运行时ID为-10001）。
-export const TankWaitingBoardLevelIdMap = {
-    1: 1,
-    10001: 1,
-    "-10001": 1
-};
+function buildTankWaitingBoardLevelIndex(levels) {
+    var result = {};
+    if (!Array.isArray(levels)) {
+        return result;
+    }
+    for (var i = 0; i < levels.length; i++) {
+        var level = levels[i];
+        if (level && isTankCompactInteger(Number(level.i)) && Number(level.i) > 0) {
+            result[Number(level.i)] = level;
+        }
+    }
+    return result;
+}
+
+export function getTankWaitingBoardLevelIds() {
+    return Object.keys(TankWaitingBoardByLevel)
+        .map(function (levelId) {
+            return Number(levelId);
+        })
+        .filter(function (levelId) {
+            return isTankCompactInteger(levelId) && levelId > 0;
+        })
+        .sort(function (a, b) {
+            return a - b;
+        });
+}
+
+export function getNextTankWaitingBoardLevelId(levelId) {
+    var currentId = Number(levelId);
+    var levelIds = getTankWaitingBoardLevelIds();
+    for (var i = 0; i < levelIds.length; i++) {
+        if (levelIds[i] > currentId) {
+            return levelIds[i];
+        }
+    }
+    return null;
+}
 
 // 根据 tanks 顺序生成连续颜色段，供调试打印和缺失 parts 时的开发回退使用。
 export function buildTankPartRunsFromTanks(tanks) {
@@ -167,8 +200,9 @@ export function buildTankPartRunsFromTanks(tanks) {
         if (!typeConfig) {
             continue;
         }
-        var capacity = Math.max(1, Math.floor(Number(typeConfig.capacity) || 1));
-        runs.push({ type: getTankTypeValue(tank.type), count: capacity });
+        var partType = getTankTypeValue(null != tank.partType ? tank.partType : tank.type);
+        var capacity = Math.max(1, Math.floor(Number(tank.capacity) || Number(typeConfig.capacity) || 1));
+        runs.push({ type: partType, count: capacity });
     }
     return runs;
 }
@@ -195,13 +229,11 @@ export function buildTankPartsFromTanks(tanks) {
     return parts;
 }
 
-export function getTankWaitingBoardLevelConfigId(levelId) {
-    return TankWaitingBoardLevelIdMap["" + levelId] || null;
-}
-
 export function getTankWaitingBoardCompactConfig(levelId) {
-    var configId = getTankWaitingBoardLevelConfigId(levelId);
-    return configId ? TankWaitingBoardByLevel[configId] || null : null;
+    var configId = Number(levelId);
+    return isTankCompactInteger(configId) && configId > 0
+        ? TankWaitingBoardByLevel[configId] || null
+        : null;
 }
 
 function isTankCompactInteger(value) {
@@ -231,10 +263,21 @@ export function validateTankWaitingBoardCompactConfig(config) {
         errors.push("Compact pt/pn must be arrays");
     } else if (!config.pt.length || config.pt.length != config.pn.length) {
         errors.push("Compact pt/pn lengths must match and not be empty");
+    } else if (config.pt.length != config.t.length) {
+        errors.push("Compact t/pt/pn lengths must match");
     }
     for (var tankIndex = 0; tankIndex < config.t.length; tankIndex++) {
-        if (!isTankCompactInteger(config.t[tankIndex]) || !TankBoardTankTypeByCode[config.t[tankIndex]]) {
-            errors.push("Unknown tank code @ t[" + tankIndex + "]: " + config.t[tankIndex]);
+        var aid = config.t[tankIndex];
+        var tankType = TankBoardTankTypeByAid[aid];
+        if ("string" != typeof aid || !tankType || !(BGC_CONFIG.tankList && BGC_CONFIG.tankList[aid])) {
+            errors.push("Unknown tank aid @ t[" + tankIndex + "]: " + aid);
+        } else {
+            if (!(TROOPS_CONFIG.tList && TROOPS_CONFIG.tList[aid])) {
+                errors.push("Missing troops config @ t[" + tankIndex + "]: " + aid);
+            }
+            if (Array.isArray(config.pt) && tankType != config.pt[tankIndex]) {
+                errors.push("Tank aid/part type mismatch @ " + tankIndex + ": " + aid + "/" + config.pt[tankIndex]);
+            }
         }
         if (!isTankCompactInteger(config.d[tankIndex]) || config.d[tankIndex] < 0 || config.d[tankIndex] > 7) {
             errors.push("Invalid direction @ d[" + tankIndex + "]: " + config.d[tankIndex]);
@@ -267,7 +310,10 @@ export function buildTankRuntimeTanksFromCompact(config) {
     for (var i = 0; i < config.t.length; i++) {
         tanks.push({
             id: "t" + (i + 1 < 10 ? "0" : "") + (i + 1),
-            type: TankBoardTankTypeByCode[config.t[i]],
+            aid: config.t[i],
+            type: TankBoardTankTypeByAid[config.t[i]],
+            partType: config.pt[i],
+            capacity: config.pn[i],
             direction: config.d[i],
             x: Number(config.c[i][0]),
             y: Number(config.c[i][1])
@@ -290,11 +336,11 @@ function formatTankCompactNumber(value) {
 
 // 调试布局打印格式；pt/pn根据当前坦克顺序和对应容量重新生成。
 export function buildTankCompactConfigText(tanks, levelId) {
-    var configId = getTankWaitingBoardLevelConfigId(levelId);
-    if (!configId || !Array.isArray(tanks) || !tanks.length) {
+    var configId = Number(levelId);
+    if (!isTankCompactInteger(configId) || configId <= 0 || !Array.isArray(tanks) || !tanks.length) {
         return null;
     }
-    var tankCodes = [];
+    var tankAids = [];
     var directions = [];
     var positions = [];
     var partTypes = [];
@@ -302,11 +348,16 @@ export function buildTankCompactConfigText(tanks, levelId) {
     for (var i = 0; i < tanks.length; i++) {
         var tank = tanks[i];
         var type = getTankTypeValue(tank && tank.type);
-        var tankCode = TankBoardTankCodeByType[type];
+        var tankAid = tank && tank.aid || TankBoardDefaultTankAidByType[type];
+        var aidType = TankBoardTankTypeByAid[tankAid];
         var typeConfig = TankTypeConfig[getTankTypeKey(type)];
+        var partType = getTankTypeValue(null != tank.partType ? tank.partType : type);
+        var capacity = Math.max(1, Math.floor(Number(tank && tank.capacity) || Number(typeConfig && typeConfig.capacity) || 1));
         if (
-            !tankCode ||
+            !tankAid ||
+            aidType != type ||
             !typeConfig ||
+            !TankBoardTankTypeKey[partType] ||
             !isTankCompactInteger(tank.direction) ||
             tank.direction < 0 ||
             tank.direction > 7 ||
@@ -315,15 +366,15 @@ export function buildTankCompactConfigText(tanks, levelId) {
         ) {
             return null;
         }
-        tankCodes.push(tankCode);
+        tankAids.push(JSON.stringify(tankAid));
         directions.push(tank.direction);
         positions.push("{" + formatTankCompactNumber(tank.x) + "," + formatTankCompactNumber(tank.y) + "}");
-        partTypes.push(type);
-        partCounts.push(Math.max(1, Math.floor(Number(typeConfig.capacity) || 1)));
+        partTypes.push(partType);
+        partCounts.push(capacity);
     }
     return (
         "{i=" + configId +
-        ",t={" + tankCodes.join(",") + "}" +
+        ",t={" + tankAids.join(",") + "}" +
         ",d={" + directions.join(",") + "}" +
         ",c={" + positions.join(",") + "}" +
         ",pt={" + partTypes.join(",") + "}" +
@@ -344,10 +395,13 @@ export function buildTankExcelTsv(tanks, levelId) {
         var tank = tanks[i];
         var type = getTankTypeValue(tank && tank.type);
         var typeConfig = TankTypeConfig[getTankTypeKey(type)];
-        var capacity = typeConfig ? Math.max(1, Math.floor(Number(typeConfig.capacity) || 1)) : "";
+        var capacity = typeConfig
+            ? Math.max(1, Math.floor(Number(tank && tank.capacity) || Number(typeConfig.capacity) || 1))
+            : "";
+        var partType = getTankTypeValue(tank && null != tank.partType ? tank.partType : type);
         rows.push([
             levelId,
-            tank && tank.id,
+            tank && (tank.aid || tank.id),
             type,
             colorNames[type] || "",
             tank && tank.direction,
@@ -355,7 +409,7 @@ export function buildTankExcelTsv(tanks, levelId) {
             tank && tank.y,
             capacity,
             i + 1,
-            type,
+            partType,
             capacity
         ].join("\t"));
     }

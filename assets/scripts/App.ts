@@ -39,7 +39,7 @@ const FONT_INDEX_BY_LANG = {
 const DIRECT_TANK_ASSEMBLY_DEMO = true;
 const TANK_ASSEMBLY_ENTRY_PREFAB_PATH = "zqddn_zhb/prefab/level/zqddn_zhb_level-enter";
 const TANK_ASSEMBLY_GAME_PREFAB_PATH = "prefab/scene/Game";
-const TANK_ASSEMBLY_LEVEL_PREFAB_PATH = "zqddn_zhb/prefab/level/zqddn_zhb_level-10001";
+const TANK_ASSEMBLY_LEVEL_PREFAB_PATH = "zqddn_zhb/prefab/level/zqddn_zhb_level-1";
 const TANK_ASSEMBLY_LEVEL_READY_EVENT = "tankAssemblyLevelReady";
 
 const { ccclass, property } = cc._decorator;
@@ -808,7 +808,7 @@ class App extends cc.Component {
     }
 
     onTankAssemblyLevelReady(levelID: number) {
-        if (Number(levelID) !== -10001) {
+        if (Number(levelID) !== 1) {
             return;
         }
 
