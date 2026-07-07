@@ -1,8 +1,8 @@
-# zqddn_zhb_level-10001 项目说明
+# zqddn_zhb_level-1 项目说明
 
 ## 1. 当前目标
 
-当前主要开发关卡是 `zqddn_zhb_level-10001`，关卡 ID 为 `-10001`。
+当前主要开发关卡是 `zqddn_zhb_level-1`，业务关卡 ID 为 `1`。
 
 该关卡已经从原项目的“车辆/乘客排序玩法”分支出一套新的坦克装配流程：
 
@@ -61,13 +61,13 @@ const DIRECT_TANK_ASSEMBLY_DEMO = true;
 
 ```text
 id = 1
-levelID = -10001
+levelID = 1
 ```
 
 `Game.ts` 据此生成资源路径：
 
 ```text
-zqddn_zhb/prefab/level/zqddn_zhb_level-10001
+zqddn_zhb/prefab/level/zqddn_zhb_level-1
 ```
 
 随后通过 `ResManager.Res.load()` 加载、实例化，并挂到 Game 场景的关卡容器中。
@@ -179,8 +179,8 @@ initTankAssemblyParkingSlots()
 }
 ```
 
-`t/d/c`必须等长，`pt/pn`必须等长。运行时通过显式映射把资源关卡`-10001`关联到
-流程关卡`i=1`，再在读取入口内部转换成旧逻辑需要的`tanks/parts`。
+`t/d/c`必须等长，`pt/pn`必须等长。运行时直接使用业务关卡`i=1`读取配置，
+只有加载预制体资源时才把ID拼成`zqddn_zhb_level-1`，随后转换成旧逻辑需要的`tanks/parts`。
 
 ### 3.4 等待区运行时
 
@@ -333,7 +333,7 @@ pn: [2, 4]
 
 文件：
 
-`assets/resources/zqddn_zhb/prefab/level/zqddn_zhb_level-10001.prefab`
+`assets/resources/zqddn_zhb/prefab/level/zqddn_zhb_level-1.prefab`
 
 预制体不仅是画面资源，也是代码依赖的节点接口。以下节点名不能随意修改。
 
@@ -440,7 +440,7 @@ pn: [2, 4]
 ### 8.1 当前不是主逻辑，但不能直接删除
 
 `Level-29086_control.ts` 已不再静态引用龙、乘客、复活、旧车辆和平台存档模块。
-但 `zqddn_zhb_level-10001.prefab/carPrefab` 的 15 个隐藏模板节点仍序列化了
+但 `zqddn_zhb_level-1.prefab/carPrefab` 的 15 个隐藏模板节点仍序列化了
 `Level-29086_boxCarItem.ts`。新等待区坦克实际使用 `Level-29086_tankItem.ts`，但在从预制体
 删除 `carPrefab` 之前，`Level-29086_boxCarItem.ts` 仍需保留以保证反序列化正常。
 
@@ -463,8 +463,8 @@ pn: [2, 4]
 
 不要直接批量删除。建议按以下顺序逐步收敛：
 
-1. 先保持 `-10001` 功能稳定，为启动、点击、装配、胜利建立回归测试。
-2. 从 `-10001.prefab` 删除 `carPrefab` 等旧模板节点和旧脚本组件。
+1. 先保持业务关卡`1`功能稳定，为启动、点击、装配、胜利建立回归测试。
+2. 从`zqddn_zhb_level-1.prefab`删除`carPrefab`等旧模板节点和旧脚本组件。
 3. 根据全项目引用扫描删除不再被其他关卡使用的旧模块。
 4. 视维护成本再将传送带、装配台和调试面板拆成独立控制器。
 5. 最后才处理其他关卡预制体、广告、商城、原玩法 UI 和公共框架。
@@ -578,7 +578,7 @@ TSV 每辆坦克一行，列为：关卡ID、坦克ID、坦克类型、颜色、
 等待区配置验证：
 
 ```bash
-node verify_tank_waiting_board.js -10001
+node verify_tank_waiting_board.js 1
 ```
 
 该脚本验证坦克配置、至少一条可解顺序，以及长龙各颜色数量是否等于对应坦克容量需求，

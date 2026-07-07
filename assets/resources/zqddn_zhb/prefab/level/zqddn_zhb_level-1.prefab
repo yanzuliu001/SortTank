@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "zqddn_zhb_level-10001",
+    "_name": "zqddn_zhb_level-1",
     "_objFlags": 0,
     "_parent": null,
     "_children": [
@@ -21577,7 +21577,7 @@
       "__id__": 1
     },
     "_enabled": true,
-    "levelID": -10001,
+    "levelID": 1,
     "levelJSON": null,
     "folder": "f29076",
     "preloadAsset": true,
