@@ -1,5 +1,7 @@
 // @ts-nocheck
 
+// zqddn_zhb_level-1 通过本文件的 UUID 引用组件；不要再创建同名 .js 脚本。
+
 const $brainLevelBase = require("./BrainLevelBase");
 const $level_29086_config = require("./Level-29086_config");
 const $level_29086_tankLayoutConfig = require("./Level-29086_tankLayoutConfig");

@@ -1,5 +1,4 @@
 // @ts-nocheck
-
 // levelID=1 的预制体承载全部正式坦克装配配置关卡，关卡内容来自 bgcCfg.leveList。
 export const TankAssemblyLevelIds = {
     1: true
